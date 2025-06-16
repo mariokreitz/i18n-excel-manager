@@ -1,0 +1,33 @@
+{
+  "languages": {
+    "de": "Deutsch",
+    "am": "Amharisch",
+    "ar": "Arabisch",
+    "bs": "Bosnisch",
+    "da": "Dänisch",
+    "en": "Englisch",
+    "es": "Spanisch",
+    "fa": "Persisch (Farsi)",
+    "fr": "Französisch",
+    "hr": "Kroatisch",
+    "ka": "Georgisch",
+    "kk": "Kasachisch",
+    "ks": "Kaschmiri",
+    "md": "Moldauisch",
+    "mk": "Mazedonisch",
+    "ps": "Paschtu",
+    "ro": "Rumänisch",
+    "ru": "Russisch",
+    "so": "Somali",
+    "sq": "Albanisch",
+    "sr": "Serbisch",
+    "sw": "Suaheli",
+    "ta": "Tamil",
+    "ti": "Tigrinya",
+    "tr": "Türkisch",
+    "uk": "Ukrainisch",
+    "ur": "Urdu",
+    "uz": "Usbekisch",
+    "vi": "Vietnamesisch"
+  }
+}
