@@ -23,7 +23,7 @@
         "cli",
         "internationalization",
         "l10n",
-        "language",
+        "language"
       ],
       "author": "Mario Kreitz <mario.kreitz@web.de>",
       "license": "MIT",
