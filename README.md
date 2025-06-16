@@ -15,6 +15,9 @@ Ein Kommandozeilen-Tool zur einfachen Konvertierung von i18n-JSON-Dateien zu Exc
 - **Excel zu i18n**: Wandelt bearbeitete Excel-Dateien zurück in lokalisierte JSON-Dateien
 - **Interaktives CLI**: Benutzerfreundliches Interface mit farbiger Anzeige
 - **Verschachtelte Übersetzungen**: Unterstützt komplexe Übersetzungsstrukturen
+- **Dry-Run & Report**: Mit der Option `--dry-run` werden keine Dateien geschrieben, sondern ein Report zu fehlenden Übersetzungen, doppelten Keys und Platzhalter-Konsistenz erzeugt
+- **Platzhalter-Prüfung**: Erkennt und prüft Platzhalter wie `{name}` oder `{count}` auf Konsistenz in allen Sprachen
+- **Konfigurierbare Sheet-Namen**: Excel-Sheet-Name kann per Option gesetzt werden
 
 ## Installation
 
@@ -42,6 +45,11 @@ i18n-excel-manager
 
 Folgen Sie den Anweisungen im Menü, um Ihre Konvertierung zu konfigurieren.
 
+**Standardpfade im CLI:**
+- Pfad zu den i18n-Dateien: `public/assets/i18n` (Angular-Standard)
+- Ziel-Excel-Datei: `.translations.xlsx`
+- Sheet-Name: `Translations`
+
 ### Kommandozeilenparameter
 
 #### i18n-Dateien nach Excel konvertieren
@@ -68,11 +76,37 @@ oder:
 i18n-excel-manager --from-excel "./translations.xlsx" "./locales"
 ```
 
+#### Dry-Run & Report
+
+Mit der Option `--dry-run` werden keine Dateien geschrieben. Stattdessen wird ein ausführlicher Report auf der Konsole ausgegeben, der folgende Punkte prüft:
+
+- Fehlende Übersetzungen pro Sprache
+- Doppelte Keys
+- Konsistenz der Platzhalter (z.B. `{name}`, `{count}`) zwischen den Sprachen
+
+Beispiel:
+
+```bash
+i18n-excel-manager -t "./locales" "./translations.xlsx" --dry-run
+```
+
 ### Hilfe anzeigen
 
 ```bash
 i18n-excel-manager --help
 ```
+
+## Platzhalter-Prüfung
+
+Das Tool erkennt Platzhalter wie `{name}` oder `{count}` in den Übersetzungstexten und prüft, ob diese in allen Sprachversionen einer Übersetzung konsistent vorhanden sind. Bei Abweichungen wird im Report gewarnt.
+
+Beispiel:
+
+| Key               | de                                      | en                              |
+|-------------------|-----------------------------------------|---------------------------------|
+| greeting.message  | Hallo {name}, du hast {count} Nachrichten. | Hello {name}, you have messages. |
+
+Im Report erscheint ein Hinweis, dass `{count}` in der englischen Übersetzung fehlt.
 
 ## Dateiformate
 
@@ -102,6 +136,18 @@ Das Tool erstellt eine Excel-Datei mit folgender Struktur:
 | login.title   | Anmelden| Login    | Connexion  |
 | login.submit  | Einloggen| Sign in | Connecter  |
 
+## Tests & Linting
+
+- **Tests ausführen:**  
+  ```bash
+  npm test
+  ```
+- **Linting:**  
+  ```bash
+  npm run lint
+  ```
+- Unterstützt wird Node.js ab Version 14.16.0
+
 ## Beitrag
 
 Beiträge sind willkommen! Bitte lesen Sie [CONTRIBUTING.md](CONTRIBUTING.md) für Details zum Prozess.
@@ -111,6 +157,10 @@ Beiträge sind willkommen! Bitte lesen Sie [CONTRIBUTING.md](CONTRIBUTING.md) f�
 3. Änderungen committen (`git commit -m 'Add amazing feature'`)
 4. Branch pushen (`git push origin feature/amazing-feature`)
 5. Pull Request öffnen
+
+## Fragen & Probleme
+
+Für Fragen, Fehler oder Feature-Wünsche bitte ein [Issue auf GitHub](https://github.com/mariokreitz/i18n-excel-manager/issues) erstellen.
 
 ## Lizenz
 
