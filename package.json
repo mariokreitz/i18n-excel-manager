@@ -1,32 +1,37 @@
 {
   "name": "i18n-to-excel",
   "version": "1.0.0",
-  "description": "Ein Tool zum Exportieren von i18n-Übersetzungsdateien in Excel-Format für eine einfache Bearbeitung und Übersicht",
+  "description": "Tool zur Konvertierung von i18n-Dateien zu Excel und zurück",
+  "type": "module",
   "main": "cli.js",
   "bin": {
     "i18n-to-excel": "./cli.js"
   },
   "scripts": {
-    "start": "node ./cli.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint ."
+    "start": "node cli.js",
+    "test": "node --test",
+    "lint": "eslint .",
+    "prepare": "npm test && npm run lint"
   },
   "keywords": [
     "i18n",
-    "internationalization",
     "excel",
-    "translation",
     "localization",
-    "json",
-    "export"
+    "translation"
   ],
-  "author": "Mario Kreitz",
-  "license": "ISC",
-  "type": "module",
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^11.0.0",
+    "exceljs": "^4.3.0",
+    "figlet": "^1.6.0",
+    "inquirer": "^9.2.10"
+  },
+  "devDependencies": {
+    "eslint": "^8.47.0"
+  },
   "engines": {
     "node": ">=14.16.0"
-  },
-  "dependencies": {
-    "xlsx": "^0.18.5"
   }
 }

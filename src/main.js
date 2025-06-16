@@ -1,163 +1,202 @@
 /**
- * @fileoverview Hauptmodul für das i18n-to-excel Tool.
- * Verarbeitet lokalisierte JSON-Dateien und erstellt daraus eine Excel-Tabelle.
- * @author Mario Kreitz
- * @version 1.0.0
+ * Hauptmodul für i18n-to-excel
+ * Enthält die Kernfunktionalität zum Konvertieren zwischen i18n-JSON und Excel-Dateien
+ * 
+ * @module main
  */
 
-import fs from "fs";
-import path from "path";
-import xlsx from "xlsx";
+import fs from 'fs/promises';
+import path from 'path';
+import ExcelJS from 'exceljs';
 
 /**
- * Flacht ein verschachteltes Objekt in eine Key-Value-Map ab.
- * Wandelt hierarchische Strukturen wie { a: { b: "Wert" }} in { "a.b": "Wert" } um.
+ * Konvertiert i18n-JSON-Dateien in eine Excel-Datei
  * 
- * @function
- * @param {Object} obj - Das zu flachende Objekt
- * @param {string} [prefix=""] - Präfix für den aktuellen Pfad (für rekursive Aufrufe)
- * @param {Object} [result={}] - Akkumulator für das Ergebnis (für rekursive Aufrufe)
- * @returns {Object} Ein flaches Objekt mit Punktnotation als Schlüssel
+ * @async
+ * @param {string} sourcePath - Ordnerpfad mit den i18n-JSON-Dateien
+ * @param {string} targetFile - Pfad zur Ziel-Excel-Datei
+ * @throws {Error} Wenn der Quellpfad nicht existiert oder keine JSON-Dateien enthält
+ * @returns {Promise<void>}
  */
-function flatten(obj, prefix = "", result = {}) {
-  // Prüfe, ob das Objekt gültig ist
-  if (!obj || typeof obj !== "object") {
-    return result;
-  }
+export async function convertToExcel(sourcePath, targetFile) {
+  try {
+    // Prüfen, ob der Quellpfad existiert
+    await fs.access(sourcePath).catch(() => {
+      throw new Error(`Quellpfad existiert nicht: ${sourcePath}`);
+    });
 
-  for (const key in obj) {
-    if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
+    // Dateien im Quellverzeichnis lesen
+    const files = await fs.readdir(sourcePath);
+    const jsonFiles = files.filter(file => file.endsWith('.json'));
     
-    const val = obj[key];
-    const newKey = prefix ? `${prefix}.${key}` : key;
-    
-    if (val && typeof val === "object" && !Array.isArray(val)) {
-      // Rekursiv verschachtelte Objekte abflachen
-      flatten(val, newKey, result);
-    } else {
-      // Endknoten als key-value Paar speichern
-      result[newKey] = val;
+    if (jsonFiles.length === 0) {
+      throw new Error(`Keine JSON-Dateien im Verzeichnis gefunden: ${sourcePath}`);
     }
+
+    // Alle Übersetzungen als Map von Schlüsseln zu Sprachobjekten
+    const translations = new Map();
+    const languages = [];
+
+    // JSON-Dateien verarbeiten
+    for (const file of jsonFiles) {
+      const language = path.basename(file, '.json');
+      languages.push(language);
+      
+      const content = await fs.readFile(path.join(sourcePath, file), 'utf8');
+      const jsonData = JSON.parse(content);
+      
+      // Übersetzungen flach darstellen
+      flattenTranslations(jsonData, '', (key, value) => {
+        if (!translations.has(key)) {
+          translations.set(key, {});
+        }
+        translations.get(key)[language] = value;
+      });
+    }
+
+    // Excel-Arbeitsmappe erstellen
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Translations');
+
+    // Header-Zeile hinzufügen
+    const headerRow = ['Key', ...languages];
+    worksheet.addRow(headerRow);
+
+    // Alle Übersetzungen hinzufügen
+    for (const [key, langValues] of translations.entries()) {
+      const row = [key];
+      for (const lang of languages) {
+        row.push(langValues[lang] || '');
+      }
+      worksheet.addRow(row);
+    }
+
+    // Formatierung und Layout verbessern
+    worksheet.columns.forEach(column => {
+      column.width = 40;
+    });
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFD3D3D3' }
+    };
+
+    // Excel-Datei speichern
+    await workbook.xlsx.writeFile(targetFile);
+  } catch (error) {
+    throw new Error(`Fehler bei der Konvertierung zu Excel: ${error.message}`);
   }
-  
-  return result;
 }
 
 /**
- * Hauptfunktion: Liest Übersetzungen ein und exportiert sie als Excel-Datei.
+ * Konvertiert eine Excel-Datei zurück in i18n-JSON-Dateien
  * 
  * @async
- * @function
- * @param {string[]} args - Kommandozeilenargumente [inputDir, outputFile, configFile]
+ * @param {string} sourceFile - Pfad zur Quell-Excel-Datei
+ * @param {string} targetPath - Zielordner für die JSON-Dateien
+ * @throws {Error} Wenn die Quelldatei nicht existiert oder nicht gelesen werden kann
  * @returns {Promise<void>}
- * @throws {Error} Bei Problemen mit Eingabeverzeichnis, Dateizugriff oder Export
  */
-export default async function main(args) {
-  // Parameter extrahieren und Standardwerte setzen
-  const inputDir = args[0] || "./locales";
-  const outputFile = args[1] || "translations.xlsx";
-  const configFile = args[2] || "./config.json";
-
-  // Überprüfe Eingabeverzeichnis
-  if (!fs.existsSync(inputDir)) {
-    throw new Error(`Eingabeverzeichnis "${inputDir}" existiert nicht.`);
-  }
-  
-  if (!fs.lstatSync(inputDir).isDirectory()) {
-    throw new Error(`"${inputDir}" ist kein Verzeichnis.`);
-  }
-
-  // Konfiguration laden
-  let config = { languages: { de: "Deutsch" } };
-  
-  if (fs.existsSync(configFile)) {
-    try {
-      const configData = fs.readFileSync(configFile, "utf-8");
-      config = JSON.parse(configData);
-      
-      // Validiere Konfiguration
-      if (!config.languages || typeof config.languages !== "object") {
-        throw new Error("Ungültiges Konfigurationsformat: 'languages' Objekt fehlt");
-      }
-    } catch (error) {
-      console.warn(`Warnung: Konfigurationsdatei konnte nicht geladen werden: ${error.message}`);
-      console.warn("Standardwerte werden verwendet.");
-    }
-  } else {
-    console.warn(`Warnung: Konfigurationsdatei "${configFile}" nicht gefunden. Standardwerte werden verwendet.`);
-  }
-
-  const languageNames = config.languages;
-  const selectedLanguages = Object.keys(languageNames);
-
-  // Überprüfe, ob Sprachen in der Konfiguration definiert sind
-  if (selectedLanguages.length === 0) {
-    throw new Error("Keine Sprachen in der Konfiguration definiert.");
-  }
-
-  // Alle relevanten JSON-Dateien einlesen
-  const files = fs.readdirSync(inputDir).filter(f => f.endsWith(".json"));
-  
-  if (files.length === 0) {
-    throw new Error(`Keine JSON-Dateien im Verzeichnis "${inputDir}" gefunden.`);
-  }
-
-  // Übersetzungen sammeln
-  const translations = {};
-  const allKeys = new Set();
-
-  for (const file of files) {
-    const lang = path.basename(file, ".json");
-    
-    // Ignoriere Dateien, die nicht in der Sprachkonfiguration sind
-    if (!selectedLanguages.includes(lang)) continue;
-    
-    try {
-      const filePath = path.join(inputDir, file);
-      const content = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-      const flat = flatten(content);
-      
-      translations[lang] = flat;
-      Object.keys(flat).forEach(k => allKeys.add(k));
-    } catch (error) {
-      console.warn(`Warnung: Datei ${file} konnte nicht verarbeitet werden: ${error.message}`);
-    }
-  }
-
-  // Prüfe, ob Übersetzungsschlüssel gefunden wurden
-  if (allKeys.size === 0) {
-    throw new Error("Keine Übersetzungsschlüssel in den Dateien gefunden.");
-  }
-
-  // Zeilen für Excel erzeugen: Jeder Schlüssel wird eine Zeile mit Übersetzungen pro Sprache
-  const rows = Array.from(allKeys)
-    .sort()
-    .map(key => {
-      const row = { Schlüssel: key };
-      
-      for (const lang of selectedLanguages) {
-        const langName = languageNames[lang] || lang;
-        row[langName] = translations[lang]?.[key] || "";
-      }
-      
-      return row;
+export async function convertToJson(sourceFile, targetPath) {
+  try {
+    // Prüfen, ob die Quelldatei existiert
+    await fs.access(sourceFile).catch(() => {
+      throw new Error(`Excel-Datei existiert nicht: ${sourceFile}`);
     });
 
-  // Excel-Datei schreiben
-  try {
-    const worksheet = xlsx.utils.json_to_sheet(rows);
+    // Sicherstellen, dass der Zielordner existiert
+    await fs.mkdir(targetPath, { recursive: true });
+
+    // Excel-Datei lesen
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(sourceFile);
     
-    // Optimale Spaltenbreite einstellen
-    const maxWidth = Math.max(...rows.map(row => String(row.Schlüssel).length));
-    const wscols = [{ wch: Math.min(Math.max(10, maxWidth), 100) }];
-    worksheet['!cols'] = wscols;
+    const worksheet = workbook.getWorksheet('Translations');
+    if (!worksheet) {
+      throw new Error('Das Arbeitsblatt "Translations" wurde nicht gefunden');
+    }
+
+    // Header-Zeile lesen
+    const headerRow = worksheet.getRow(1).values;
+    // Das erste Element (Index 0) ist leer oder enthält "Key"
+    const languages = headerRow.slice(2); // Start bei 2, da Excel-Zeilen bei 1 beginnen
     
-    const workbook = xlsx.utils.book_new();
-    xlsx.utils.book_append_sheet(workbook, worksheet, "Übersetzungen");
-    xlsx.writeFile(workbook, outputFile);
-    
-    console.log(`✅ Excel-Datei "${outputFile}" wurde erfolgreich erstellt.`);
+    // Übersetzungen nach Sprachen gruppieren
+    const translationsByLanguage = {};
+    languages.forEach((lang) => {
+      translationsByLanguage[lang] = {};
+    });
+
+    // Alle Zeilen durchlaufen und Übersetzungen extrahieren
+    worksheet.eachRow((row, rowNumber) => {
+      // Header überspringen
+      if (rowNumber === 1) return;
+      
+      const key = row.getCell(1).value;
+      if (!key) return;
+      
+      languages.forEach((lang, index) => {
+        const value = row.getCell(index + 2).value;
+        if (value !== undefined && value !== null) {
+          // Übersetzungen in geschachteltes Objekt umwandeln
+          setNestedValue(translationsByLanguage[lang], key.split('.'), value);
+        }
+      });
+    });
+
+    // JSON-Dateien für jede Sprache schreiben
+    for (const lang of languages) {
+      const filePath = path.join(targetPath, `${lang}.json`);
+      await fs.writeFile(
+        filePath,
+        JSON.stringify(translationsByLanguage[lang], null, 2),
+        'utf8'
+      );
+    }
   } catch (error) {
-    throw new Error(`Fehler beim Erstellen der Excel-Datei: ${error.message}`);
+    throw new Error(`Fehler bei der Konvertierung zu JSON: ${error.message}`);
   }
+}
+
+/**
+ * Wandelt ein geschachteltes Übersetzungsobjekt in eine flache Struktur um
+ * 
+ * @param {Object} obj - Das zu flachende Objekt
+ * @param {string} prefix - Präfix für den aktuellen Schlüssel
+ * @param {Function} callback - Callback-Funktion, die für jedes Key-Value-Paar aufgerufen wird
+ * @returns {void}
+ */
+function flattenTranslations(obj, prefix, callback) {
+  for (const [key, value] of Object.entries(obj)) {
+    const newKey = prefix ? `${prefix}.${key}` : key;
+    
+    if (typeof value === 'object' && value !== null) {
+      flattenTranslations(value, newKey, callback);
+    } else {
+      callback(newKey, value);
+    }
+  }
+}
+
+/**
+ * Setzt einen verschachtelten Wert in einem Objekt basierend auf einem Schlüsselpfad
+ * 
+ * @param {Object} obj - Zielobjekt
+ * @param {Array<string>} path - Array von Schlüsseln, die den Pfad definieren
+ * @param {*} value - Der zu setzende Wert
+ * @returns {void}
+ */
+function setNestedValue(obj, path, value) {
+  if (path.length === 1) {
+    obj[path[0]] = value;
+    return;
+  }
+
+  const key = path[0];
+  if (!obj[key] || typeof obj[key] !== 'object') {
+    obj[key] = {};
+  }
+  
+  setNestedValue(obj[key], path.slice(1), value);
 }

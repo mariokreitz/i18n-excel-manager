@@ -1,0 +1,35 @@
+# Entwicklungsdateien
+.github
+.vscode
+.editorconfig
+.eslintrc
+.prettierrc
+
+# Tests und Beispiele
+test/
+examples/
+coverage/
+
+# CI/CD
+.travis.yml
+.gitlab-ci.yml
+azure-pipelines.yml
+.circleci/
+
+# Git-Dateien
+.git
+.gitattributes
+
+# Dokumentation (außer README und LICENSE)
+docs/
+wiki/
+CHANGELOG.md
+CONTRIBUTING.md
+
+# Entwicklungsabhängigkeiten
+node_modules/
+
+# Andere temporäre oder Build-Dateien
+.tmp/
+.temp/
+.cache/
