@@ -7,7 +7,7 @@
 
 Ein Kommandozeilen-Tool zur einfachen Konvertierung von i18n-JSON-Dateien zu Excel und zurück. Perfekt für Übersetzungsprozesse in internationalen Projekten.
 
-![i18n-excel-manager Logo](./assets/logo.png)
+![i18n-excel-manager Logo](https://raw.githubusercontent.com/mariokreitz/i18n-excel-manager/refs/heads/main/assets/logo.png)
 
 ## Funktionen
 
