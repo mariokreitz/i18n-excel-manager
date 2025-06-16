@@ -117,4 +117,4 @@ Dieses Projekt ist unter der MIT-Lizenz lizenziert - siehe die [LICENSE](LICENSE
 
 ## Autor
 
-Ihr Name - [GitHub-Profil](https://github.com/yourusername)
+Mario Kreitz - [GitHub-Profil](https://github.com/mariokreitz)
