@@ -76,19 +76,39 @@ async function handleToExcel() {
       type: 'input',
       name: 'sourcePath',
       message: 'Pfad zu den i18n-Dateien:',
-      default: './locales'
+      default: 'src/public/assets/i18n'
     },
     {
       type: 'input',
       name: 'targetFile',
       message: 'Ziel-Excel-Datei:',
-      default: './translations.xlsx'
+      default: '.translations.xlsx'
+    },
+    {
+      type: 'input',
+      name: 'sheetName',
+      message: 'Name des Excel-Sheets:',
+      default: 'Translations'
+    },
+    {
+      type: 'confirm',
+      name: 'dryRun',
+      message: 'Dry-Run (nur simulieren, keine Datei schreiben)?',
+      default: false
     }
   ]);
 
   try {
-    await convertToExcel(answers.sourcePath, answers.targetFile);
-    console.log(chalk.green(`✅ Konvertierung abgeschlossen: ${answers.targetFile}`));
+    await convertToExcel(
+      answers.sourcePath,
+      answers.targetFile,
+      { sheetName: answers.sheetName, dryRun: answers.dryRun }
+    );
+    if (answers.dryRun) {
+      console.log(chalk.yellow('🔎 Dry-Run: Es wurde keine Datei geschrieben.'));
+    } else {
+      console.log(chalk.green(`✅ Konvertierung abgeschlossen: ${answers.targetFile}`));
+    }
   } catch (error) {
     console.error(chalk.red(`❌ Fehler: ${error.message}`));
   }
@@ -112,12 +132,32 @@ async function handleToJson() {
       name: 'targetPath',
       message: 'Zielordner für i18n-Dateien:',
       default: './locales'
+    },
+    {
+      type: 'input',
+      name: 'sheetName',
+      message: 'Name des Excel-Sheets:',
+      default: 'Translations'
+    },
+    {
+      type: 'confirm',
+      name: 'dryRun',
+      message: 'Dry-Run (nur simulieren, keine Datei schreiben)?',
+      default: false
     }
   ]);
 
   try {
-    await convertToJson(answers.sourceFile, answers.targetPath);
-    console.log(chalk.green(`✅ Konvertierung abgeschlossen: ${answers.targetPath}`));
+    await convertToJson(
+      answers.sourceFile,
+      answers.targetPath,
+      { sheetName: answers.sheetName, dryRun: answers.dryRun }
+    );
+    if (answers.dryRun) {
+      console.log(chalk.yellow('🔎 Dry-Run: Es wurden keine Dateien geschrieben.'));
+    } else {
+      console.log(chalk.green(`✅ Konvertierung abgeschlossen: ${answers.targetPath}`));
+    }
   } catch (error) {
     console.error(chalk.red(`❌ Fehler: ${error.message}`));
   }
@@ -154,6 +194,8 @@ program
   .description('Tool zur Konvertierung von i18n-Dateien zu Excel und zurück')
   .option('-t, --to-excel <sourcePath> <targetFile>', 'Konvertiere i18n-Dateien zu Excel')
   .option('-f, --from-excel <sourceFile> <targetPath>', 'Konvertiere Excel zu i18n-Dateien')
+  .option('--sheet-name <name>', 'Name des Excel-Sheets', 'Translations')
+  .option('--dry-run', 'Nur simulieren, keine Dateien schreiben', false)
   .parse(process.argv);
 
 const options = program.opts();
@@ -165,10 +207,28 @@ async function main() {
   // Wenn Kommandozeilenargumente angegeben wurden, direkt ausführen
   if (options.toExcel) {
     const [sourcePath, targetFile] = options.toExcel.split(' ');
-    await convertToExcel(sourcePath, targetFile);
+    await convertToExcel(
+      sourcePath,
+      targetFile,
+      { sheetName: options.sheetName, dryRun: options.dryRun }
+    );
+    if (options.dryRun) {
+      console.log(chalk.yellow('🔎 Dry-Run: Es wurde keine Datei geschrieben.'));
+    } else {
+      console.log(chalk.green(`✅ Konvertierung abgeschlossen: ${targetFile}`));
+    }
   } else if (options.fromExcel) {
     const [sourceFile, targetPath] = options.fromExcel.split(' ');
-    await convertToJson(sourceFile, targetPath);
+    await convertToJson(
+      sourceFile,
+      targetPath,
+      { sheetName: options.sheetName, dryRun: options.dryRun }
+    );
+    if (options.dryRun) {
+      console.log(chalk.yellow('🔎 Dry-Run: Es wurden keine Dateien geschrieben.'));
+    } else {
+      console.log(chalk.green(`✅ Konvertierung abgeschlossen: ${targetPath}`));
+    }
   } else {
     // Ansonsten interaktives Menü anzeigen
     await showMainMenu();
