@@ -1,11 +1,11 @@
 {
-  "name": "i18n-to-excel",
+  "name": "i18n-excel-manager",
   "version": "1.0.0",
   "description": "Tool zur Konvertierung von i18n-Dateien zu Excel und zurück",
   "type": "module",
   "main": "cli.js",
   "bin": {
-    "i18n-to-excel": "./cli.js"
+    "i18n-excel-manager": "./cli.js"
   },
   "scripts": {
     "start": "node cli.js",
