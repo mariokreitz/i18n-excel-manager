@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { convertToExcel, convertToJson } from '../src/main.js';
+import { convertToExcel, convertToJson, generateTranslationReport } from '../src/main.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TEST_LOCALES_DIR = path.join(__dirname, 'test-locales');
@@ -99,5 +99,65 @@ describe('i18n-to-excel', async () => {
     } catch (error) {
       assert.ok(error.message.includes('existiert nicht'));
     }
+  });
+  
+  it('should generate a report for missing translations in dry-run', async () => {
+    // Manipuliere eine Datei, um eine Übersetzung zu entfernen
+    const dePath = path.join(TEST_LOCALES_DIR, 'de.json');
+    const deContent = JSON.parse(await fs.readFile(dePath, 'utf8'));
+    delete deContent.test.description;
+    await fs.writeFile(dePath, JSON.stringify(deContent, null, 2), 'utf8');
+
+    // Fange die Konsolenausgabe ab
+    let output = '';
+    const origLog = console.log;
+    console.log = (msg) => { output += msg + '\n'; };
+
+    await convertToExcel(TEST_LOCALES_DIR, TEST_EXCEL_FILE, { dryRun: true });
+
+    // Wiederherstellen
+    console.log = origLog;
+
+    // Es sollte ein Hinweis auf fehlende Übersetzungen erscheinen
+    assert.match(output, /Fehlende Übersetzungen/);
+    assert.match(output, /test\.description \(de\)/);
+
+    // Rückgängig machen für weitere Tests
+    deContent.test.description = 'Beschreibung';
+    await fs.writeFile(dePath, JSON.stringify(deContent, null, 2), 'utf8');
+  });
+  
+  it('should report inconsistent placeholders between languages in dry-run', async () => {
+    // Manipuliere eine Datei, um einen Platzhalter zu entfernen
+    const dePath = path.join(TEST_LOCALES_DIR, 'de.json');
+    const deContent = JSON.parse(await fs.readFile(dePath, 'utf8'));
+    deContent.test.description = 'Hallo {name}, du hast {count} Nachrichten.';
+    const enPath = path.join(TEST_LOCALES_DIR, 'en.json');
+    const enContent = JSON.parse(await fs.readFile(enPath, 'utf8'));
+    enContent.test.description = 'Hello {name}, you have messages.'; // {count} fehlt
+    await fs.writeFile(dePath, JSON.stringify(deContent, null, 2), 'utf8');
+    await fs.writeFile(enPath, JSON.stringify(enContent, null, 2), 'utf8');
+
+    // Fange die Konsolenausgabe ab
+    let output = '';
+    const origLog = console.log;
+    console.log = (msg) => { output += msg + '\n'; };
+
+    await convertToExcel(TEST_LOCALES_DIR, TEST_EXCEL_FILE, { dryRun: true });
+
+    // Wiederherstellen
+    console.log = origLog;
+
+    // Es sollte ein Hinweis auf Platzhalter-Inkonsistenzen erscheinen
+    assert.match(output, /Inkonsistente Platzhalter/);
+    assert.match(output, /test\.description/);
+    assert.match(output, /\[de\]: \{name, count\}/);
+    assert.match(output, /\[en\]: \{name\}/);
+
+    // Rückgängig machen für weitere Tests
+    deContent.test.description = 'Beschreibung';
+    enContent.test.description = 'Description';
+    await fs.writeFile(dePath, JSON.stringify(deContent, null, 2), 'utf8');
+    await fs.writeFile(enPath, JSON.stringify(enContent, null, 2), 'utf8');
   });
 });
