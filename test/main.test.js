@@ -160,4 +160,28 @@ describe('i18n-to-excel', async () => {
     await fs.writeFile(dePath, JSON.stringify(deContent, null, 2), 'utf8');
     await fs.writeFile(enPath, JSON.stringify(enContent, null, 2), 'utf8');
   });
+  
+  it('should generate a correct translation report', async () => {
+    // Simuliere translations-Map mit Inkonsistenzen
+    const translations = new Map();
+    translations.set('greet', { de: 'Hallo {name}', en: 'Hello {name}' });
+    translations.set('bye', { de: 'Tschüss', en: '' }); // Fehlende Übersetzung in en
+    translations.set('count', { de: 'Du hast {count} Nachrichten.', en: 'You have messages.' }); // Platzhalter fehlt in en
+    // Doppelt simulieren (Map kann keine doppelten Keys, aber wir testen die Logik)
+    translations.set('dup', { de: 'A', en: 'A' });
+    translations.set('dup', { de: 'B', en: 'B' }); // Wird als überschrieben behandelt
+
+    const languages = ['de', 'en'];
+    const report = generateTranslationReport(translations, languages);
+
+    // Fehlende Übersetzung
+    assert.ok(report.missing.some(e => e.key === 'bye' && e.lang === 'en'), 'Fehlende Übersetzung nicht erkannt');
+    // Keine echten Duplikate, da Map überschreibt, aber Logik bleibt erhalten
+    assert.ok(Array.isArray(report.duplicates), 'duplicates ist kein Array');
+    // Platzhalter-Inkonsistenz
+    const ph = report.placeholderInconsistencies.find(e => e.key === 'count');
+    assert.ok(ph, 'Platzhalter-Inkonsistenz nicht erkannt');
+    assert.deepEqual(Array.from(ph.placeholders.de), ['count']);
+    assert.deepEqual(Array.from(ph.placeholders.en), []);
+  });
 });
