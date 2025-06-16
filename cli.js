@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * CLI-Einstiegspunkt für i18n-to-excel
+ * CLI-Einstiegspunkt für i18n-excel-manager
  * Bietet ein interaktives Menü zur Konvertierung von i18n-Dateien und Excel-Dateien
  * 
  * @module cli
@@ -29,7 +29,7 @@ const packageJson = JSON.parse(
 function displayHeader() {
   console.log(
     chalk.cyan(
-      figlet.textSync('i18n-to-excel', { horizontalLayout: 'full' })
+      figlet.textSync('i18n-excel-manager', { horizontalLayout: 'full' })
     )
   );
   console.log(chalk.white(`v${packageJson.version}`));

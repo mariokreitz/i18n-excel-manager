@@ -1,8 +1,13 @@
-# i18n-to-excel
+# i18n-excel-manager
+
+[![Tests](https://github.com/mariokreitz/i18n-excel-manager/actions/workflows/test.yml/badge.svg)](https://github.com/mariokreitz/i18n-excel-manager/actions/workflows/test.yml)
+[![npm version](https://img.shields.io/npm/v/i18n-excel-manager.svg?style=flat)](https://www.npmjs.com/package/i18n-excel-manager)
+[![npm downloads](https://img.shields.io/npm/dm/i18n-excel-manager.svg?style=flat)](https://www.npmjs.com/package/i18n-excel-manager)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Ein Kommandozeilen-Tool zur einfachen Konvertierung von i18n-JSON-Dateien zu Excel und zurück. Perfekt für Übersetzungsprozesse in internationalen Projekten.
 
-![i18n-to-excel Logo](./assets/logo.png)
+![i18n-excel-manager Logo](./assets/logo.png)
 
 ## Funktionen
 
@@ -16,18 +21,14 @@ Ein Kommandozeilen-Tool zur einfachen Konvertierung von i18n-JSON-Dateien zu Exc
 ### Global installieren (empfohlen)
 
 ```bash
-npm install -g i18n-to-excel
+npm install -g i18n-excel-manager
 ```
 
 ### Lokal in einem Projekt
 
 ```bash
-npm install i18n-to-excel --save-dev
+npm install i18n-excel-manager --save-dev
 ```
-
-## Voraussetzungen
-
-- Node.js 14.16.0 oder höher
 
 ## Verwendung
 
@@ -36,7 +37,7 @@ npm install i18n-to-excel --save-dev
 Starten Sie das Tool ohne Parameter für den interaktiven Modus:
 
 ```bash
-i18n-to-excel
+i18n-excel-manager
 ```
 
 Folgen Sie den Anweisungen im Menü, um Ihre Konvertierung zu konfigurieren.
@@ -46,31 +47,31 @@ Folgen Sie den Anweisungen im Menü, um Ihre Konvertierung zu konfigurieren.
 #### i18n-Dateien nach Excel konvertieren
 
 ```bash
-i18n-to-excel -t "./locales" "./translations.xlsx"
+i18n-excel-manager -t "./locales" "./translations.xlsx"
 ```
 
 oder:
 
 ```bash
-i18n-to-excel --to-excel "./locales" "./translations.xlsx"
+i18n-excel-manager --to-excel "./locales" "./translations.xlsx"
 ```
 
 #### Excel-Datei zurück zu i18n konvertieren
 
 ```bash
-i18n-to-excel -f "./translations.xlsx" "./locales"
+i18n-excel-manager -f "./translations.xlsx" "./locales"
 ```
 
 oder:
 
 ```bash
-i18n-to-excel --from-excel "./translations.xlsx" "./locales"
+i18n-excel-manager --from-excel "./translations.xlsx" "./locales"
 ```
 
 ### Hilfe anzeigen
 
 ```bash
-i18n-to-excel --help
+i18n-excel-manager --help
 ```
 
 ## Dateiformate
