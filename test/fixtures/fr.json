@@ -1,0 +1,9 @@
+{
+  "common": {
+    "yes": "Oui",
+    "no": "Non"
+  },
+  "greeting": {
+    "hello": "Bonjour {name}, vous avez {count} messages."
+  }
+}
