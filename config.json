@@ -29,5 +29,11 @@
     "ur": "Urdu",
     "uz": "Uzbek",
     "vi": "Vietnamese"
+  },
+  "defaults": {
+    "sourcePath": "public/assets/i18n",
+    "targetFile": "dist/translations.xlsx",
+    "targetPath": "locales",
+    "sheetName": "Translations"
   }
 }
