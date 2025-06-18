@@ -5,72 +5,72 @@
 [![npm downloads](https://img.shields.io/npm/dm/i18n-excel-manager.svg?style=flat)](https://www.npmjs.com/package/i18n-excel-manager)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Ein Kommandozeilen-Tool zur einfachen Konvertierung von i18n-JSON-Dateien zu Excel und zurück. Perfekt für Übersetzungsprozesse in internationalen Projekten.
+A command-line tool for easy conversion of i18n JSON files to Excel and back. Perfect for translation workflows in international projects.
 
 ![i18n-excel-manager Logo](https://raw.githubusercontent.com/mariokreitz/i18n-excel-manager/refs/heads/main/assets/logo.png)
 
-## Funktionen
+## Features
 
-- **i18n zu Excel**: Konvertiert lokalisierte JSON-Dateien in ein übersichtliches Excel-Format
-- **Excel zu i18n**: Wandelt bearbeitete Excel-Dateien zurück in lokalisierte JSON-Dateien
-- **Interaktives CLI**: Benutzerfreundliches Interface mit farbiger Anzeige
-- **Verschachtelte Übersetzungen**: Unterstützt komplexe Übersetzungsstrukturen
-- **Dry-Run & Report**: Mit der Option `--dry-run` werden keine Dateien geschrieben, sondern ein Report zu fehlenden Übersetzungen, doppelten Keys und Platzhalter-Konsistenz erzeugt
-- **Platzhalter-Prüfung**: Erkennt und prüft Platzhalter wie `{name}` oder `{count}` auf Konsistenz in allen Sprachen
-- **Konfigurierbare Sheet-Namen**: Excel-Sheet-Name kann per Option gesetzt werden
+- **i18n to Excel**: Converts localized JSON files into a clear Excel format
+- **Excel to i18n**: Converts edited Excel files back into localized JSON files
+- **Interactive CLI**: User-friendly interface with colored output
+- **Nested translations**: Supports complex translation structures
+- **Dry-Run & Report**: With the `--dry-run` option, no files are written, but a report on missing translations, duplicate keys, and placeholder consistency is generated
+- **Placeholder check**: Detects and checks placeholders like `{name}` or `{count}` for consistency across all languages
+- **Configurable sheet names**: Excel sheet name can be set via option
 
 ## Installation
 
-### Global installieren (empfohlen)
+### Install globally (recommended)
 
 ```bash
 npm install -g i18n-excel-manager
 ```
 
-### Lokal in einem Projekt
+### Local installation in a project
 
 ```bash
 npm install i18n-excel-manager --save-dev
 ```
 
-## Verwendung
+## Usage
 
-### Interaktiver Modus
+### Interactive mode
 
-Starten Sie das Tool ohne Parameter für den interaktiven Modus:
+Start the tool without parameters for interactive mode:
 
 ```bash
 i18n-excel-manager
 ```
 
-Folgen Sie den Anweisungen im Menü, um Ihre Konvertierung zu konfigurieren.
+Follow the menu instructions to configure your conversion.
 
-**Standardpfade im CLI:**
-- Pfad zu den i18n-Dateien: `public/assets/i18n` (Angular-Standard)
-- Ziel-Excel-Datei: `.translations.xlsx`
-- Sheet-Name: `Translations`
+**Default paths in the CLI:**
+- Path to i18n files: `public/assets/i18n` (Angular default)
+- Target Excel file: `./translations.xlsx`
+- Sheet name: `Translations`
 
-### Kommandozeilenparameter
+### Command line parameters
 
-#### i18n-Dateien nach Excel konvertieren
+#### Convert i18n files to Excel
 
 ```bash
 i18n-excel-manager -t "./locales" "./translations.xlsx"
 ```
 
-oder:
+or:
 
 ```bash
 i18n-excel-manager --to-excel "./locales" "./translations.xlsx"
 ```
 
-#### Excel-Datei zurück zu i18n konvertieren
+#### Convert Excel file back to i18n
 
 ```bash
 i18n-excel-manager -f "./translations.xlsx" "./locales"
 ```
 
-oder:
+or:
 
 ```bash
 i18n-excel-manager --from-excel "./translations.xlsx" "./locales"
@@ -78,39 +78,39 @@ i18n-excel-manager --from-excel "./translations.xlsx" "./locales"
 
 #### Dry-Run & Report
 
-Mit der Option `--dry-run` werden keine Dateien geschrieben. Stattdessen wird ein ausführlicher Report auf der Konsole ausgegeben, der folgende Punkte prüft:
+With the `--dry-run` option, no files are written. Instead, a detailed report is output to the console, checking the following points:
 
-- Fehlende Übersetzungen pro Sprache
-- Doppelte Keys
-- Konsistenz der Platzhalter (z.B. `{name}`, `{count}`) zwischen den Sprachen
+- Missing translations per language
+- Duplicate keys
+- Consistency of placeholders (e.g. `{name}`, `{count}`) between languages
 
-Beispiel:
+Example:
 
 ```bash
 i18n-excel-manager -t "./locales" "./translations.xlsx" --dry-run
 ```
 
-### Hilfe anzeigen
+### Show help
 
 ```bash
 i18n-excel-manager --help
 ```
 
-## Platzhalter-Prüfung
+## Placeholder check
 
-Das Tool erkennt Platzhalter wie `{name}` oder `{count}` in den Übersetzungstexten und prüft, ob diese in allen Sprachversionen einer Übersetzung konsistent vorhanden sind. Bei Abweichungen wird im Report gewarnt.
+The tool detects placeholders like `{name}` or `{count}` in the translation texts and checks whether they are consistently present in all language versions of a translation. If there are discrepancies, a warning appears in the report.
 
-Beispiel:
+Example:
 
 | Key               | de                                      | en                              |
 |-------------------|-----------------------------------------|---------------------------------|
 | greeting.message  | Hallo {name}, du hast {count} Nachrichten. | Hello {name}, you have messages. |
 
-Im Report erscheint ein Hinweis, dass `{count}` in der englischen Übersetzung fehlt.
+The report will indicate that `{count}` is missing in the English translation.
 
-## Dateiformate
+## File formats
 
-### Eingabe-JSON-Format (i18n)
+### Input JSON format (i18n)
 
 ```json
 {
@@ -125,9 +125,9 @@ Im Report erscheint ein Hinweis, dass `{count}` in der englischen Übersetzung f
 }
 ```
 
-### Ausgabe-Excel-Format
+### Output Excel format
 
-Das Tool erstellt eine Excel-Datei mit folgender Struktur:
+The tool creates an Excel file with the following structure:
 
 | Key           | de      | en       | fr         |
 |---------------|---------|----------|------------|
@@ -138,7 +138,7 @@ Das Tool erstellt eine Excel-Datei mit folgender Struktur:
 
 ## Tests & Linting
 
-- **Tests ausführen:**  
+- **Run tests:**  
   ```bash
   npm test
   ```
@@ -146,26 +146,26 @@ Das Tool erstellt eine Excel-Datei mit folgender Struktur:
   ```bash
   npm run lint
   ```
-- Unterstützt wird Node.js ab Version 14.16.0
+- Supported Node.js version: >= 14.16.0
 
-## Beitrag
+## Contribution
 
-Beiträge sind willkommen! Bitte lesen Sie [CONTRIBUTING.md](CONTRIBUTING.md) für Details zum Prozess.
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on the process.
 
-1. Fork des Repositories
-2. Feature-Branch erstellen (`git checkout -b feature/amazing-feature`)
-3. Änderungen committen (`git commit -m 'Add amazing feature'`)
-4. Branch pushen (`git push origin feature/amazing-feature`)
-5. Pull Request öffnen
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push the branch (`git push origin feature/amazing-feature`)
+5. Open a pull request
 
-## Fragen & Probleme
+## Questions & Issues
 
-Für Fragen, Fehler oder Feature-Wünsche bitte ein [Issue auf GitHub](https://github.com/mariokreitz/i18n-excel-manager/issues) erstellen.
+For questions, bugs, or feature requests, please create an [issue on GitHub](https://github.com/mariokreitz/i18n-excel-manager/issues).
 
-## Lizenz
+## License
 
-Dieses Projekt ist unter der MIT-Lizenz lizenziert - siehe die [LICENSE](LICENSE) Datei für Details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Autor
+## Author
 
-Mario Kreitz - [GitHub-Profil](https://github.com/mariokreitz)
+Mario Kreitz - [GitHub profile](https://github.com/mariokreitz)

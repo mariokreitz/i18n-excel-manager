@@ -1,107 +1,107 @@
-# Beitragsrichtlinien
+# Contribution Guidelines
 
-Vielen Dank für dein Interesse, zu i18n-excel-manager beizutragen! Jeder Beitrag wird geschätzt und hilft, dieses Tool zu verbessern.
+Thank you for your interest in contributing to i18n-excel-manager! Every contribution is appreciated and helps improve this tool.
 
 ## Code of Conduct
 
-Dieses Projekt folgt einem Code of Conduct, der respektvolles und inklusives Verhalten fördert. Wir erwarten, dass alle Mitwirkenden diesen Code einhalten:
+This project follows a Code of Conduct that encourages respectful and inclusive behavior. We expect all contributors to adhere to this code:
 
-- Zeige Respekt und Höflichkeit gegenüber anderen Teilnehmern
-- Akzeptiere konstruktive Kritik
-- Konzentriere dich auf das, was für die Community am besten ist
-- Vermeide persönliche Angriffe oder abfällige Kommentare
+- Show respect and courtesy to other participants
+- Accept constructive criticism
+- Focus on what is best for the community
+- Avoid personal attacks or derogatory comments
 
-## Wie kann ich beitragen?
+## How can I contribute?
 
-### Issues melden
+### Reporting Issues
 
-- Verwende die Issue-Vorlage auf GitHub
-- Überprüfe zuerst, ob das Issue bereits gemeldet wurde
-- Stelle detaillierte Informationen zur Verfügung:
-  - Schritte zur Reproduktion
-  - Erwartetes vs. tatsächliches Verhalten
-  - Version des Tools und Umgebung
+- Use the issue template on GitHub
+- Check first if the issue has already been reported
+- Provide detailed information:
+  - Steps to reproduce
+  - Expected vs. actual behavior
+  - Tool version and environment
 
 ### Pull Requests
 
-1. Forke das Repository und erstelle einen Feature-Branch vom `main`-Branch
-2. Halte deine Änderungen fokussiert – ein PR sollte eine einzelne Funktion oder einen Bugfix behandeln
-3. Füge Tests für neue Funktionalitäten hinzu
-4. Stelle sicher, dass alle Tests erfolgreich sind
-5. Aktualisiere die Dokumentation entsprechend
-6. Folge den Coding-Standards (siehe unten)
+1. Fork the repository and create a feature branch from the `main` branch
+2. Keep your changes focused – a PR should address a single feature or bugfix
+3. Add tests for new functionality
+4. Make sure all tests pass
+5. Update the documentation accordingly
+6. Follow the coding standards (see below)
 
-### Entwicklungsprozess
+### Development Process
 
 ```bash
-# Repository klonen
-git clone https://github.com/DEIN-USERNAME/i18n-excel-manager.git
+# Clone the repository
+git clone https://github.com/mariokreitz/i18n-excel-manager.git
 cd i18n-excel-manager
 
-# Dependencies installieren
+# Install dependencies
 npm install
 
-# Tests ausführen
+# Run tests
 npm test
 
-# Linting ausführen
+# Run linting
 npm run lint
 ```
 
-## Stilrichtlinien
+## Style Guidelines
 
-### Code-Stil
+### Code Style
 
-- Wir verwenden ESLint und Prettier für die Code-Formatierung
-- Befolge den etablierten Stil im vorhandenen Code
-- Verwende aussagekräftige Variablen- und Funktionsnamen
-- Dokumentiere neuen Code mit JSDoc-Kommentaren
+- We use ESLint and Prettier for code formatting
+- Follow the established style in the existing code
+- Use meaningful variable and function names
+- Document new code with JSDoc comments
 
-### Commit-Nachrichten
+### Commit Messages
 
-Folge dem konventionellen Commit-Format:
+Follow the conventional commit format:
 
 ```
-<typ>(optional scope): <beschreibung>
+<type>(optional scope): <description>
 
 [optional body]
 
 [optional footer(s)]
 ```
 
-Typen:
-- `feat`: Eine neue Funktion
-- `fix`: Eine Fehlerbehebung
-- `docs`: Nur Dokumentationsänderungen
-- `style`: Änderungen, die keinen Code beeinflussen (Formatierung, fehlende Semikolons, etc.)
-- `refactor`: Codeänderung, die weder eine neue Funktion hinzufügt noch einen Fehler behebt
-- `perf`: Codeänderung, die die Leistung verbessert
-- `test`: Neue Tests oder Korrekturen an bestehenden Tests
-- `build`: Änderungen am Build-System oder externen Abhängigkeiten
-- `ci`: Änderungen an der CI-Konfiguration
+Types:
+- `feat`: A new feature
+- `fix`: A bug fix
+- `docs`: Documentation only changes
+- `style`: Changes that do not affect the code (formatting, missing semicolons, etc.)
+- `refactor`: Code change that neither adds a feature nor fixes a bug
+- `perf`: Code change that improves performance
+- `test`: Adding or correcting tests
+- `build`: Changes to the build system or external dependencies
+- `ci`: Changes to CI configuration
 
 ### Tests
 
-- Schreibe Tests für alle neuen Funktionen und Bugfixes
-- Führe alle Tests lokal aus, bevor du einen PR einreichst
-- Strebe eine hohe Testabdeckung an
+- Write tests for all new features and bugfixes
+- Run all tests locally before submitting a PR
+- Aim for high test coverage
 
-## Dokumentation
+## Documentation
 
-- Halte die README.md aktuell
-- Dokumentiere neue Funktionalitäten und CLI-Optionen
-- Füge JSDoc-Kommentare für neue Funktionen und Methoden hinzu
+- Keep the README.md up to date
+- Document new features and CLI options
+- Add JSDoc comments for new functions and methods
 
-## Veröffentlichungsprozess
+## Release Process
 
-Der Veröffentlichungsprozess wird vom Projektbetreuer verwaltet:
+The release process is managed by the project maintainer:
 
-1. Versionsänderungen werden über entsprechende Git-Tags markiert
-2. Eine automatische GitHub Action veröffentlicht neue Releases auf npm
-3. Semantische Versionierung (MAJOR.MINOR.PATCH) wird strikt eingehalten
+1. Version changes are marked with appropriate Git tags
+2. An automatic GitHub Action publishes new releases to npm
+3. Semantic versioning (MAJOR.MINOR.PATCH) is strictly followed
 
-## Fragen?
+## Questions?
 
-Wenn du Fragen hast oder Hilfe benötigst, eröffne bitte ein Issue mit dem Label "question".
+If you have questions or need help, please open an issue with the label "question".
 
-Danke für deine Beiträge!
+Thank you for your contributions!

@@ -1,7 +1,7 @@
 {
       "name": "i18n-excel-manager",
       "version": "1.1.1",
-      "description": "CLI-Tool zur Konvertierung und Prüfung von i18n-JSON- und Excel-Dateien mit Platzhalter-Validierung.",
+      "description": "CLI tool for converting and validating i18n JSON and Excel files with placeholder validation.",
       "type": "module",
       "main": "cli.js",
       "bin": {

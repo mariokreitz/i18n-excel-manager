@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * CLI-Einstiegspunkt für i18n-excel-manager
- * Bietet ein interaktives Menü zur Konvertierung von i18n-Dateien und Excel-Dateien
- * 
+ * CLI entry point for i18n-excel-manager
+ * Provides an interactive menu for converting i18n files and Excel files
+ *
  * @module cli
  */
 
@@ -18,13 +18,13 @@ import fs from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Package-Informationen laden
+// Load package information
 const packageJson = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8')
 );
 
 /**
- * Zeigt den Header der Anwendung an
+ * Displays the application header
  */
 function displayHeader() {
   console.log(
@@ -33,22 +33,22 @@ function displayHeader() {
     )
   );
   console.log(chalk.white(`v${packageJson.version}`));
-  console.log(chalk.white('Konvertiere i18n-Dateien zu Excel und zurück\n'));
+  console.log(chalk.white('Convert i18n files to Excel and back\n'));
 }
 
 /**
- * Zeigt das Hauptmenü an und verarbeitet die Auswahl
+ * Shows the main menu and processes the selection
  */
 async function showMainMenu() {
   const { action } = await inquirer.prompt([
     {
       type: 'list',
       name: 'action',
-      message: 'Wähle eine Aktion:',
+      message: 'Choose an action:',
       choices: [
-        { name: 'i18n-Dateien zu Excel konvertieren', value: 'toExcel' },
-        { name: 'Excel zu i18n-Dateien konvertieren', value: 'toJson' },
-        { name: 'Beenden', value: 'exit' }
+        { name: 'Convert i18n files to Excel', value: 'toExcel' },
+        { name: 'Convert Excel to i18n files', value: 'toJson' },
+        { name: 'Exit', value: 'exit' }
       ]
     }
   ]);
@@ -61,39 +61,39 @@ async function showMainMenu() {
       await handleToJson();
       break;
     case 'exit':
-      console.log(chalk.green('Auf Wiedersehen!'));
+      console.log(chalk.green('Goodbye!'));
       process.exit(0);
       break;
   }
 }
 
 /**
- * Behandelt die Konvertierung von i18n-Dateien zu Excel
+ * Handles conversion from i18n files to Excel
  */
 async function handleToExcel() {
   const answers = await inquirer.prompt([
     {
       type: 'input',
       name: 'sourcePath',
-      message: 'Pfad zu den i18n-Dateien:',
+      message: 'Path to i18n files:',
       default: 'src/public/assets/i18n'
     },
     {
       type: 'input',
       name: 'targetFile',
-      message: 'Ziel-Excel-Datei:',
-      default: '.translations.xlsx'
+      message: 'Target Excel file:',
+      default: './translations.xlsx'
     },
     {
       type: 'input',
       name: 'sheetName',
-      message: 'Name des Excel-Sheets:',
+      message: 'Excel sheet name:',
       default: 'Translations'
     },
     {
       type: 'confirm',
       name: 'dryRun',
-      message: 'Dry-Run (nur simulieren, keine Datei schreiben)?',
+      message: 'Dry-run (simulate only, do not write file)?',
       default: false
     }
   ]);
@@ -105,44 +105,44 @@ async function handleToExcel() {
       { sheetName: answers.sheetName, dryRun: answers.dryRun }
     );
     if (answers.dryRun) {
-      console.log(chalk.yellow('🔎 Dry-Run: Es wurde keine Datei geschrieben.'));
+      console.log(chalk.yellow('🔎 Dry-run: No file was written.'));
     } else {
-      console.log(chalk.green(`✅ Konvertierung abgeschlossen: ${answers.targetFile}`));
+      console.log(chalk.green(`✅ Conversion completed: ${answers.targetFile}`));
     }
   } catch (error) {
-    console.error(chalk.red(`❌ Fehler: ${error.message}`));
+    console.error(chalk.red(`❌ Error: ${error.message}`));
   }
   
   await askForAnotherAction();
 }
 
 /**
- * Behandelt die Konvertierung von Excel zu i18n-Dateien
+ * Handles conversion from Excel to i18n files
  */
 async function handleToJson() {
   const answers = await inquirer.prompt([
     {
       type: 'input',
       name: 'sourceFile',
-      message: 'Pfad zur Excel-Datei:',
+      message: 'Path to Excel file:',
       default: './translations.xlsx'
     },
     {
       type: 'input',
       name: 'targetPath',
-      message: 'Zielordner für i18n-Dateien:',
+      message: 'Target folder for i18n files:',
       default: './locales'
     },
     {
       type: 'input',
       name: 'sheetName',
-      message: 'Name des Excel-Sheets:',
+      message: 'Excel sheet name:',
       default: 'Translations'
     },
     {
       type: 'confirm',
       name: 'dryRun',
-      message: 'Dry-Run (nur simulieren, keine Datei schreiben)?',
+      message: 'Dry-run (simulate only, do not write files)?',
       default: false
     }
   ]);
@@ -154,26 +154,26 @@ async function handleToJson() {
       { sheetName: answers.sheetName, dryRun: answers.dryRun }
     );
     if (answers.dryRun) {
-      console.log(chalk.yellow('🔎 Dry-Run: Es wurden keine Dateien geschrieben.'));
+      console.log(chalk.yellow('🔎 Dry-run: No files were written.'));
     } else {
-      console.log(chalk.green(`✅ Konvertierung abgeschlossen: ${answers.targetPath}`));
+      console.log(chalk.green(`✅ Conversion completed: ${answers.targetPath}`));
     }
   } catch (error) {
-    console.error(chalk.red(`❌ Fehler: ${error.message}`));
+    console.error(chalk.red(`❌ Error: ${error.message}`));
   }
 
   await askForAnotherAction();
 }
 
 /**
- * Fragt den Benutzer, ob eine weitere Aktion durchgeführt werden soll
+ * Asks the user if they want to perform another action
  */
 async function askForAnotherAction() {
   const { again } = await inquirer.prompt([
     {
       type: 'confirm',
       name: 'again',
-      message: 'Möchtest du eine weitere Aktion durchführen?',
+      message: 'Do you want to perform another action?',
       default: true
     }
   ]);
@@ -181,30 +181,30 @@ async function askForAnotherAction() {
   if (again) {
     await showMainMenu();
   } else {
-    console.log(chalk.green('Auf Wiedersehen!'));
+    console.log(chalk.green('Goodbye!'));
     process.exit(0);
   }
 }
 
 /**
- * Kommandozeilenargumente konfigurieren
+ * Configure command line arguments
  */
 program
   .version(packageJson.version)
-  .description('Tool zur Konvertierung von i18n-Dateien zu Excel und zurück')
-  .option('-t, --to-excel <sourcePath> <targetFile>', 'Konvertiere i18n-Dateien zu Excel')
-  .option('-f, --from-excel <sourceFile> <targetPath>', 'Konvertiere Excel zu i18n-Dateien')
-  .option('--sheet-name <name>', 'Name des Excel-Sheets', 'Translations')
-  .option('--dry-run', 'Nur simulieren, keine Dateien schreiben', false)
+  .description('Tool for converting i18n files to Excel and back')
+  .option('-t, --to-excel <sourcePath> <targetFile>', 'Convert i18n files to Excel')
+  .option('-f, --from-excel <sourceFile> <targetPath>', 'Convert Excel to i18n files')
+  .option('--sheet-name <name>', 'Excel sheet name', 'Translations')
+  .option('--dry-run', 'Simulate only, do not write files', false)
   .parse(process.argv);
 
 const options = program.opts();
 
-// Haupteinstiegspunkt
+// Main entry point
 async function main() {
   displayHeader();
   
-  // Wenn Kommandozeilenargumente angegeben wurden, direkt ausführen
+  // If command line arguments are provided, execute directly
   if (options.toExcel) {
     const [sourcePath, targetFile] = options.toExcel.split(' ');
     await convertToExcel(
@@ -213,9 +213,9 @@ async function main() {
       { sheetName: options.sheetName, dryRun: options.dryRun }
     );
     if (options.dryRun) {
-      console.log(chalk.yellow('🔎 Dry-Run: Es wurde keine Datei geschrieben.'));
+      console.log(chalk.yellow('🔎 Dry-run: No file was written.'));
     } else {
-      console.log(chalk.green(`✅ Konvertierung abgeschlossen: ${targetFile}`));
+      console.log(chalk.green(`✅ Conversion completed: ${targetFile}`));
     }
   } else if (options.fromExcel) {
     const [sourceFile, targetPath] = options.fromExcel.split(' ');
@@ -225,24 +225,24 @@ async function main() {
       { sheetName: options.sheetName, dryRun: options.dryRun }
     );
     if (options.dryRun) {
-      console.log(chalk.yellow('🔎 Dry-Run: Es wurden keine Dateien geschrieben.'));
+      console.log(chalk.yellow('🔎 Dry-run: No files were written.'));
     } else {
-      console.log(chalk.green(`✅ Konvertierung abgeschlossen: ${targetPath}`));
+      console.log(chalk.green(`✅ Conversion completed: ${targetPath}`));
     }
   } else {
-    // Ansonsten interaktives Menü anzeigen
+    // Otherwise show interactive menu
     await showMainMenu();
   }
 }
 
-// Fehlerbehandlung für unerwartete Fehler
+// Error handling for unexpected errors
 process.on('uncaughtException', (error) => {
-  console.error(chalk.red(`Unerwarteter Fehler: ${error.message}`));
+  console.error(chalk.red(`Unexpected error: ${error.message}`));
   console.error(error.stack);
   process.exit(1);
 });
 
 main().catch(error => {
-  console.error(chalk.red(`Fehler beim Ausführen: ${error.message}`));
+  console.error(chalk.red(`Error during execution: ${error.message}`));
   process.exit(1);
 });
