@@ -5,6 +5,7 @@
 /dist
 /build
 /locales
+/test/fixtures
 
 # Logs
 logs
