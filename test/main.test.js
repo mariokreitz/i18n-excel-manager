@@ -1,187 +1,464 @@
 /**
  * Tests for the i18n-to-excel module
+ *
+ * Tests the core functionality of converting between i18n JSON files and Excel,
+ * including language mappings and helper functions.
  */
 
-import { describe, it, before, after } from 'node:test';
+import { describe, it, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { convertToExcel, convertToJson, generateTranslationReport } from '../src/main.js';
+import ExcelJS from 'exceljs';
+import {
+  convertToExcel,
+  convertToJson,
+  validateJsonStructure,
+  generateTranslationReport,
+  printTranslationReport,
+} from '../src/main.js';
+
+// Import internal helper functions for tests
+import * as mainModule from '../src/main.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const TEST_LOCALES_DIR = path.join(__dirname, 'test-locales');
-const TEST_EXCEL_FILE = path.join(__dirname, 'test-translations.xlsx');
+const testDir = path.join(__dirname, 'fixtures');
+const tmpDir = path.join(__dirname, 'tmp');
+const excelFile = path.join(tmpDir, 'test.xlsx');
 
-describe('i18n-to-excel',  () => {
-  // Setup before tests
+// Test language mapping
+const languageMap = {
+  'de': 'German',
+  'en': 'English',
+  'fr': 'French'
+};
+
+// Common setup and teardown functions
+/**
+ * Cleans up the temporary directory before or after tests
+ */
+async function cleanupTmpDir() {
+  try {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  } catch (err) {
+    // Ignore if directory doesn't exist
+  }
+}
+
+/**
+ * Creates necessary directories for testing
+ */
+async function setupDirectories() {
+  await fs.mkdir(tmpDir, { recursive: true });
+}
+
+// Main test suite
+describe('i18n-excel-manager tests', async () => {
+  // Setup before all tests
   before(async () => {
-    // Create test directories
-    await fs.mkdir(TEST_LOCALES_DIR, { recursive: true });
-    
-    // Create test i18n files
-    const deData = {
-      common: {
-        yes: 'Ja',
-        no: 'Nein'
-      },
-      test: {
-        title: 'Test Titel',
-        description: 'Beschreibung'
-      }
-    };
-    
-    const enData = {
-      common: {
-        yes: 'Yes',
-        no: 'No'
-      },
-      test: {
-        title: 'Test Title',
-        description: 'Description'
-      }
-    };
-    
-    await fs.writeFile(
-      path.join(TEST_LOCALES_DIR, 'de.json'),
-      JSON.stringify(deData, null, 2),
-      'utf8'
-    );
-    
-    await fs.writeFile(
-      path.join(TEST_LOCALES_DIR, 'en.json'),
-      JSON.stringify(enData, null, 2),
-      'utf8'
-    );
+    await cleanupTmpDir();
+    await setupDirectories();
   });
-  
-  // Cleanup after tests
+
+  // Cleanup after all tests
   after(async () => {
-    try {
-      await fs.rm(TEST_LOCALES_DIR, { recursive: true, force: true });
-      await fs.unlink(TEST_EXCEL_FILE);
-    } catch (error) {
-      // Ignore cleanup errors
-    }
+    await cleanupTmpDir();
   });
-  
-  it('should convert i18n files to Excel', async () => {
-    await convertToExcel(TEST_LOCALES_DIR, TEST_EXCEL_FILE);
-    
-    // Check if the Excel file exists
-    const stats = await fs.stat(TEST_EXCEL_FILE);
-    assert.ok(stats.isFile(), 'Excel file was not created');
-    assert.ok(stats.size > 0, 'Excel file is empty');
+
+  // Tests for core conversion functionality with language mapping
+  describe('Core conversion with language mapping', async () => {
+    beforeEach(async () => {
+      // Clean temporary directory before each test
+      await cleanupTmpDir();
+      await setupDirectories();
+    });
+
+    it('should convert i18n files to Excel with language names in column headers', async () => {
+      // Convert JSON files to Excel
+      await convertToExcel(testDir, excelFile, {
+        languageMap: languageMap
+      });
+
+      // Verify Excel file creation
+      const stats = await fs.stat(excelFile);
+      assert.ok(stats.size > 0, 'Excel file should be generated with content');
+
+      // Check language names in column headers
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.readFile(excelFile);
+      const worksheet = workbook.getWorksheet('Translations');
+
+      // Check headers (should use language names, not codes)
+      const headers = worksheet.getRow(1).values;
+      assert.strictEqual(headers[1], 'Key', 'First column should be "Key"');
+      assert.strictEqual(headers[2], 'German', 'Second column should be "German" (not "de")');
+      assert.strictEqual(headers[3], 'English', 'Third column should be "English" (not "en")');
+      assert.strictEqual(headers[4], 'French', 'Fourth column should be "French" (not "fr")');
+
+      // Check if content is correctly included
+      const findRow = (key) => {
+        let found = null;
+        worksheet.eachRow((row, rowNumber) => {
+          if (rowNumber > 1 && row.getCell(1).value === key) {
+            found = row;
+          }
+        });
+        return found;
+      };
+
+      const yesRow = findRow('common.yes');
+      assert.ok(yesRow, 'Should find "common.yes" row');
+      assert.strictEqual(yesRow.getCell(2).value, 'Ja', 'German translation should be correct');
+      assert.strictEqual(yesRow.getCell(3).value, 'Yes', 'English translation should be correct');
+      assert.strictEqual(yesRow.getCell(4).value, 'Oui', 'French translation should be correct');
+    });
+
+    it('should convert Excel back to i18n files with correct language codes', async () => {
+      // First create Excel file to convert from
+      await convertToExcel(testDir, excelFile, {
+        languageMap: languageMap
+      });
+
+      // Create output directory for JSON
+      const jsonOutputDir = path.join(tmpDir, 'json-output');
+      await fs.mkdir(jsonOutputDir, { recursive: true });
+
+      // Convert Excel back to JSON
+      await convertToJson(excelFile, jsonOutputDir, {
+        languageMap: languageMap
+      });
+
+      // Check if files were created with language codes (not names)
+      for (const lang of ['de', 'en', 'fr']) {
+        const filePath = path.join(jsonOutputDir, `${lang}.json`);
+        assert.ok(
+          await fs.stat(filePath).then(() => true).catch(() => false),
+          `Should create JSON file for ${lang}`
+        );
+
+        // Check content
+        const content = JSON.parse(await fs.readFile(filePath, 'utf8'));
+        assert.strictEqual(
+          typeof content.common.yes,
+          'string',
+          `Translation for ${lang}.common.yes should exist`
+        );
+      }
+
+      // Check if no files were created with language names as filenames
+      for (const langName of Object.values(languageMap)) {
+        const filePath = path.join(jsonOutputDir, `${langName}.json`);
+        assert.strictEqual(
+          await fs.stat(filePath).then(() => true).catch(() => false),
+          false,
+          `Should not create file with language name ${langName}`
+        );
+      }
+    });
+
+    it('should handle unknown language codes correctly', async () => {
+      // Create test data with an unknown language code
+      const unknownLang = 'xx';
+
+      // Convert to Excel with language map that doesn't include the unknown code
+      await convertToExcel(testDir, excelFile, {
+        languageMap: languageMap
+      });
+
+      // Check if Excel contains the unknown language code unchanged
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.readFile(excelFile);
+      const worksheet = workbook.getWorksheet('Translations');
+      const headerRow = worksheet.getRow(1).values;
+
+      // Find the column index for the unknown language
+      const languageIndex = headerRow.findIndex(header => header === unknownLang);
+      assert.ok(languageIndex > 0, 'Unknown language should be included with its code');
+
+      // Convert back to JSON
+      const jsonTargetDir = path.join(tmpDir, 'output-unknown');
+      await fs.mkdir(jsonTargetDir, { recursive: true });
+      await convertToJson(excelFile, jsonTargetDir, {
+        languageMap: languageMap
+      });
+
+      // Check if the unknown language file was created correctly
+      const filePath = path.join(jsonTargetDir, `${unknownLang}.json`);
+      const fileExists = await fs.stat(filePath).then(() => true).catch(() => false);
+      assert.ok(fileExists, `JSON file for unknown language ${unknownLang} should exist`);
+    });
   });
-  
-  it('should convert Excel back to i18n files', async () => {
-    const outputDir = path.join(TEST_LOCALES_DIR, 'output');
-    await convertToJson(TEST_EXCEL_FILE, outputDir);
-    
-    // Check if the i18n files exist
-    const files = await fs.readdir(outputDir);
-    assert.ok(files.includes('de.json'), 'de.json was not created');
-    assert.ok(files.includes('en.json'), 'en.json was not created');
 
-    // Check contents
-    const deContent = JSON.parse(
-      await fs.readFile(path.join(outputDir, 'de.json'), 'utf8')
-    );
-    
-    assert.strictEqual(deContent.common.yes, 'Ja');
-    assert.strictEqual(deContent.test.description, 'Beschreibung');
+  // Tests for JSON structure validation
+  describe('validateJsonStructure', async () => {
+    it('rejects primitive values as root', () => {
+      assert.throws(() => validateJsonStructure('string'), /Invalid structure/);
+      assert.throws(() => validateJsonStructure(123), /Invalid structure/);
+      assert.throws(() => validateJsonStructure(true), /Invalid structure/);
+    });
+
+    it('accepts empty object as root', () => {
+      assert.doesNotThrow(() => validateJsonStructure({}));
+    });
+
+    it('accepts complex nested objects with string values', () => {
+      const complex = {
+        a: 'value',
+        b: { c: { d: 'nested' } },
+        e: { f: 'another' }
+      };
+      assert.doesNotThrow(() => validateJsonStructure(complex));
+    });
+
+    it('throws with informative path for nested invalid values', () => {
+      const obj = {
+        valid: 'string',
+        nested: {
+          invalid: [1, 2, 3]
+        }
+      };
+      try {
+        validateJsonStructure(obj);
+        assert.fail('Should have thrown an error');
+      } catch (error) {
+        assert.match(error.message, /nested\.invalid/);
+      }
+    });
   });
-  
-  it('should handle errors for non-existent paths', async () => {
-    try {
-      await convertToExcel('./non-existent-path', TEST_EXCEL_FILE);
-      assert.fail('Should have thrown an error');
-    } catch (error) {
-      assert.ok(error.message.includes('does not exist'));
-    }
+
+  // Tests for helper functions
+  describe('Utility functions', async () => {
+    beforeEach(async () => {
+      await fs.mkdir(tmpDir, { recursive: true });
+    });
+
+    it('creates directory structure if it does not exist', async () => {
+      const nestedDir = path.join(tmpDir, 'nested', 'directory');
+
+      // Create directory structure
+      await mainModule.ensureDirectoryExists(nestedDir);
+
+      // Check if directory exists
+      const dirExists = await fs.stat(nestedDir).then(() => true).catch(() => false);
+      assert.ok(dirExists, 'Directory should be created');
+    });
+
+    it('throws when checking a nonexistent file', async () => {
+      const nonExistentFile = path.join(tmpDir, 'does-not-exist.json');
+
+      // Test function
+      try {
+        await mainModule.checkFileExists(nonExistentFile);
+        assert.fail('Should have thrown an error');
+      } catch (error) {
+        assert.match(error.message, /does not exist/);
+      }
+    });
+
+    it('extracts placeholders from text correctly', () => {
+      // Simple placeholder
+      assert.deepStrictEqual(
+        Array.from(mainModule.extractPlaceholders('Hello {name}')),
+        ['name']
+      );
+
+      // Double curly braces
+      assert.deepStrictEqual(
+        Array.from(mainModule.extractPlaceholders('Hello {{name}}')),
+        ['name']
+      );
+
+      // With spaces
+      assert.deepStrictEqual(
+        Array.from(mainModule.extractPlaceholders('Hello { name }')),
+        ['name']
+      );
+
+      // Multiple placeholders
+      assert.deepStrictEqual(
+        Array.from(mainModule.extractPlaceholders('Hello {name}, you have {count} messages')).sort(),
+        ['name', 'count'].sort()
+      );
+    });
+
+    it('sets nested values correctly', () => {
+      const obj = {};
+      mainModule.setNestedValue(obj, ['a', 'b', 'c'], 'value');
+      assert.deepStrictEqual(obj, { a: { b: { c: 'value' } } });
+
+      // Overwrite existing values
+      const obj2 = { x: { y: 'old' } };
+      mainModule.setNestedValue(obj2, ['x', 'y'], 'new');
+      assert.deepStrictEqual(obj2, { x: { y: 'new' } });
+    });
+
+    it('flattens translations correctly', () => {
+      const obj = {
+        a: {
+          b: 'value1',
+          c: { d: 'value2' }
+        },
+        e: 'value3'
+      };
+
+      const results = {};
+      mainModule.flattenTranslations(obj, '', (key, value) => {
+        results[key] = value;
+      });
+
+      assert.deepStrictEqual(results, {
+        'a.b': 'value1',
+        'a.c.d': 'value2',
+        'e': 'value3'
+      });
+    });
+
+    it('reads and writes JSON files correctly', async () => {
+      const testData = { test: { nested: 'value' } };
+      const testPath = path.join(tmpDir, 'test-write.json');
+
+      // Write JSON file
+      await mainModule.writeJsonFile(testPath, testData);
+
+      // Read JSON file
+      const readData = await mainModule.loadJsonFile(testPath);
+
+      // Compare contents
+      assert.deepStrictEqual(readData, testData, 'Read data should match written data');
+    });
+
+    it('throws helpful error for malformed JSON', async () => {
+      const malformedPath = path.join(tmpDir, 'malformed.json');
+      await fs.writeFile(malformedPath, '{not valid json', 'utf8');
+
+      try {
+        await mainModule.loadJsonFile(malformedPath);
+        assert.fail('Should have thrown an error');
+      } catch (error) {
+        assert.match(error.message, /Invalid JSON/);
+      }
+    });
   });
-  
-  it('should generate a report for missing translations in dry-run', async () => {
-    // Manipulate a file to remove a translation
-    const dePath = path.join(TEST_LOCALES_DIR, 'de.json');
-    const deContent = JSON.parse(await fs.readFile(dePath, 'utf8'));
-    delete deContent.test.description;
-    await fs.writeFile(dePath, JSON.stringify(deContent, null, 2), 'utf8');
 
-    // Capture console output
-    let output = '';
-    const origLog = console.log;
-    console.log = (msg) => { output += msg + '\n'; };
+  // Tests for translation report generation
+  describe('Translation report generation', async () => {
+    it('reports clean state for complete translations', () => {
+      const translations = new Map();
+      translations.set('key1', { de: 'Wert1', en: 'Value1' });
+      translations.set('key2', { de: 'Wert2', en: 'Value2' });
 
-    await convertToExcel(TEST_LOCALES_DIR, TEST_EXCEL_FILE, { dryRun: true });
+      const languages = ['de', 'en'];
+      const report = generateTranslationReport(translations, languages);
 
-    // Restore
-    console.log = origLog;
+      assert.strictEqual(report.missing.length, 0, 'Should not find missing translations');
+      assert.strictEqual(report.duplicates.length, 0, 'Should not find duplicates');
+      assert.strictEqual(report.placeholderInconsistencies.length, 0, 'Should not find placeholder inconsistencies');
+    });
 
-    // There should be a hint about missing translations
-    assert.match(output, /Missing translations/);
-    assert.match(output, /test\.description \(de\)/);
+    it('prints success message when no issues found', () => {
+      let output = '';
+      const origLog = console.log;
+      console.log = (msg) => { output += msg + '\n'; };
 
-    // Undo for further tests
-    deContent.test.description = 'Beschreibung';
-    await fs.writeFile(dePath, JSON.stringify(deContent, null, 2), 'utf8');
+      const cleanReport = {
+        missing: [],
+        duplicates: [],
+        placeholderInconsistencies: []
+      };
+
+      printTranslationReport(cleanReport);
+      console.log = origLog;
+
+      assert.match(output, /✅ No missing, duplicate translations/);
+    });
+
+    it('detects missing translations', () => {
+      const translations = new Map();
+      translations.set('key1', { de: 'Wert1' }); // missing 'en'
+      translations.set('key2', { de: 'Wert2', en: 'Value2' });
+
+      const languages = ['de', 'en'];
+      const report = generateTranslationReport(translations, languages);
+
+      assert.strictEqual(report.missing.length, 1, 'Should detect one missing translation');
+      assert.strictEqual(report.missing[0].key, 'key1', 'Should identify which key is missing');
+      assert.strictEqual(report.missing[0].lang, 'en', 'Should identify which language is missing');
+    });
+
+    it('detects inconsistent placeholders', () => {
+      const translations = new Map();
+      translations.set('greeting', {
+        de: 'Hallo {name}, du hast {count} Nachrichten.',
+        en: 'Hello {name}, you have messages.' // missing {count}
+      });
+
+      const languages = ['de', 'en'];
+      const report = generateTranslationReport(translations, languages);
+
+      assert.strictEqual(report.placeholderInconsistencies.length, 1,
+                        'Should detect placeholder inconsistency');
+    });
+
+    it('detects double curly placeholders with spaces', () => {
+      const translations = new Map();
+      translations.set('key', {
+        de: 'Hallo {{ userName }}, wie geht es dir?',
+        en: 'Hello {{userName}}, how are you?'
+      });
+
+      const languages = ['de', 'en'];
+      const report = generateTranslationReport(translations, languages);
+
+      // Check if differences in placeholders are detected
+      // userName vs userName - the difference is only in spacing
+      assert.strictEqual(report.placeholderInconsistencies.length, 0,
+                        'Should not detect spacing differences in placeholders');
+
+      // Actual differences that should be detected
+      translations.set('key2', {
+        de: 'Hallo {person}, willkommen!',
+        en: 'Hello {user}, welcome!'
+      });
+
+      const report2 = generateTranslationReport(translations, languages);
+      assert.strictEqual(report2.placeholderInconsistencies.length, 1,
+                        'Should detect actual different placeholder names');
+    });
   });
-  
-  it('should report inconsistent placeholders between languages in dry-run', async () => {
-    // Manipulate a file to remove a placeholder
-    const dePath = path.join(TEST_LOCALES_DIR, 'de.json');
-    const deContent = JSON.parse(await fs.readFile(dePath, 'utf8'));
-    deContent.test.description = 'Hallo {name}, du hast {count} Nachrichten.';
-    const enPath = path.join(TEST_LOCALES_DIR, 'en.json');
-    const enContent = JSON.parse(await fs.readFile(enPath, 'utf8'));
-    enContent.test.description = 'Hello {name}, you have messages.'; // {count} missing
-    await fs.writeFile(dePath, JSON.stringify(deContent, null, 2), 'utf8');
-    await fs.writeFile(enPath, JSON.stringify(enContent, null, 2), 'utf8');
 
-    // Capture console output
-    let output = '';
-    const origLog = console.log;
-    console.log = (msg) => { output += msg + '\n'; };
+  // Tests for reverse language mapping
+  describe('Reverse language mapping', async () => {
+    it('should correctly map language names back to codes', async () => {
+      // Create test data
+      const jsonOutputDir = path.join(tmpDir, 'lang-name-test');
+      await fs.mkdir(jsonOutputDir, { recursive: true });
 
-    await convertToExcel(TEST_LOCALES_DIR, TEST_EXCEL_FILE, { dryRun: true });
+      // Create test Excel with language names
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Translations'); // Name must be Translations
 
-    // Restore
-    console.log = origLog;
+      // Add headers with language names
+      worksheet.addRow(['Key', 'German', 'English', 'French']);
 
-    // There should be a hint about placeholder inconsistencies
-    assert.match(output, /Inconsistent placeholders/);
-    assert.match(output, /test\.description/);
-    assert.match(output, /\[de\]: \{name, count\}/);
-    assert.match(output, /\[en\]: \{name\}/);
+      // Add test translations
+      worksheet.addRow(['test.key', 'DE Wert', 'EN Value', 'FR Valeur']);
 
-    // Undo for further tests
-    deContent.test.description = 'Beschreibung';
-    enContent.test.description = 'Description';
-    await fs.writeFile(dePath, JSON.stringify(deContent, null, 2), 'utf8');
-    await fs.writeFile(enPath, JSON.stringify(enContent, null, 2), 'utf8');
-  });
-  
-  it('should generate a correct translation report', async () => {
-    // Simulate translations map with inconsistencies
-    const translations = new Map();
-    translations.set('greet', { de: 'Hallo {name}', en: 'Hello {name}' });
-    translations.set('bye', { de: 'Tschüss', en: '' }); // Missing translation in en
-    translations.set('count', { de: 'Du hast {count} Nachrichten.', en: 'You have messages.' }); // Placeholder missing in en
-    // Simulate duplicate (Map can't have real duplicates, but we test the logic)
-    translations.set('dup', { de: 'A', en: 'A' });
-    translations.set('dup', { de: 'B', en: 'B' }); // Overwritten
+      // Save Excel file
+      const testExcelFile = path.join(tmpDir, 'language-names.xlsx');
+      await workbook.xlsx.writeFile(testExcelFile);
 
-    const languages = ['de', 'en'];
-    const report = generateTranslationReport(translations, languages);
+      // Convert Excel back to JSON with language mapping
+      await convertToJson(testExcelFile, jsonOutputDir, {
+        languageMap: languageMap
+      });
 
-    // Missing translation
-    assert.ok(report.missing.some(e => e.key === 'bye' && e.lang === 'en'), 'Missing translation not detected');
-    // No real duplicates, as Map overwrites, but logic remains
-    assert.ok(Array.isArray(report.duplicates), 'duplicates is not an array');
-    // Placeholder inconsistency
-    const ph = report.placeholderInconsistencies.find(e => e.key === 'count');
-    assert.ok(ph, 'Placeholder inconsistency not detected');
-    assert.deepEqual(Array.from(ph.placeholders.de), ['count']);
-    assert.deepEqual(Array.from(ph.placeholders.en), []);
+      // Check if files were created with language codes
+      for (const [code, name] of Object.entries(languageMap)) {
+        const filePath = path.join(jsonOutputDir, `${code}.json`);
+        const exists = await fs.stat(filePath).then(() => true).catch(() => false);
+        assert.ok(exists, `Should create file for ${code} from column ${name}`);
+      }
+    });
   });
 });
