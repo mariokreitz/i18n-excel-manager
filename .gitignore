@@ -4,7 +4,6 @@
 # Produktions-Build
 /dist
 /build
-/locales
 
 # Logs
 logs
