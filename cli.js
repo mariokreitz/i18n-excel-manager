@@ -23,6 +23,17 @@ const packageJson = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8')
 );
 
+// Load configuration
+const configPath = path.join(__dirname, 'config.json');
+const CONFIG = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+const defaultConfig = CONFIG.defaults || {
+  sourcePath: 'public/assets/i18n',
+  targetFile: 'dist/translations.xlsx',
+  targetPath: 'locales',
+  sheetName: 'Translations'
+};
+
 /**
  * Displays the application header
  */
@@ -76,19 +87,19 @@ async function handleToExcel() {
       type: 'input',
       name: 'sourcePath',
       message: 'Path to i18n files:',
-      default: 'src/public/assets/i18n'
+      default: defaultConfig.sourcePath
     },
     {
       type: 'input',
       name: 'targetFile',
       message: 'Target Excel file:',
-      default: './translations.xlsx'
+      default: defaultConfig.targetFile
     },
     {
       type: 'input',
       name: 'sheetName',
       message: 'Excel sheet name:',
-      default: 'Translations'
+      default: defaultConfig.sheetName
     },
     {
       type: 'confirm',
@@ -98,22 +109,7 @@ async function handleToExcel() {
     }
   ]);
 
-  try {
-    await convertToExcel(
-      answers.sourcePath,
-      answers.targetFile,
-      { sheetName: answers.sheetName, dryRun: answers.dryRun }
-    );
-    if (answers.dryRun) {
-      console.log(chalk.yellow('🔎 Dry-run: No file was written.'));
-    } else {
-      console.log(chalk.green(`✅ Conversion completed: ${answers.targetFile}`));
-    }
-  } catch (error) {
-    console.error(chalk.red(`❌ Error: ${error.message}`));
-  }
-  
-  await askForAnotherAction();
+  await performConversion('toExcel', answers);
 }
 
 /**
@@ -125,19 +121,19 @@ async function handleToJson() {
       type: 'input',
       name: 'sourceFile',
       message: 'Path to Excel file:',
-      default: './translations.xlsx'
+      default: defaultConfig.targetFile
     },
     {
       type: 'input',
       name: 'targetPath',
       message: 'Target folder for i18n files:',
-      default: './locales'
+      default: defaultConfig.targetPath
     },
     {
       type: 'input',
       name: 'sheetName',
       message: 'Excel sheet name:',
-      default: 'Translations'
+      default: defaultConfig.sheetName
     },
     {
       type: 'confirm',
@@ -147,16 +143,35 @@ async function handleToJson() {
     }
   ]);
 
+  await performConversion('toJson', answers);
+}
+
+/**
+ * Performs the actual conversion based on the conversion type and user answers
+ * @param {string} conversionType - Either 'toExcel' or 'toJson'
+ * @param {Object} answers - User answers from inquirer
+ */
+async function performConversion(conversionType, answers) {
   try {
-    await convertToJson(
-      answers.sourceFile,
-      answers.targetPath,
-      { sheetName: answers.sheetName, dryRun: answers.dryRun }
-    );
+    const options = {
+      sheetName: answers.sheetName,
+      dryRun: answers.dryRun,
+      languageMap: CONFIG.languages
+    };
+
+    if (conversionType === 'toExcel') {
+      console.log(chalk.blue(`Converting i18n files from ${answers.sourcePath} to ${answers.targetFile}...`));
+      await convertToExcel(answers.sourcePath, answers.targetFile, options);
+    } else {
+      console.log(chalk.blue(`Converting Excel from ${answers.sourceFile} to ${answers.targetPath}...`));
+      await convertToJson(answers.sourceFile, answers.targetPath, options);
+    }
+
     if (answers.dryRun) {
       console.log(chalk.yellow('🔎 Dry-run: No files were written.'));
     } else {
-      console.log(chalk.green(`✅ Conversion completed: ${answers.targetPath}`));
+      const target = conversionType === 'toExcel' ? answers.targetFile : answers.targetPath;
+      console.log(chalk.green(`✅ Conversion completed: ${target}`));
     }
   } catch (error) {
     console.error(chalk.red(`❌ Error: ${error.message}`));
@@ -187,51 +202,140 @@ async function askForAnotherAction() {
 }
 
 /**
+ * Processes CLI parameters for non-interactive mode
+ * @param {Object} options - Commander options object
+ */
+async function processCliOptions(options) {
+  try {
+    // Add language map to options
+    options.languageMap = CONFIG.languages;
+
+    // Handle i18n to Excel conversion
+    if (options.i18nToExcel) {
+      const sourcePath = options.input || defaultConfig.sourcePath;
+      const targetFile = options.output || defaultConfig.targetFile;
+
+      console.log(chalk.blue(`Converting i18n files from ${sourcePath} to ${targetFile}...`));
+
+      await convertToExcel(
+        sourcePath,
+        targetFile,
+        {
+          sheetName: options.sheetName || defaultConfig.sheetName,
+          dryRun: options.dryRun,
+          languageMap: CONFIG.languages
+        }
+      );
+
+      if (options.dryRun) {
+        console.log(chalk.yellow('🔎 Dry-run: No file was written.'));
+      } else {
+        console.log(chalk.green(`✅ Conversion completed: ${targetFile}`));
+      }
+    }
+    // Handle Excel to i18n conversion
+    else if (options.excelToI18n) {
+      const sourceFile = options.input || defaultConfig.targetFile;
+      const targetPath = options.output || defaultConfig.targetPath;
+
+      console.log(chalk.blue(`Converting Excel from ${sourceFile} to ${targetPath}...`));
+
+      await convertToJson(
+        sourceFile,
+        targetPath,
+        {
+          sheetName: options.sheetName || defaultConfig.sheetName,
+          dryRun: options.dryRun,
+          languageMap: CONFIG.languages
+        }
+      );
+
+      if (options.dryRun) {
+        console.log(chalk.yellow('🔎 Dry-run: No files were written.'));
+      } else {
+        console.log(chalk.green(`✅ Conversion completed: ${targetPath}`));
+      }
+    }
+  } catch (error) {
+    console.error(chalk.red(`❌ Error: ${error.message}`));
+    process.exit(1);
+  }
+}
+
+/**
  * Configure command line arguments
  */
 program
+  .name('i18n-excel-manager')
   .version(packageJson.version)
-  .description('Tool for converting i18n files to Excel and back')
-  .option('-t, --to-excel <sourcePath> <targetFile>', 'Convert i18n files to Excel')
-  .option('-f, --from-excel <sourceFile> <targetPath>', 'Convert Excel to i18n files')
-  .option('--sheet-name <name>', 'Excel sheet name', 'Translations')
-  .option('--dry-run', 'Simulate only, do not write files', false)
-  .parse(process.argv);
+  .description('Tool for converting i18n files to Excel and back');
 
-const options = program.opts();
+// Command for i18n to Excel
+program
+  .command('i18n-to-excel')
+  .alias('to-excel')
+  .description('Convert i18n JSON files to Excel')
+  .option('-i, --input <path>', 'path to directory containing i18n JSON files', defaultConfig.sourcePath)
+  .option('-o, --output <file>', 'path for the output Excel file', defaultConfig.targetFile)
+  .option('-s, --sheet-name <name>', 'name of the Excel worksheet', defaultConfig.sheetName)
+  .option('-d, --dry-run', 'simulate only, do not write files')
+  .option('--no-report', 'skip generating translation report')
+  .action((options) => {
+    displayHeader();
+    options.i18nToExcel = true;
+    processCliOptions(options);
+  });
 
-// Main entry point
+// Command for Excel to i18n
+program
+  .command('excel-to-i18n')
+  .alias('to-json')
+  .description('Convert Excel file to i18n JSON files')
+  .option('-i, --input <file>', 'path to Excel file', defaultConfig.targetFile)
+  .option('-o, --output <path>', 'target directory for i18n JSON files', defaultConfig.targetPath)
+  .option('-s, --sheet-name <name>', 'name of the Excel worksheet', defaultConfig.sheetName)
+  .option('-d, --dry-run', 'simulate only, do not write files')
+  .action((options) => {
+    displayHeader();
+    options.excelToI18n = true;
+    processCliOptions(options);
+  });
+
+// Legacy options for backward compatibility
+program
+  .option('-t, --to-excel', 'convert i18n files to Excel (use i18n-to-excel command instead)')
+  .option('-f, --from-excel', 'convert Excel to i18n files (use excel-to-i18n command instead)')
+  .option('--input <path>', 'input path (i18n directory or Excel file)')
+  .option('--output <path>', 'output path (Excel file or i18n directory)')
+  .option('--sheet-name <name>', 'Excel sheet name', CONFIG.defaultSheetName)
+  .option('--dry-run', 'simulate only, do not write files')
+  .action((options) => {
+    // Handle legacy parameters
+    if (options.toExcel || options.fromExcel) {
+      displayHeader();
+
+      if (!options.input) {
+        console.error(chalk.red('Error: --input parameter is required'));
+        process.exit(1);
+      }
+
+      if (options.toExcel) options.i18nToExcel = true;
+      if (options.fromExcel) options.excelToI18n = true;
+
+      processCliOptions(options);
+    }
+  });
+
+/**
+ * Main entry point for the application
+ */
 async function main() {
-  displayHeader();
-  
-  // If command line arguments are provided, execute directly
-  if (options.toExcel) {
-    const [sourcePath, targetFile] = options.toExcel.split(' ');
-    await convertToExcel(
-      sourcePath,
-      targetFile,
-      { sheetName: options.sheetName, dryRun: options.dryRun }
-    );
-    if (options.dryRun) {
-      console.log(chalk.yellow('🔎 Dry-run: No file was written.'));
-    } else {
-      console.log(chalk.green(`✅ Conversion completed: ${targetFile}`));
-    }
-  } else if (options.fromExcel) {
-    const [sourceFile, targetPath] = options.fromExcel.split(' ');
-    await convertToJson(
-      sourceFile,
-      targetPath,
-      { sheetName: options.sheetName, dryRun: options.dryRun }
-    );
-    if (options.dryRun) {
-      console.log(chalk.yellow('🔎 Dry-run: No files were written.'));
-    } else {
-      console.log(chalk.green(`✅ Conversion completed: ${targetPath}`));
-    }
-  } else {
-    // Otherwise show interactive menu
+  // If no arguments provided, show interactive menu
+  if (process.argv.length <= 2) {
+    displayHeader();
     await showMainMenu();
+  } else {
+    program.parse(process.argv);
   }
 }
 
