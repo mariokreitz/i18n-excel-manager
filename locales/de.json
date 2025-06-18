@@ -1,0 +1,14 @@
+{
+  "greeting": "Hallo",
+  "farewell": "Auf Wiedersehen",
+  "login": {
+    "title": "Anmeldung",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "submit": "Einloggen"
+  },
+  "error": {
+    "network": "Netzwerkfehler",
+    "notFound": "Nicht gefunden"
+  }
+}
