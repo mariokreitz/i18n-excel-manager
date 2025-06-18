@@ -28,6 +28,8 @@ CONTRIBUTING.md
 
 # Entwicklungsabhängigkeiten
 node_modules/
+locales
+
 
 # Andere temporäre oder Build-Dateien
 .tmp/
