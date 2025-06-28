@@ -23,4 +23,21 @@ jobs:
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public # ggf. --access private, wenn privat
+        run: npm publish --access public # oder private
+
+  discord:
+    needs: publish # <-- wartet, bis publish fertig ist
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Notify Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          RELEASE_NAME: ${{ github.event.release.name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_URL: ${{ github.event.release.html_url }}
+        run: |
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d "{\"content\": \"🚀 Neues Release **${RELEASE_NAME}** (${RELEASE_TAG}) wurde veröffentlicht & auf npm publiziert!\n👉 [Release anschauen](${RELEASE_URL})\"}" \
+          $DISCORD_WEBHOOK
