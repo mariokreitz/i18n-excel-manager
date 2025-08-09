@@ -1,0 +1,14 @@
+{
+  "greeting": "Hello",
+  "farewell": "Goobye",
+  "login": {
+    "title": "Signup",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Login"
+  },
+  "error": {
+    "network": "Network Error",
+    "notFound": "Not found"
+  }
+}
