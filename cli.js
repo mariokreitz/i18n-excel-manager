@@ -35,7 +35,9 @@ const defaultConfig = CONFIG.defaults || {
 };
 
 /**
- * Displays the application header
+ * Displays the application header in the console using figlet and chalk.
+ * Shows the tool name and version.
+ * @returns {void}
  */
 function displayHeader() {
     console.log(
@@ -48,7 +50,9 @@ function displayHeader() {
 }
 
 /**
- * Shows the main menu and processes the selection
+ * Shows the main interactive menu and processes the user's selection.
+ * @async
+ * @returns {Promise<void>}
  */
 async function showMainMenu() {
     const { action } = await inquirer.prompt([
@@ -79,7 +83,9 @@ async function showMainMenu() {
 }
 
 /**
- * Handles conversion from i18n files to Excel
+ * Prompts the user for i18n-to-Excel conversion options and starts the process.
+ * @async
+ * @returns {Promise<void>}
  */
 async function handleToExcel() {
     const answers = await inquirer.prompt([
@@ -113,7 +119,9 @@ async function handleToExcel() {
 }
 
 /**
- * Handles conversion from Excel to i18n files
+ * Prompts the user for Excel-to-i18n conversion options and starts the process.
+ * @async
+ * @returns {Promise<void>}
  */
 async function handleToJson() {
     const answers = await inquirer.prompt([
@@ -147,9 +155,13 @@ async function handleToJson() {
 }
 
 /**
- * Performs the actual conversion based on the conversion type and user answers
- * @param {string} conversionType - Either 'toExcel' or 'toJson'
- * @param {Object} answers - User answers from inquirer
+ * Performs the actual conversion based on the conversion type and user answers.
+ * Handles both directions and prints results to the console.
+ *
+ * @async
+ * @param {'toExcel'|'toJson'} conversionType - The conversion direction.
+ * @param {object} answers - User answers from inquirer.
+ * @returns {Promise<void>}
  */
 async function performConversion(conversionType, answers) {
     try {
@@ -181,7 +193,9 @@ async function performConversion(conversionType, answers) {
 }
 
 /**
- * Asks the user if they want to perform another action
+ * Asks the user if they want to perform another action after a conversion.
+ * @async
+ * @returns {Promise<void>}
  */
 async function askForAnotherAction() {
     const { again } = await inquirer.prompt([
@@ -202,8 +216,19 @@ async function askForAnotherAction() {
 }
 
 /**
- * Processes CLI parameters for non-interactive mode
- * @param {Object} options - Commander options object
+ * Processes CLI parameters for non-interactive mode.
+ * Handles both i18n-to-excel and excel-to-i18n commands, including legacy options.
+ *
+ * @async
+ * @param {object} options - Commander options object.
+ * @param {boolean} [options.i18nToExcel] - If true, run i18n-to-excel mode.
+ * @param {boolean} [options.excelToI18n] - If true, run excel-to-i18n mode.
+ * @param {string} [options.input] - Input path (i18n directory or Excel file).
+ * @param {string} [options.output] - Output path (Excel file or i18n directory).
+ * @param {string} [options.sheetName] - Excel sheet name.
+ * @param {boolean} [options.dryRun] - If true, simulate only, do not write files.
+ * @param {boolean} [options.report] - If false, skip generating translation report.
+ * @returns {Promise<void>} Resolves when processing is complete.
  */
 async function processCliOptions(options) {
     try {
@@ -324,7 +349,9 @@ program
     });
 
 /**
- * Main entry point for the application
+ * Main entry point for the application. Runs the interactive menu or parses CLI args.
+ * @async
+ * @returns {Promise<void>}
  */
 async function main() {
     // If no arguments provided, show interactive menu
