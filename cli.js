@@ -277,7 +277,6 @@ program
     .option('-o, --output <file>', 'path for the output Excel file', defaultConfig.targetFile)
     .option('-s, --sheet-name <name>', 'name of the Excel worksheet', defaultConfig.sheetName)
     .option('-d, --dry-run', 'simulate only, do not write files')
-    .option('-g, --debug', 'enable debug output')
     .option('--no-report', 'skip generating translation report')
     .action((options) => {
         displayHeader();
@@ -294,7 +293,6 @@ program
     .option('-o, --output <path>', 'target directory for i18n JSON files', defaultConfig.targetPath)
     .option('-s, --sheet-name <name>', 'name of the Excel worksheet', defaultConfig.sheetName)
     .option('-d, --dry-run', 'simulate only, do not write files')
-    .option('-g, --debug', 'enable debug output')
     .action((options) => {
         displayHeader();
         options.excelToI18n = true;
