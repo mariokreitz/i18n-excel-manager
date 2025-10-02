@@ -137,6 +137,25 @@ export function extractPlaceholders(text) {
     return placeholders;
 }
 
+// Path safety and language code validation
+const LANG_CODE_RE = /^[A-Za-z0-9]{2,3}(?:[-_][A-Za-z0-9]+)*$/;
+
+export function validateLanguageCode(lang) {
+    if (typeof lang !== 'string' || !LANG_CODE_RE.test(lang)) {
+        throw new Error(`Invalid language code: ${lang}`);
+    }
+    return lang;
+}
+
+export function safeJoinWithin(baseDir, filename) {
+    const resolvedBase = path.resolve(baseDir);
+    const candidate = path.resolve(path.join(resolvedBase, filename));
+    if (!candidate.startsWith(resolvedBase + path.sep)) {
+        throw new Error(`Unsafe output path: ${candidate}`);
+    }
+    return candidate;
+}
+
 /**
  * Creates a mapping from language names to language codes
  * @param {Object} languageMap - Map from language code to language name
@@ -216,21 +235,31 @@ export function readTranslationsFromWorksheet(worksheet, languageMap = {}) {
         translationsByLanguage[lang] = {};
     });
 
+    const duplicates = new Set();
+    const seenKeys = new Set();
+
     worksheet.eachRow((row, rowNumber) => {
         if (rowNumber === 1) return;
 
         const key = row.getCell(1).value;
         if (!key) return;
 
+        const keyStr = String(key);
+        if (seenKeys.has(keyStr)) {
+            duplicates.add(keyStr);
+        } else {
+            seenKeys.add(keyStr);
+        }
+
         languages.forEach((lang, index) => {
             const value = row.getCell(index + 2).value;
             if (value !== undefined && value !== null) {
-                setNestedValue(translationsByLanguage[lang], key.split('.'), value);
+                setNestedValue(translationsByLanguage[lang], keyStr.split('.'), value);
             }
         });
     });
 
-    return { languages, translationsByLanguage };
+    return { languages, translationsByLanguage, duplicates: Array.from(duplicates) };
 }
 
 /**
@@ -410,6 +439,7 @@ export async function convertToExcel(sourcePath, targetFile, options = {}) {
  * @param {string} [options.sheetName='Translations'] - Name of the Excel sheet
  * @param {boolean} [options.dryRun=false] - If true, do not write files
  * @param {Object} [options.languageMap] - Map from language code to language name
+ * @param {boolean} [options.failOnDuplicates] - If true, throw an error on duplicate keys
  * @throws {Error} If the source file does not exist or cannot be read
  * @returns {Promise<void>}
  */
@@ -417,6 +447,7 @@ export async function convertToJson(sourceFile, targetPath, options = {}) {
     const sheetName = options.sheetName || 'Translations';
     const dryRun = !!options.dryRun;
     const languageMap = options.languageMap || {};
+    const failOnDuplicates = options.failOnDuplicates === true;
 
     try {
         await checkFileExists(sourceFile);
@@ -433,11 +464,19 @@ export async function convertToJson(sourceFile, targetPath, options = {}) {
             throw new Error(`Worksheet "${sheetName}" not found`);
         }
 
-        const { languages, translationsByLanguage } = readTranslationsFromWorksheet(worksheet, languageMap);
+        const { languages, translationsByLanguage, duplicates } = readTranslationsFromWorksheet(worksheet, languageMap);
+
+        if (duplicates && duplicates.length > 0) {
+            if (failOnDuplicates) {
+                throw new Error(`Duplicate keys detected in Excel: ${duplicates.join(', ')}`);
+            }
+            console.warn(`⚠️ Duplicate keys detected in Excel: ${duplicates.join(', ')}`);
+        }
 
         if (!dryRun) {
             for (const lang of languages) {
-                const filePath = path.join(targetPath, `${lang}.json`);
+                validateLanguageCode(lang);
+                const filePath = safeJoinWithin(targetPath, `${lang}.json`);
                 await writeJsonFile(filePath, translationsByLanguage[lang]);
             }
         }

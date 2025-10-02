@@ -271,6 +271,7 @@ async function processCliOptions(options) {
                     sheetName: options.sheetName || defaultConfig.sheetName,
                     dryRun: options.dryRun,
                     languageMap: CONFIG.languages,
+                    failOnDuplicates: options.failOnDuplicates,
                 },
             );
 
@@ -319,6 +320,7 @@ program
     .option('-o, --output <path>', 'target directory for i18n JSON files', defaultConfig.targetPath)
     .option('-s, --sheet-name <name>', 'name of the Excel worksheet', defaultConfig.sheetName)
     .option('-d, --dry-run', 'simulate only, do not write files')
+    .option('--fail-on-duplicates', 'fail if duplicate keys are detected in the Excel sheet')
     .action((options) => {
         displayHeader();
         options.excelToI18n = true;
@@ -334,6 +336,7 @@ program
     .option('--sheet-name <name>', 'Excel sheet name', defaultConfig.sheetName)
     .option('-d, --dry-run', 'simulate only, do not write files')
     .option('--no-report', 'skip generating translation report')
+    .option('--fail-on-duplicates', 'fail if duplicate keys are detected in the Excel sheet')
     .action((options) => {
         // Handle legacy parameters
         if (options.toExcel || options.fromExcel) {

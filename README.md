@@ -34,6 +34,13 @@
 
 ---
 
+## ⚙️ Requirements
+
+- Node.js >= 18
+    - CI runs on Node 18.x, 20.x, and 22.x.
+
+---
+
 ## 🚀 Installation
 
 ### Global (recommended)
@@ -74,6 +81,12 @@ i18n-excel-manager i18n-to-excel --input ./public/assets/i18n --output ./transla
 i18n-excel-manager excel-to-i18n --input ./translations.xlsx --output ./public/assets/i18n --sheet-name Translations
 ```
 
+#### Strict duplicate handling (fail on duplicates)
+
+```bash
+i18n-excel-manager excel-to-i18n -i ./translations.xlsx -o ./public/assets/i18n --fail-on-duplicates
+```
+
 #### Dry-Run (no files written, only report)
 
 ```bash
@@ -85,18 +98,6 @@ i18n-excel-manager i18n-to-excel --dry-run
 ```bash
 i18n-excel-manager i18n-to-excel --no-report
 ```
-
----
-
-## ⚙️ Options
-
-| Option       | Alias | Description                               |
-|--------------|-------|-------------------------------------------|
-| --input      | -i    | Path to i18n JSON folder or Excel file    |
-| --output     | -o    | Output path for Excel file or i18n folder |
-| --sheet-name | -s    | Name of the Excel worksheet               |
-| --dry-run    | -d    | Simulate only, do not write files         |
-| --no-report  |       | Suppress translation report               |
 
 ---
 
@@ -117,12 +118,28 @@ i18n-excel-manager i18n-to-excel --dry-run
 
 ## 📦 Node.js API
 
+i18n-excel-manager exposes a Node API along with the CLI. Import functions from the package root:
+
 ```js
 import { convertToExcel, convertToJson } from 'i18n-excel-manager';
 
 await convertToExcel('public/assets/i18n', 'translations.xlsx', { dryRun: true });
 await convertToJson('translations.xlsx', 'public/assets/i18n', { sheetName: 'MySheet' });
 ```
+
+Note: Importing the CLI entrypoint (`./cli.js`) will not auto-run the interactive UI. The CLI only runs when executed
+directly (e.g., `i18n-excel-manager` or `node cli.js`).
+
+---
+
+## 🔒 Security & Behavior Notes
+
+- Path safety: When converting Excel → i18n JSON, language column headers are validated and output file paths are
+  constrained to the selected output directory. Invalid language codes or unsafe paths are rejected to prevent path
+  traversal.
+- Duplicate keys (Excel): If an Excel sheet contains duplicate values in the "Key" column, they are detected and a
+  warning is printed. The conversion still proceeds by default; use dry-run to review and fix duplicates before writing
+  files. For stricter behavior, pass `--fail-on-duplicates` to cause conversion to fail when duplicates are present.
 
 ---
 
