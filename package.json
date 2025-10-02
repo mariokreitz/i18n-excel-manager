@@ -1,51 +1,51 @@
 {
-      "name": "i18n-excel-manager",
-      "version": "1.2.1",
-      "description": "CLI tool for converting and validating i18n JSON and Excel files with placeholder validation.",
-      "type": "module",
-      "main": "cli.js",
-      "bin": {
-            "i18n-excel-manager": "./cli.js"
-      },
-      "scripts": {
-            "start": "node cli.js",
-            "test": "node --test",
-            "lint": "eslint .",
-            "prepare": "npm test && npm run lint"
-      },
-      "keywords": [
-            "i18n",
-            "excel",
-            "localization",
-            "translation",
-            "json",
-            "converter",
-            "cli",
-            "internationalization",
-            "l10n",
-            "language"
-      ],
-      "author": "Mario Kreitz <mario.kreitz@web.de>",
-      "license": "MIT",
-      "repository": {
-            "type": "git",
-            "url": "https://github.com/mariokreitz/i18n-excel-manager.git"
-      },
-      "bugs": {
-            "url": "https://github.com/mariokreitz/i18n-excel-manager/issues"
-      },
-      "homepage": "https://github.com/mariokreitz/i18n-excel-manager#readme",
-      "dependencies": {
-            "chalk": "^5.3.0",
-            "commander": "^11.0.0",
-            "exceljs": "^4.3.0",
-            "figlet": "^1.6.0",
-            "inquirer": "^9.2.10"
-      },
-      "devDependencies": {
-            "eslint": "^8.47.0"
-      },
-      "engines": {
-            "node": ">=14.16.0"
-      }
+  "name": "i18n-excel-manager",
+  "version": "1.2.1",
+  "description": "CLI tool for converting and validating i18n JSON and Excel files with placeholder validation.",
+  "type": "module",
+  "main": "cli.js",
+  "bin": {
+    "i18n-excel-manager": "./cli.js"
+  },
+  "scripts": {
+    "start": "node cli.js",
+    "test": "node --test",
+    "lint": "eslint .",
+    "prepare": "npm test && npm run lint"
+  },
+  "keywords": [
+    "i18n",
+    "excel",
+    "localization",
+    "translation",
+    "json",
+    "converter",
+    "cli",
+    "internationalization",
+    "l10n",
+    "language"
+  ],
+  "author": "Mario Kreitz <mario.kreitz@web.de>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mariokreitz/i18n-excel-manager.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mariokreitz/i18n-excel-manager/issues"
+  },
+  "homepage": "https://github.com/mariokreitz/i18n-excel-manager#readme",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^11.0.0",
+    "exceljs": "^4.3.0",
+    "figlet": "^1.6.0",
+    "inquirer": "^9.2.10"
+  },
+  "devDependencies": {
+    "eslint": "^8.47.0"
+  },
+  "engines": {
+    "node": ">=14.16.0"
+  }
 }

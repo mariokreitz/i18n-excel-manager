@@ -1,10 +1,12 @@
 # Contribution Guidelines
 
-Thank you for your interest in contributing to i18n-excel-manager! Every contribution is appreciated and helps improve this tool.
+Thank you for your interest in contributing to i18n-excel-manager! Every contribution is appreciated and helps improve
+this tool.
 
 ## Code of Conduct
 
-This project follows a Code of Conduct that encourages respectful and inclusive behavior. We expect all contributors to adhere to this code:
+This project follows a Code of Conduct that encourages respectful and inclusive behavior. We expect all contributors to
+adhere to this code:
 
 - Show respect and courtesy to other participants
 - Accept constructive criticism
@@ -18,9 +20,9 @@ This project follows a Code of Conduct that encourages respectful and inclusive 
 - Use the issue template on GitHub
 - Check first if the issue has already been reported
 - Provide detailed information:
-  - Steps to reproduce
-  - Expected vs. actual behavior
-  - Tool version and environment
+    - Steps to reproduce
+    - Expected vs. actual behavior
+    - Tool version and environment
 
 ### Pull Requests
 
@@ -70,6 +72,7 @@ Follow the conventional commit format:
 ```
 
 Types:
+
 - `feat`: A new feature
 - `fix`: A bug fix
 - `docs`: Documentation only changes
