@@ -3,7 +3,11 @@
   "version": "1.2.1",
   "description": "CLI tool for converting and validating i18n JSON and Excel files with placeholder validation.",
   "type": "module",
-  "main": "cli.js",
+  "main": "src/main.js",
+  "exports": {
+    ".": "./src/main.js",
+    "./cli": "./cli.js"
+  },
   "bin": {
     "i18n-excel-manager": "./cli.js"
   },
@@ -46,6 +50,6 @@
     "eslint": "^8.47.0"
   },
   "engines": {
-    "node": ">=14.16.0"
+    "node": ">=18"
   }
 }

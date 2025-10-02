@@ -332,6 +332,8 @@ program
     .option('--input <path>', 'input path (i18n directory or Excel file)')
     .option('--output <path>', 'output path (Excel file or i18n directory)')
     .option('--sheet-name <name>', 'Excel sheet name', defaultConfig.sheetName)
+    .option('-d, --dry-run', 'simulate only, do not write files')
+    .option('--no-report', 'skip generating translation report')
     .action((options) => {
         // Handle legacy parameters
         if (options.toExcel || options.fromExcel) {
@@ -371,7 +373,11 @@ process.on('uncaughtException', (error) => {
     process.exit(1);
 });
 
-main().catch(error => {
-    console.error(chalk.red(`Error during execution: ${error.message}`));
-    process.exit(1);
-});
+// Only run main when this file is executed directly (not when imported)
+const thisFile = fileURLToPath(import.meta.url);
+if (process.argv[1] && path.resolve(process.argv[1]) === thisFile) {
+    main().catch(error => {
+        console.error(chalk.red(`Error during execution: ${error.message}`));
+        process.exit(1);
+    });
+}
