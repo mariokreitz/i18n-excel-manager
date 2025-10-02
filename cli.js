@@ -247,6 +247,7 @@ async function processCliOptions(options) {
                     sheetName: options.sheetName || defaultConfig.sheetName,
                     dryRun: options.dryRun,
                     languageMap: CONFIG.languages,
+                    report: options.report,
                 },
             );
 
@@ -330,7 +331,7 @@ program
     .option('-f, --from-excel', 'convert Excel to i18n files (use excel-to-i18n command instead)')
     .option('--input <path>', 'input path (i18n directory or Excel file)')
     .option('--output <path>', 'output path (Excel file or i18n directory)')
-    .option('--sheet-name <name>', 'Excel sheet name', CONFIG.defaultSheetName)
+    .option('--sheet-name <name>', 'Excel sheet name', defaultConfig.sheetName)
     .action((options) => {
         // Handle legacy parameters
         if (options.toExcel || options.fromExcel) {

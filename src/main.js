@@ -17,24 +17,24 @@ import ExcelJS from 'exceljs';
  * @throws {Error} On invalid structure
  */
 export function validateJsonStructure(obj, path = '') {
-  if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
-    throw new Error(`Invalid structure at "${path || '<root>'}": Must be an object.`);
-  }
-
-  for (const [key, value] of Object.entries(obj)) {
-    const currentPath = path ? `${path}.${key}` : key;
-
-    if (typeof value === 'string') continue;
-    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      validateJsonStructure(value, currentPath);
-    } else {
-      throw new Error(
-        `Invalid value at "${currentPath}": Only strings and nested objects allowed, but found: ${
-          Array.isArray(value) ? 'Array' : typeof value
-        }`
-      );
+    if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+        throw new Error(`Invalid structure at "${path || '<root>'}": Must be an object.`);
     }
-  }
+
+    for (const [key, value] of Object.entries(obj)) {
+        const currentPath = path ? `${path}.${key}` : key;
+
+        if (typeof value === 'string') continue;
+        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            validateJsonStructure(value, currentPath);
+        } else {
+            throw new Error(
+                `Invalid value at "${currentPath}": Only strings and nested objects allowed, but found: ${
+                    Array.isArray(value) ? 'Array' : typeof value
+                }`,
+            );
+        }
+    }
 }
 
 /**
@@ -42,7 +42,7 @@ export function validateJsonStructure(obj, path = '') {
  * @param {string} dirPath - Directory path to check/create
  */
 export async function ensureDirectoryExists(dirPath) {
-  await fs.mkdir(dirPath, { recursive: true });
+    await fs.mkdir(dirPath, { recursive: true });
 }
 
 /**
@@ -51,11 +51,11 @@ export async function ensureDirectoryExists(dirPath) {
  * @throws {Error} If the file does not exist
  */
 export async function checkFileExists(filePath) {
-  try {
-    await fs.access(filePath);
-  } catch (error) {
-    throw new Error(`File does not exist: ${filePath}`);
-  }
+    try {
+        await fs.access(filePath);
+    } catch (error) {
+        throw new Error(`File does not exist: ${filePath}`);
+    }
 }
 
 /**
@@ -64,12 +64,12 @@ export async function checkFileExists(filePath) {
  * @returns {Promise<Object>} Parsed JSON data
  */
 export async function loadJsonFile(filePath) {
-  const content = await fs.readFile(filePath, 'utf8');
-  try {
-    return JSON.parse(content);
-  } catch (error) {
-    throw new Error(`Invalid JSON in ${filePath}: ${error.message}`);
-  }
+    const content = await fs.readFile(filePath, 'utf8');
+    try {
+        return JSON.parse(content);
+    } catch (error) {
+        throw new Error(`Invalid JSON in ${filePath}: ${error.message}`);
+    }
 }
 
 /**
@@ -78,7 +78,7 @@ export async function loadJsonFile(filePath) {
  * @param {Object} data - Data to write
  */
 export async function writeJsonFile(filePath, data) {
-  await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
 }
 
 /**
@@ -88,15 +88,15 @@ export async function writeJsonFile(filePath, data) {
  * @param {Function} callback - Callback function called for each key-value pair
  */
 export function flattenTranslations(obj, prefix, callback) {
-  for (const [key, value] of Object.entries(obj)) {
-    const newKey = prefix ? `${prefix}.${key}` : key;
-    
-    if (typeof value === 'object' && value !== null) {
-      flattenTranslations(value, newKey, callback);
-    } else {
-      callback(newKey, value);
+    for (const [key, value] of Object.entries(obj)) {
+        const newKey = prefix ? `${prefix}.${key}` : key;
+
+        if (typeof value === 'object' && value !== null) {
+            flattenTranslations(value, newKey, callback);
+        } else {
+            callback(newKey, value);
+        }
     }
-  }
 }
 
 /**
@@ -106,17 +106,17 @@ export function flattenTranslations(obj, prefix, callback) {
  * @param {*} value - The value to set
  */
 export function setNestedValue(obj, path, value) {
-  if (path.length === 1) {
-    obj[path[0]] = value;
-    return;
-  }
+    if (path.length === 1) {
+        obj[path[0]] = value;
+        return;
+    }
 
-  const key = path[0];
-  if (!obj[key] || typeof obj[key] !== 'object') {
-    obj[key] = {};
-  }
-  
-  setNestedValue(obj[key], path.slice(1), value);
+    const key = path[0];
+    if (!obj[key] || typeof obj[key] !== 'object') {
+        obj[key] = {};
+    }
+
+    setNestedValue(obj[key], path.slice(1), value);
 }
 
 /**
@@ -125,16 +125,16 @@ export function setNestedValue(obj, path, value) {
  * @returns {Set<string>} Set of placeholders
  */
 export function extractPlaceholders(text) {
-  const placeholders = new Set();
-  if (typeof text !== 'string') return placeholders;
+    const placeholders = new Set();
+    if (typeof text !== 'string') return placeholders;
 
-  const regex = /{{?\s*([^{}]+?)\s*}}?/g;
-  let match;
-  while ((match = regex.exec(text))) {
-    placeholders.add(match[1].trim());
-  }
+    const regex = /{{?\s*([^{}]+?)\s*}}?/g;
+    let match;
+    while ((match = regex.exec(text))) {
+        placeholders.add(match[1].trim());
+    }
 
-  return placeholders;
+    return placeholders;
 }
 
 /**
@@ -143,11 +143,11 @@ export function extractPlaceholders(text) {
  * @returns {Object} Map from language name to language code
  */
 export function createReverseLanguageMap(languageMap) {
-  const reverseMap = {};
-  for (const [code, name] of Object.entries(languageMap)) {
-    reverseMap[name] = code;
-  }
-  return reverseMap;
+    const reverseMap = {};
+    for (const [code, name] of Object.entries(languageMap)) {
+        reverseMap[name] = code;
+    }
+    return reverseMap;
 }
 
 /**
@@ -160,35 +160,35 @@ export function createReverseLanguageMap(languageMap) {
  * @returns {ExcelJS.Worksheet} The created worksheet
  */
 export function createTranslationWorksheet(workbook, sheetName, translations, languageCodes, languageMap) {
-  const worksheet = workbook.addWorksheet(sheetName);
+    const worksheet = workbook.addWorksheet(sheetName);
 
-  const languageNames = languageCodes.map(code => {
-    return languageMap && languageMap[code] ? languageMap[code] : code;
-  });
+    const languageNames = languageCodes.map(code => {
+        return languageMap && languageMap[code] ? languageMap[code] : code;
+    });
 
-  const headerRow = ['Key', ...languageNames];
-  worksheet.addRow(headerRow);
+    const headerRow = ['Key', ...languageNames];
+    worksheet.addRow(headerRow);
 
-  for (const [key, langValues] of translations.entries()) {
-    const row = [key];
-    for (const lang of languageCodes) {
-      row.push(langValues[lang] || '');
+    for (const [key, langValues] of translations.entries()) {
+        const row = [key];
+        for (const lang of languageCodes) {
+            row.push(langValues[lang] || '');
+        }
+        worksheet.addRow(row);
     }
-    worksheet.addRow(row);
-  }
 
-  worksheet.columns.forEach(column => {
-    column.width = 40;
-  });
+    worksheet.columns.forEach(column => {
+        column.width = 40;
+    });
 
-  worksheet.getRow(1).font = { bold: true };
-  worksheet.getRow(1).fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: 'FFD3D3D3' }
-  };
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFD3D3D3' },
+    };
 
-  return worksheet;
+    return worksheet;
 }
 
 /**
@@ -198,39 +198,39 @@ export function createTranslationWorksheet(workbook, sheetName, translations, la
  * @returns {Object} Object containing languages and translations
  */
 export function readTranslationsFromWorksheet(worksheet, languageMap = {}) {
-  const reverseLanguageMap = createReverseLanguageMap(languageMap);
+    const reverseLanguageMap = createReverseLanguageMap(languageMap);
 
-  const headerRow = worksheet.getRow(1).values;
-  const languageNames = headerRow.slice(2); // Start at 2 since Excel rows start at 1
+    const headerRow = worksheet.getRow(1).values;
+    const languageNames = headerRow.slice(2); // Start at 2 since Excel rows start at 1
 
-  const languages = languageNames.map(name => {
-    if (reverseLanguageMap[name]) {
-      return reverseLanguageMap[name]; // Map back to code if exists
-    } else {
-      return name; // Keep name if no mapping exists
-    }
-  });
-
-  const translationsByLanguage = {};
-  languages.forEach((lang) => {
-    translationsByLanguage[lang] = {};
-  });
-
-  worksheet.eachRow((row, rowNumber) => {
-    if (rowNumber === 1) return;
-
-    const key = row.getCell(1).value;
-    if (!key) return;
-
-    languages.forEach((lang, index) => {
-      const value = row.getCell(index + 2).value;
-      if (value !== undefined && value !== null) {
-        setNestedValue(translationsByLanguage[lang], key.split('.'), value);
-      }
+    const languages = languageNames.map(name => {
+        if (reverseLanguageMap[name]) {
+            return reverseLanguageMap[name]; // Map back to code if exists
+        } else {
+            return name; // Keep name if no mapping exists
+        }
     });
-  });
 
-  return { languages, translationsByLanguage };
+    const translationsByLanguage = {};
+    languages.forEach((lang) => {
+        translationsByLanguage[lang] = {};
+    });
+
+    worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return;
+
+        const key = row.getCell(1).value;
+        if (!key) return;
+
+        languages.forEach((lang, index) => {
+            const value = row.getCell(index + 2).value;
+            if (value !== undefined && value !== null) {
+                setNestedValue(translationsByLanguage[lang], key.split('.'), value);
+            }
+        });
+    });
+
+    return { languages, translationsByLanguage };
 }
 
 /**
@@ -240,56 +240,56 @@ export function readTranslationsFromWorksheet(worksheet, languageMap = {}) {
  * @returns {Object} Report object
  */
 export function generateTranslationReport(translations, languages) {
-  const missing = [];
-  const duplicates = [];
-  const placeholderInconsistencies = [];
-  const seen = new Map();
+    const missing = [];
+    const duplicates = [];
+    const placeholderInconsistencies = [];
+    const seen = new Map();
 
-  for (const [key, langValues] of translations.entries()) {
-    for (const lang of languages) {
-      if (!Object.prototype.hasOwnProperty.call(langValues, lang) || langValues[lang] === '') {
-        missing.push({ key, lang });
-      }
-    }
-
-    if (seen.has(key)) {
-      duplicates.push(key);
-    } else {
-      seen.set(key, true);
-    }
-
-    const placeholderMap = {};
-    for (const lang of languages) {
-      const val = langValues[lang];
-      placeholderMap[lang] = extractPlaceholders(val || '');
-    }
-
-    const allPlaceholders = new Set();
-    for (const placeholders of Object.values(placeholderMap)) {
-      placeholders.forEach(placeholder => allPlaceholders.add(placeholder));
-    }
-
-    let hasInconsistency = false;
-    for (const lang of languages) {
-      const placeholders = placeholderMap[lang];
-      for (const placeholder of allPlaceholders) {
-        if (!placeholders.has(placeholder)) {
-          hasInconsistency = true;
-          break;
+    for (const [key, langValues] of translations.entries()) {
+        for (const lang of languages) {
+            if (!Object.prototype.hasOwnProperty.call(langValues, lang) || langValues[lang] === '') {
+                missing.push({ key, lang });
+            }
         }
-      }
-      if (hasInconsistency) break;
+
+        if (seen.has(key)) {
+            duplicates.push(key);
+        } else {
+            seen.set(key, true);
+        }
+
+        const placeholderMap = {};
+        for (const lang of languages) {
+            const val = langValues[lang];
+            placeholderMap[lang] = extractPlaceholders(val || '');
+        }
+
+        const allPlaceholders = new Set();
+        for (const placeholders of Object.values(placeholderMap)) {
+            placeholders.forEach(placeholder => allPlaceholders.add(placeholder));
+        }
+
+        let hasInconsistency = false;
+        for (const lang of languages) {
+            const placeholders = placeholderMap[lang];
+            for (const placeholder of allPlaceholders) {
+                if (!placeholders.has(placeholder)) {
+                    hasInconsistency = true;
+                    break;
+                }
+            }
+            if (hasInconsistency) break;
+        }
+
+        if (hasInconsistency) {
+            placeholderInconsistencies.push({
+                key,
+                placeholders: placeholderMap,
+            });
+        }
     }
 
-    if (hasInconsistency) {
-      placeholderInconsistencies.push({
-        key,
-        placeholders: placeholderMap
-      });
-    }
-  }
-
-  return { missing, duplicates, placeholderInconsistencies };
+    return { missing, duplicates, placeholderInconsistencies };
 }
 
 /**
@@ -297,38 +297,38 @@ export function generateTranslationReport(translations, languages) {
  * @param {Object} report - The report object from generateTranslationReport
  */
 export function printTranslationReport(report) {
-  if (
-    report.missing.length === 0 &&
-    report.duplicates.length === 0 &&
-    (!report.placeholderInconsistencies || report.placeholderInconsistencies.length === 0)
-  ) {
-    console.log('✅ No missing, duplicate translations or placeholder issues found.');
-    return;
-  }
-
-  if (report.missing.length > 0) {
-    console.log('⚠️ Missing translations:');
-    for (const entry of report.missing) {
-      console.log(`  - ${entry.key} (${entry.lang})`);
+    if (
+        report.missing.length === 0 &&
+        report.duplicates.length === 0 &&
+        (!report.placeholderInconsistencies || report.placeholderInconsistencies.length === 0)
+    ) {
+        console.log('✅ No missing, duplicate translations or placeholder issues found.');
+        return;
     }
-  }
 
-  if (report.duplicates.length > 0) {
-    console.log('⚠️ Duplicate keys:');
-    for (const key of report.duplicates) {
-      console.log(`  - ${key}`);
+    if (report.missing.length > 0) {
+        console.log('⚠️ Missing translations:');
+        for (const entry of report.missing) {
+            console.log(`  - ${entry.key} (${entry.lang})`);
+        }
     }
-  }
 
-  if (report.placeholderInconsistencies && report.placeholderInconsistencies.length > 0) {
-    console.log('⚠️ Inconsistent placeholders between languages:');
-    for (const entry of report.placeholderInconsistencies) {
-      console.log(`  - ${entry.key}:`);
-      for (const [lang, placeholders] of Object.entries(entry.placeholders)) {
-        console.log(`      [${lang}]: {${Array.from(placeholders).join(', ')}}`);
-      }
+    if (report.duplicates.length > 0) {
+        console.log('⚠️ Duplicate keys:');
+        for (const key of report.duplicates) {
+            console.log(`  - ${key}`);
+        }
     }
-  }
+
+    if (report.placeholderInconsistencies && report.placeholderInconsistencies.length > 0) {
+        console.log('⚠️ Inconsistent placeholders between languages:');
+        for (const entry of report.placeholderInconsistencies) {
+            console.log(`  - ${entry.key}:`);
+            for (const [lang, placeholders] of Object.entries(entry.placeholders)) {
+                console.log(`      [${lang}]: {${Array.from(placeholders).join(', ')}}`);
+            }
+        }
+    }
 }
 
 /**
@@ -341,59 +341,63 @@ export function printTranslationReport(report) {
  * @param {string} [options.sheetName='Translations'] - Name of the Excel sheet
  * @param {boolean} [options.dryRun=false] - If true, do not write file
  * @param {Object} [options.languageMap] - Map from language code to language name
+ * @param {boolean} [options.report=true] - If true, print report during dry run
  * @throws {Error} If the source path does not exist or contains no JSON files
  * @returns {Promise<void>}
  */
 export async function convertToExcel(sourcePath, targetFile, options = {}) {
-  const sheetName = options.sheetName || 'Translations';
-  const dryRun = !!options.dryRun;
-  const languageMap = options.languageMap || {};
+    const sheetName = options.sheetName || 'Translations';
+    const dryRun = !!options.dryRun;
+    const languageMap = options.languageMap || {};
+    const report = options.report !== false; // default to true unless explicitly disabled
 
-  try {
-    await checkFileExists(sourcePath);
+    try {
+        await checkFileExists(sourcePath);
 
-    const files = await fs.readdir(sourcePath);
-    const jsonFiles = files.filter(file => file.endsWith('.json'));
+        const files = await fs.readdir(sourcePath);
+        const jsonFiles = files.filter(file => file.endsWith('.json'));
 
-    if (jsonFiles.length === 0) {
-      throw new Error(`No JSON files found in directory: ${sourcePath}`);
-    }
-
-    const translations = new Map();
-    const languages = [];
-
-    for (const file of jsonFiles) {
-      const language = path.basename(file, '.json');
-      languages.push(language);
-
-      const jsonData = await loadJsonFile(path.join(sourcePath, file));
-      validateJsonStructure(jsonData);
-
-      flattenTranslations(jsonData, '', (key, value) => {
-        if (!translations.has(key)) {
-          translations.set(key, {});
+        if (jsonFiles.length === 0) {
+            throw new Error(`No JSON files found in directory: ${sourcePath}`);
         }
-        translations.get(key)[language] = value;
-      });
-    }
 
-    if (dryRun) {
-      const report = generateTranslationReport(translations, languages);
-      printTranslationReport(report);
-      return;
-    }
+        const translations = new Map();
+        const languages = [];
 
-    const workbook = new ExcelJS.Workbook();
-    createTranslationWorksheet(workbook, sheetName, translations, languages, languageMap);
+        for (const file of jsonFiles) {
+            const language = path.basename(file, '.json');
+            languages.push(language);
 
-    if (!dryRun) {
-      const targetDir = path.dirname(targetFile);
-      await ensureDirectoryExists(targetDir);
-      await workbook.xlsx.writeFile(targetFile);
+            const jsonData = await loadJsonFile(path.join(sourcePath, file));
+            validateJsonStructure(jsonData);
+
+            flattenTranslations(jsonData, '', (key, value) => {
+                if (!translations.has(key)) {
+                    translations.set(key, {});
+                }
+                translations.get(key)[language] = value;
+            });
+        }
+
+        if (dryRun) {
+            if (report) {
+                const reportData = generateTranslationReport(translations, languages);
+                printTranslationReport(reportData);
+            }
+            return;
+        }
+
+        const workbook = new ExcelJS.Workbook();
+        createTranslationWorksheet(workbook, sheetName, translations, languages, languageMap);
+
+        if (!dryRun) {
+            const targetDir = path.dirname(targetFile);
+            await ensureDirectoryExists(targetDir);
+            await workbook.xlsx.writeFile(targetFile);
+        }
+    } catch (error) {
+        throw new Error(`Error converting to Excel: ${error.message}`);
     }
-  } catch (error) {
-    throw new Error(`Error converting to Excel: ${error.message}`);
-  }
 }
 
 /**
@@ -410,34 +414,34 @@ export async function convertToExcel(sourcePath, targetFile, options = {}) {
  * @returns {Promise<void>}
  */
 export async function convertToJson(sourceFile, targetPath, options = {}) {
-  const sheetName = options.sheetName || 'Translations';
-  const dryRun = !!options.dryRun;
-  const languageMap = options.languageMap || {};
+    const sheetName = options.sheetName || 'Translations';
+    const dryRun = !!options.dryRun;
+    const languageMap = options.languageMap || {};
 
-  try {
-    await checkFileExists(sourceFile);
+    try {
+        await checkFileExists(sourceFile);
 
-    if (!dryRun) {
-      await ensureDirectoryExists(targetPath);
+        if (!dryRun) {
+            await ensureDirectoryExists(targetPath);
+        }
+
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile(sourceFile);
+
+        const worksheet = workbook.getWorksheet(sheetName);
+        if (!worksheet) {
+            throw new Error(`Worksheet "${sheetName}" not found`);
+        }
+
+        const { languages, translationsByLanguage } = readTranslationsFromWorksheet(worksheet, languageMap);
+
+        if (!dryRun) {
+            for (const lang of languages) {
+                const filePath = path.join(targetPath, `${lang}.json`);
+                await writeJsonFile(filePath, translationsByLanguage[lang]);
+            }
+        }
+    } catch (error) {
+        throw new Error(`Error converting to JSON: ${error.message}`);
     }
-
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(sourceFile);
-
-    const worksheet = workbook.getWorksheet(sheetName);
-    if (!worksheet) {
-      throw new Error(`Worksheet "${sheetName}" not found`);
-    }
-
-    const { languages, translationsByLanguage } = readTranslationsFromWorksheet(worksheet, languageMap);
-
-    if (!dryRun) {
-      for (const lang of languages) {
-        const filePath = path.join(targetPath, `${lang}.json`);
-        await writeJsonFile(filePath, translationsByLanguage[lang]);
-      }
-    }
-  } catch (error) {
-    throw new Error(`Error converting to JSON: ${error.message}`);
-  }
 }
