@@ -20,9 +20,9 @@ adhere to this code:
 - Use the issue template on GitHub
 - Check first if the issue has already been reported
 - Provide detailed information:
-    - Steps to reproduce
-    - Expected vs. actual behavior
-    - Tool version and environment
+  - Steps to reproduce
+  - Expected vs. actual behavior
+  - Tool version and environment
 
 ### Pull Requests
 

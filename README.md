@@ -37,7 +37,7 @@
 ## ⚙️ Requirements
 
 - Node.js >= 18
-    - CI runs on Node 18.x, 20.x, and 22.x.
+  - CI runs on Node 18.x, 20.x, and 22.x.
 
 ---
 
@@ -123,8 +123,12 @@ i18n-excel-manager exposes a Node API along with the CLI. Import functions from 
 ```js
 import { convertToExcel, convertToJson } from 'i18n-excel-manager';
 
-await convertToExcel('public/assets/i18n', 'translations.xlsx', { dryRun: true });
-await convertToJson('translations.xlsx', 'public/assets/i18n', { sheetName: 'MySheet' });
+await convertToExcel('public/assets/i18n', 'translations.xlsx', {
+  dryRun: true,
+});
+await convertToJson('translations.xlsx', 'public/assets/i18n', {
+  sheetName: 'MySheet',
+});
 ```
 
 Note: Importing the CLI entrypoint (`./cli.js`) will not auto-run the interactive UI. The CLI only runs when executed

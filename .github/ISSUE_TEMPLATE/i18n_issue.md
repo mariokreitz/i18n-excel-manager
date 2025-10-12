@@ -1,7 +1,7 @@
 ---
 name: i18n Issue
 about: Report an internationalization (i18n) issue or translation error
-title: "[i18n] "
+title: '[i18n] '
 labels: i18n
 assignees: ''
 ---
