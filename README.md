@@ -3,7 +3,7 @@
 [![CI](https://github.com/mariokreitz/i18n-excel-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/mariokreitz/i18n-excel-manager/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/i18n-excel-manager.svg?style=flat)](https://www.npmjs.com/package/i18n-excel-manager)
 [![npm downloads](https://img.shields.io/npm/dm/i18n-excel-manager.svg?style=flat)](https://www.npmjs.com/package/i18n-excel-manager)
-[![Coverage Status](https://coveralls.io/repos/github/mariokreitz/i18n-excel-manager/badge.svg?branch=main)](https://coveralls.io/github/mariokreitz/i18n-excel-manager?branch=main)
+[![codecov](https://codecov.io/gh/mariokreitz/i18n-excel-manager/branch/main/graph/badge.svg)](https://codecov.io/gh/mariokreitz/i18n-excel-manager)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 <p align="center">
@@ -39,6 +39,7 @@
 - [Angular Integration](#-angular-integration)
 - [Configuration](#-configuration)
 - [Options](#-options)
+- [Migration Guide](#-migration-guide)
 - [Error Handling](#-error-handling)
 - [Architecture](#-architecture)
 - [Development](#-development)
@@ -335,6 +336,29 @@ Example config file (`my-config.json`):
 ```
 
 Usage: `i18n-excel-manager i18n-to-excel --config my-config.json --input ./custom/path`
+
+---
+
+## 🔄 Migration Guide
+
+### From v1.x to v2.x
+
+In v2.x, we removed legacy CLI command aliases to enforce explicit command names for better clarity and consistency.
+
+#### Breaking Changes
+
+- Removed `to-excel` alias for `i18n-to-excel` command.
+- Removed `to-json` alias for `excel-to-i18n` command.
+
+#### Migration Steps
+
+1. Update your scripts to use the full command names:
+   - Change `i18n-excel-manager to-excel ...` to `i18n-excel-manager i18n-to-excel ...`
+   - Change `i18n-excel-manager to-json ...` to `i18n-excel-manager excel-to-i18n ...`
+2. If you were using the aliases in CI/CD pipelines or automation scripts, update them accordingly.
+3. No other changes are required; all other options and functionality remain the same.
+
+If you encounter issues, use `i18n-excel-manager --help` to see available commands.
 
 ---
 
