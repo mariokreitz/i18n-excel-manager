@@ -477,9 +477,26 @@ process.on('uncaughtException', (error) => {
   process.exit(1);
 });
 
-// Only run main when this file is executed directly (not when imported)
+// Only run main when this file is executed directly (supports npm/yarn/pnpm bin symlinks)
 const thisFile = fileURLToPath(import.meta.url);
-if (process.argv[1] && path.resolve(process.argv[1]) === thisFile) {
+
+function isExecutedDirectly() {
+  try {
+    const argv1 = process.argv[1];
+    if (!argv1) return false;
+    // Resolve symlinks for robust comparison when invoked via npm bin shims
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    const argvReal = fs.realpathSync(argv1);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    const selfReal = fs.realpathSync(thisFile);
+    return argvReal === selfReal;
+  } catch {
+    // If realpath fails, fall back to a conservative comparison
+    return path.resolve(process.argv[1] || '') === thisFile;
+  }
+}
+
+if (isExecutedDirectly()) {
   main().catch((error) => {
     console.error(chalk.red(`Error during execution: ${error.message}`));
     process.exit(1);
