@@ -1,25 +1,210 @@
 {
+  "root": true,
   "env": {
     "node": true,
     "es2022": true
   },
-  "extends": "eslint:recommended",
   "parserOptions": {
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
+  "extends": [
+    "eslint:recommended",
+    "plugin:import/recommended",
+    "plugin:promise/recommended",
+    "plugin:security/recommended",
+    "plugin:sonarjs/recommended",
+    "plugin:n/recommended",
+    "plugin:unicorn/recommended",
+    "plugin:eslint-comments/recommended",
+    "prettier"
+  ],
+  "plugins": [
+    "import",
+    "promise",
+    "security",
+    "sonarjs",
+    "n",
+    "unicorn",
+    "eslint-comments"
+  ],
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [
+          ".js",
+          ".mjs",
+          ".cjs"
+        ]
+      }
+    }
+  },
   "rules": {
     "quotes": [
       "error",
-      "single"
+      "single",
+      {
+        "avoidEscape": true
+      }
     ],
     "semi": [
       "error",
       "always"
     ],
-    "no-unused-vars": [
-      "warn"
+    "prefer-const": "error",
+    "no-var": "error",
+    "eqeqeq": [
+      "error",
+      "smart"
     ],
-    "no-console": "off"
-  }
+    "no-shadow": "error",
+    "no-param-reassign": [
+      "error",
+      {
+        "props": true,
+        "ignorePropertyModificationsFor": [
+          "obj",
+          "column"
+        ]
+      }
+    ],
+    "curly": [
+      "error",
+      "multi-line"
+    ],
+    "object-shorthand": [
+      "error",
+      "always"
+    ],
+    "no-console": "off",
+    "import/no-unresolved": "error",
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "devDependencies": [
+          "test/**",
+          "**/*.test.js",
+          "**/*.config.js",
+          "**/cli.js"
+        ],
+        "optionalDependencies": false,
+        "peerDependencies": false
+      }
+    ],
+    "import/no-cycle": [
+      "warn",
+      {
+        "maxDepth": 1
+      }
+    ],
+    "import/order": [
+      "warn",
+      {
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          "parent",
+          "sibling",
+          "index",
+          "object",
+          "type"
+        ],
+        "newlines-between": "always",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ],
+    "promise/always-return": "warn",
+    "promise/no-nesting": "warn",
+    "promise/no-multiple-resolved": "error",
+    "n/no-deprecated-api": "error",
+    "n/no-unsupported-features/es-syntax": "off",
+    "security/detect-child-process": "warn",
+    "security/detect-non-literal-fs-filename": "warn",
+    "security/detect-object-injection": "off",
+    "sonarjs/cognitive-complexity": [
+      "warn",
+      15
+    ],
+    "unicorn/prefer-module": "off",
+    "unicorn/prevent-abbreviations": "off",
+    "unicorn/prefer-node-protocol": "warn",
+    "unicorn/no-array-for-each": "off",
+    "unicorn/prefer-spread": "off",
+    "unicorn/prefer-array-index-of": "off",
+    "complexity": [
+      "warn",
+      10
+    ],
+    "max-depth": [
+      "warn",
+      4
+    ],
+    "max-lines-per-function": [
+      "warn",
+      120
+    ],
+    "max-params": [
+      "warn",
+      5
+    ],
+    "unicorn/filename-case": "off",
+    "unicorn/no-null": "off"
+  },
+  "overrides": [
+    {
+      "files": [
+        "test/**/*.js"
+      ],
+      "env": {
+        "node": true
+      },
+      "rules": {
+        "no-console": "off",
+        "import/no-extraneous-dependencies": [
+          "error",
+          {
+            "devDependencies": true
+          }
+        ],
+        "unicorn/no-null": "off",
+        "unicorn/prefer-node-protocol": "off",
+        "object-shorthand": "off",
+        "unicorn/prefer-array-index-of": "off",
+        "unicorn/prefer-spread": "off",
+        "no-shadow": "off",
+        "sonarjs/no-duplicate-string": "off",
+        "unicorn/catch-error-name": "off",
+        "unicorn/prefer-optional-catch-binding": "off",
+        "max-lines-per-function": "off",
+        "security/detect-non-literal-fs-filename": "off",
+        "unicorn/no-empty-file": "off"
+      }
+    },
+    {
+      "files": [
+        "cli.js"
+      ],
+      "rules": {
+        "n/no-process-exit": "off",
+        "n/no-sync": "off",
+        "no-console": "off",
+        "no-param-reassign": "off",
+        "unicorn/switch-case-braces": "off",
+        "unicorn/prefer-node-protocol": "off",
+        "unicorn/prefer-top-level-await": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "coverage/",
+    "assets/",
+    "locales/",
+    "src/main.js"
+  ]
 }
