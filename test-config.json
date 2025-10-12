@@ -1,0 +1,12 @@
+{
+  "languages": {
+    "en": "English",
+    "de": "Deutsch"
+  },
+  "defaults": {
+    "sourcePath": "test/fixtures",
+    "targetFile": "test/tmp/test.xlsx",
+    "targetPath": "test/tmp",
+    "sheetName": "Translations"
+  }
+}
