@@ -8,6 +8,7 @@
  */
 
 import fs from 'node:fs';
+import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -18,6 +19,7 @@ import inquirer from 'inquirer';
 
 import { convertToExcel, convertToJson } from './src/index.js';
 import { validateConfigObject } from './src/io/config.js';
+import { ensureDirectoryExists, writeJsonFile } from './src/io/fs.js';
 
 const DESC_SHEET_NAME = 'name of the Excel worksheet';
 const DESC_DRY_RUN = 'simulate only, do not write files';
@@ -25,12 +27,22 @@ const DESC_NO_REPORT = 'skip generating translation report';
 const DESC_FAIL_ON_DUP =
   'fail if duplicate keys are detected in the Excel sheet';
 const DESC_OUTPUT_I18N_DIR = 'target directory for i18n JSON files';
+const DESC_INIT_LANGS =
+  'comma-separated language codes to initialize (e.g., en,de,fr)';
+const DESC_CONFIG_FILE = 'path to config file';
+const DEFAULT_CONFIG_FILE = './config.json';
+const OPT_CONFIG_FLAG = '--config <file>';
 
 const MSG_CONVERTING_I18N_PREFIX = 'Converting i18n files from ';
 const MSG_CONVERTING_EXCEL_PREFIX = 'Converting Excel from ';
 const MSG_CONVERSION_COMPLETED_PREFIX = '✅ Conversion completed: ';
 const MSG_DRY_RUN_SINGLE = '🔎 Dry-run: No file was written.';
 const MSG_DRY_RUN_PLURAL = '🔎 Dry-run: No files were written.';
+const MSG_INIT_COMPLETED_PREFIX = '✅ Initialization completed in ';
+const MSG_INIT_SKIPPED_PREFIX = '⚠️  Skipped existing file ';
+const MSG_INIT_WILL_CREATE = '📝 Will create: ';
+const MSG_INIT_CREATED = '🆕 Created: ';
+const MSG_INIT_DETECTED_NONE = 'No i18n JSON files detected at ';
 
 // Reused flag literals
 const FLAG_DRY_RUN = '-d, --dry-run';
@@ -74,11 +86,166 @@ export function displayHeader() {
 }
 
 /**
+ * Detects whether the default i18n directory contains any JSON files.
+ * @param {string} dir - Directory to check.
+ * @returns {Promise<{exists:boolean,jsonCount:number,files:string[]}>}
+ */
+async function detectI18nPresence(dir) {
+  const resolved = path.resolve(dir);
+  try {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    const entries = await fsp.readdir(resolved);
+    const files = entries.filter((f) => f.toLowerCase().endsWith('.json'));
+    return { exists: true, jsonCount: files.length, files };
+  } catch {
+    return { exists: false, jsonCount: 0, files: [] };
+  }
+}
+
+function parseLanguagesArg(langs) {
+  if (!langs) return;
+  return Array.from(
+    new Set(
+      String(langs)
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0),
+    ),
+  );
+}
+
+function buildStarterContentFor(lang) {
+  // Minimal example translations; fallback to English for unknown languages
+  const samples = {
+    en: {
+      app: {
+        title: 'My App',
+        welcome: 'Welcome to your localized app',
+      },
+    },
+    de: {
+      app: {
+        title: 'Meine App',
+        welcome: 'Willkommen in Ihrer lokalisierten App',
+      },
+    },
+    fr: {
+      app: {
+        title: 'Mon application',
+        welcome: 'Bienvenue dans votre application localisée',
+      },
+    },
+  };
+  return samples[lang] || samples.en;
+}
+
+async function writeInitFiles(targetDir, languages, dryRun) {
+  const created = [];
+  const skipped = [];
+  const resolvedDir = path.resolve(targetDir);
+  if (!dryRun) {
+    await ensureDirectoryExists(resolvedDir);
+  }
+  for (const lang of languages) {
+    const file = path.join(resolvedDir, `${lang}.json`);
+    let exists = false;
+    try {
+      // eslint-disable-next-line security/detect-non-literal-fs-filename
+      await fsp.access(file);
+      exists = true;
+    } catch {
+      exists = false;
+    }
+    if (exists) {
+      skipped.push(file);
+      console.log(chalk.yellow(`${MSG_INIT_SKIPPED_PREFIX}${file}`));
+      continue;
+    }
+    const content = buildStarterContentFor(lang);
+    if (dryRun) {
+      console.log(chalk.blue(`${MSG_INIT_WILL_CREATE}${file}`));
+    } else {
+      await writeJsonFile(file, content);
+      console.log(chalk.green(`${MSG_INIT_CREATED}${file}`));
+    }
+    created.push(file);
+  }
+  return { created, skipped, dir: resolvedDir };
+}
+
+async function promptForLanguages() {
+  const allLangs = Object.keys(CONFIG.languages || {});
+  const defaultList = ['en', 'de'].filter((l) => allLangs.includes(l));
+  const defaults = new Set(defaultList);
+  const { langs } = await inquirer.prompt([
+    {
+      type: 'checkbox',
+      name: 'langs',
+      message: 'Select languages to initialize:',
+      choices: allLangs.map((code) => ({
+        name: `${code} – ${CONFIG.languages[code]}`,
+        value: code,
+        checked: defaults.has(code),
+      })),
+      validate: (arr) =>
+        arr.length > 0 ? true : 'Select at least one language',
+    },
+  ]);
+  return langs;
+}
+
+export async function runInitCommand(options) {
+  try {
+    const targetDir = options.output || defaultConfig.sourcePath;
+    let languages = parseLanguagesArg(options.languages);
+    if (!languages) {
+      // Ask interactively if not provided
+      languages = await promptForLanguages();
+    }
+    const dryRun = computeIsDryRun(options);
+    console.log(
+      chalk.blue(
+        `Initializing i18n directory at ${path.resolve(targetDir)} for languages: ${languages.join(', ')}`,
+      ),
+    );
+    const res = await writeInitFiles(targetDir, languages, dryRun);
+    if (dryRun) {
+      console.log(chalk.yellow(MSG_DRY_RUN_PLURAL));
+    }
+    console.log(chalk.green(`${MSG_INIT_COMPLETED_PREFIX}${res.dir}`));
+  } catch (error) {
+    console.error(chalk.red(`❌ Error: ${error.message}`));
+    process.exit(1);
+  }
+}
+
+/**
  * Shows the main interactive menu and processes the user's selection.
  * @async
  * @returns {Promise<void>}
  */
 export async function showMainMenu() {
+  // Auto-detect and offer initialization if needed
+  const detection = await detectI18nPresence(defaultConfig.sourcePath);
+  if (!detection.exists || detection.jsonCount === 0) {
+    const full = path.resolve(defaultConfig.sourcePath);
+    console.log(chalk.yellow(`${MSG_INIT_DETECTED_NONE}${full}`));
+    const { doInit } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'doInit',
+        message: `Initialize i18n directory now at ${full}?`,
+        default: true,
+      },
+    ]);
+    if (doInit) {
+      await runInitCommand({
+        output: defaultConfig.sourcePath,
+        languages: 'en,de',
+      });
+      return; // After init, return to menu on next run
+    }
+  }
   const { action } = await inquirer.prompt([
     {
       type: 'list',
@@ -87,6 +254,7 @@ export async function showMainMenu() {
       choices: [
         { name: 'Convert i18n files to Excel', value: 'toExcel' },
         { name: 'Convert Excel to i18n files', value: 'toJson' },
+        { name: 'Initialize i18n files', value: 'init' },
         { name: 'Exit', value: 'exit' },
       ],
     },
@@ -98,6 +266,9 @@ export async function showMainMenu() {
       break;
     case 'toJson':
       await handleToJson();
+      break;
+    case 'init':
+      await runInitCommand({ output: defaultConfig.sourcePath });
       break;
     case 'exit':
       console.log(chalk.green('Goodbye!'));
@@ -400,6 +571,8 @@ export async function processCliOptions(options) {
       await runI18nToExcel(mergedOptions, isDryRun);
     } else if (mergedOptions.excelToI18n) {
       await runExcelToI18n(mergedOptions, isDryRun);
+    } else if (mergedOptions.init) {
+      await runInitCommand(mergedOptions);
     }
   } catch (error) {
     console.error(chalk.red(`❌ Error: ${error.message}`));
@@ -432,7 +605,7 @@ program
   .option('-s, --sheet-name <name>', DESC_SHEET_NAME, defaultConfig.sheetName)
   .option(FLAG_DRY_RUN, DESC_DRY_RUN)
   .option('--no-report', DESC_NO_REPORT)
-  .option('--config <file>', 'path to config file', './config.json')
+  .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE, DEFAULT_CONFIG_FILE)
   .action((options) => {
     displayHeader();
     options.i18nToExcel = true;
@@ -448,10 +621,24 @@ program
   .option('-s, --sheet-name <name>', DESC_SHEET_NAME, defaultConfig.sheetName)
   .option(FLAG_DRY_RUN, DESC_DRY_RUN)
   .option(FLAG_FAIL_ON_DUP, DESC_FAIL_ON_DUP)
-  .option('--config <file>', 'path to config file', './config.json')
+  .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE, DEFAULT_CONFIG_FILE)
   .action((options) => {
     displayHeader();
     options.excelToI18n = true;
+    processCliOptions(options);
+  });
+
+// Command for initializing i18n directory and files
+program
+  .command('init')
+  .description('Initialize i18n directory and create starter JSON files')
+  .option('-o, --output <path>', DESC_OUTPUT_I18N_DIR, defaultConfig.sourcePath)
+  .option('-l, --languages <list>', DESC_INIT_LANGS)
+  .option(FLAG_DRY_RUN, DESC_DRY_RUN)
+  .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE, DEFAULT_CONFIG_FILE)
+  .action((options) => {
+    displayHeader();
+    options.init = true;
     processCliOptions(options);
   });
 
