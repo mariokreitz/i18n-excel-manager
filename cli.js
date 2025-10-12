@@ -287,6 +287,11 @@ async function processCliOptions(options) {
     }
 }
 
+const TOOL_NAME = 'i18n-excel-manager';
+const TOOL_DESCRIPTION = 'Tool for converting i18n files to Excel and back';
+
+// Test commit for pre-commit hook
+
 /**
  * Configure command line arguments
  */
