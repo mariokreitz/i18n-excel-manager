@@ -296,8 +296,10 @@ function computeIsDryRun(options) {
 }
 
 async function runI18nToExcel(options, isDryRun) {
-  const sourcePath = options.input || defaultConfig.sourcePath;
-  const targetFile = options.output || defaultConfig.targetFile;
+  const sourcePath =
+    options.input || options.sourcePath || defaultConfig.sourcePath;
+  const targetFile =
+    options.output || options.targetFile || defaultConfig.targetFile;
 
   console.log(
     chalk.blue(`Converting i18n files from ${sourcePath} to ${targetFile}...`),
@@ -318,8 +320,10 @@ async function runI18nToExcel(options, isDryRun) {
 }
 
 async function runExcelToI18n(options, isDryRun) {
-  const sourceFile = options.input || defaultConfig.targetFile;
-  const targetPath = options.output || defaultConfig.targetPath;
+  const sourceFile =
+    options.input || options.targetFile || defaultConfig.targetFile;
+  const targetPath =
+    options.output || options.targetPath || defaultConfig.targetPath;
 
   console.log(
     chalk.blue(`Converting Excel from ${sourceFile} to ${targetPath}...`),
@@ -364,7 +368,16 @@ export async function processCliOptions(options) {
     let configOptions = {};
     if (options.config) {
       try {
-        const configRaw = fs.readFileSync(options.config, 'utf8');
+        // Validate config file path to prevent directory traversal
+        const resolvedConfigPath = path.resolve(options.config);
+        const relativePath = path.relative(process.cwd(), resolvedConfigPath);
+        if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+          throw new Error(
+            'Config file path must be within the current working directory',
+          );
+        }
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
+        const configRaw = fs.readFileSync(resolvedConfigPath, 'utf8');
         const configJson = JSON.parse(configRaw);
         configOptions = validateConfigObject(configJson);
       } catch (error) {
@@ -377,10 +390,9 @@ export async function processCliOptions(options) {
     // Merge config with CLI options, CLI takes precedence
     const mergedOptions = {
       ...configOptions.defaults,
-      ...configOptions,
       ...options,
     };
-    mergedOptions.languageMap = mergedOptions.languages || CONFIG.languages;
+    mergedOptions.languageMap = configOptions.languages || CONFIG.languages;
 
     const isDryRun = computeIsDryRun(mergedOptions);
 
