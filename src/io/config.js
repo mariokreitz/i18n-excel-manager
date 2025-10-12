@@ -1,0 +1,50 @@
+import fs from 'node:fs/promises';
+
+import Joi from 'joi';
+
+export const configSchema = Joi.object({
+  languages: Joi.object()
+    .pattern(/^[\w.-]+$/, Joi.string().min(1))
+    .min(1)
+    .required()
+    .messages({
+      'object.base': 'languages must be an object of code:name',
+      'any.required': 'languages is required',
+    }),
+  defaults: Joi.object({
+    sourcePath: Joi.string().min(1).required(),
+    targetFile: Joi.string().min(1).required(),
+    targetPath: Joi.string().min(1).required(),
+    sheetName: Joi.string().min(1).default('Translations'),
+  })
+    .required()
+    .messages({ 'any.required': 'defaults is required' }),
+}).required();
+
+export async function loadValidatedConfig(filePath) {
+  // The config path is resolved by the caller and not user-supplied at runtime.
+  // We validate the content immediately after reading.
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
+  const raw = await fs.readFile(filePath, 'utf8');
+  let json;
+  try {
+    json = JSON.parse(raw);
+  } catch (error_) {
+    throw new Error(`Invalid JSON in config: ${error_.message}`);
+  }
+  return validateConfigObject(json);
+}
+
+export function validateConfigObject(obj) {
+  const { value, error } = configSchema.validate(obj, {
+    abortEarly: false,
+    allowUnknown: false,
+  });
+  if (error) {
+    const details = error.details
+      .map((d) => `- ${d.message} at ${d.path.join('.')}`)
+      .join('\n');
+    throw new Error(`Invalid configuration:\n${details}`);
+  }
+  return value;
+}

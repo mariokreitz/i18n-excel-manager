@@ -1,0 +1,19 @@
+# Ignore dependencies and build artifacts
+node_modules/
+coverage/
+**/lcov-report/
+
+# Temporary and generated test outputs
+test/tmp/
+test/tmp-cli/
+
+# Intentionally malformed fixture used to test error handling
+# Do not format this file; tests rely on its invalid JSON structure
+test/tmp-config/bad.json
+
+# Binary assets
+**/*.xlsx
+assets/
+
+# Prevent formatting of ESLint configuration file
+.eslintrc.json
