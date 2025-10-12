@@ -1,1 +1,9 @@
-{"languages":{"en":"English"},"defaults":{"sourcePath":"a","targetFile":"b.xlsx","targetPath":"c","sheetName":"S"}}
+{
+  "languages": { "en": "English" },
+  "defaults": {
+    "sourcePath": "a",
+    "targetFile": "b.xlsx",
+    "targetPath": "c",
+    "sheetName": "S"
+  }
+}

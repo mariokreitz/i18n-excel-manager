@@ -23,7 +23,7 @@ const DESC_SHEET_NAME = 'name of the Excel worksheet';
 const DESC_DRY_RUN = 'simulate only, do not write files';
 const DESC_NO_REPORT = 'skip generating translation report';
 const DESC_FAIL_ON_DUP =
-    'fail if duplicate keys are detected in the Excel sheet';
+  'fail if duplicate keys are detected in the Excel sheet';
 const DESC_OUTPUT_I18N_DIR = 'target directory for i18n JSON files';
 
 const MSG_CONVERTING_I18N_PREFIX = 'Converting i18n files from ';
@@ -43,7 +43,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Load package information
 const packageJson = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'),
+  fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'),
 );
 
 // Load configuration and validate with Joi
@@ -52,10 +52,10 @@ const RAW_CONFIG = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 const CONFIG = validateConfigObject(RAW_CONFIG);
 
 const defaultConfig = CONFIG.defaults || {
-    sourcePath: 'public/assets/i18n',
-    targetFile: 'dist/translations.xlsx',
-    targetPath: 'locales',
-    sheetName: 'Translations',
+  sourcePath: 'public/assets/i18n',
+  targetFile: 'dist/translations.xlsx',
+  targetPath: 'locales',
+  sheetName: 'Translations',
 };
 
 /**
@@ -64,13 +64,13 @@ const defaultConfig = CONFIG.defaults || {
  * @returns {void}
  */
 export function displayHeader() {
-    console.log(
-        chalk.cyan(
-            figlet.textSync('i18n-excel-manager', { horizontalLayout: 'full' }),
-        ),
-    );
-    console.log(chalk.white(`v${packageJson.version}`));
-    console.log(chalk.white('Convert i18n files to Excel and back\n'));
+  console.log(
+    chalk.cyan(
+      figlet.textSync('i18n-excel-manager', { horizontalLayout: 'full' }),
+    ),
+  );
+  console.log(chalk.white(`v${packageJson.version}`));
+  console.log(chalk.white('Convert i18n files to Excel and back\n'));
 }
 
 /**
@@ -79,31 +79,31 @@ export function displayHeader() {
  * @returns {Promise<void>}
  */
 export async function showMainMenu() {
-    const { action } = await inquirer.prompt([
-        {
-            type: 'list',
-            name: 'action',
-            message: 'Choose an action:',
-            choices: [
-                { name: 'Convert i18n files to Excel', value: 'toExcel' },
-                { name: 'Convert Excel to i18n files', value: 'toJson' },
-                { name: 'Exit', value: 'exit' },
-            ],
-        },
-    ]);
+  const { action } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'action',
+      message: 'Choose an action:',
+      choices: [
+        { name: 'Convert i18n files to Excel', value: 'toExcel' },
+        { name: 'Convert Excel to i18n files', value: 'toJson' },
+        { name: 'Exit', value: 'exit' },
+      ],
+    },
+  ]);
 
-    switch (action) {
-        case 'toExcel':
-            await handleToExcel();
-            break;
-        case 'toJson':
-            await handleToJson();
-            break;
-        case 'exit':
-            console.log(chalk.green('Goodbye!'));
-            process.exit(0);
-            break;
-    }
+  switch (action) {
+    case 'toExcel':
+      await handleToExcel();
+      break;
+    case 'toJson':
+      await handleToJson();
+      break;
+    case 'exit':
+      console.log(chalk.green('Goodbye!'));
+      process.exit(0);
+      break;
+  }
 }
 
 /**
@@ -112,53 +112,53 @@ export async function showMainMenu() {
  * @returns {Promise<void>}
  */
 export async function handleToExcel() {
-    const answers = await inquirer.prompt([
-        {
-            type: 'input',
-            name: 'sourcePath',
-            message: 'Path to i18n files:',
-            default: defaultConfig.sourcePath,
-        },
-        {
-            type: 'input',
-            name: 'targetFile',
-            message: 'Target Excel file:',
-            default: defaultConfig.targetFile,
-        },
-        {
-            type: 'input',
-            name: 'sheetName',
-            message: 'Excel sheet name:',
-            default: defaultConfig.sheetName,
-        },
-        {
-            type: 'confirm',
-            name: 'dryRun',
-            message: 'Dry-run (simulate only, do not write file)?',
-            default: false,
-        },
-    ]);
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'sourcePath',
+      message: 'Path to i18n files:',
+      default: defaultConfig.sourcePath,
+    },
+    {
+      type: 'input',
+      name: 'targetFile',
+      message: 'Target Excel file:',
+      default: defaultConfig.targetFile,
+    },
+    {
+      type: 'input',
+      name: 'sheetName',
+      message: 'Excel sheet name:',
+      default: defaultConfig.sheetName,
+    },
+    {
+      type: 'confirm',
+      name: 'dryRun',
+      message: 'Dry-run (simulate only, do not write file)?',
+      default: false,
+    },
+  ]);
 
-    if (
-        typeof answers.sourcePath !== 'string' ||
-        answers.sourcePath.trim() === ''
-    ) {
-        throw new Error('Source path must be a non-empty string');
-    }
-    if (
-        typeof answers.targetFile !== 'string' ||
-        answers.targetFile.trim() === ''
-    ) {
-        throw new Error('Target file must be a non-empty string');
-    }
-    if (
-        typeof answers.sheetName !== 'string' ||
-        answers.sheetName.trim() === ''
-    ) {
-        throw new Error('Sheet name must be a non-empty string');
-    }
+  if (
+    typeof answers.sourcePath !== 'string' ||
+    answers.sourcePath.trim() === ''
+  ) {
+    throw new Error('Source path must be a non-empty string');
+  }
+  if (
+    typeof answers.targetFile !== 'string' ||
+    answers.targetFile.trim() === ''
+  ) {
+    throw new Error('Target file must be a non-empty string');
+  }
+  if (
+    typeof answers.sheetName !== 'string' ||
+    answers.sheetName.trim() === ''
+  ) {
+    throw new Error('Sheet name must be a non-empty string');
+  }
 
-    await performConversion('toExcel', answers);
+  await performConversion('toExcel', answers);
 }
 
 /**
@@ -167,54 +167,54 @@ export async function handleToExcel() {
  * @returns {Promise<void>}
  */
 export async function handleToJson() {
-    const answers = await inquirer.prompt([
-        {
-            type: 'input',
-            name: 'sourceFile',
-            message: 'Path to Excel file:',
-            default: defaultConfig.targetFile,
-        },
-        {
-            type: 'input',
-            name: 'targetPath',
-            message: 'Target folder for i18n files:',
-            default: defaultConfig.targetPath,
-        },
-        {
-            type: 'input',
-            name: 'sheetName',
-            message: 'Excel sheet name:',
-            default: defaultConfig.sheetName,
-        },
-        {
-            type: 'confirm',
-            name: 'dryRun',
-            message: 'Dry-run (simulate only, do not write files)?',
-            default: false,
-        },
-    ]);
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'sourceFile',
+      message: 'Path to Excel file:',
+      default: defaultConfig.targetFile,
+    },
+    {
+      type: 'input',
+      name: 'targetPath',
+      message: 'Target folder for i18n files:',
+      default: defaultConfig.targetPath,
+    },
+    {
+      type: 'input',
+      name: 'sheetName',
+      message: 'Excel sheet name:',
+      default: defaultConfig.sheetName,
+    },
+    {
+      type: 'confirm',
+      name: 'dryRun',
+      message: 'Dry-run (simulate only, do not write files)?',
+      default: false,
+    },
+  ]);
 
-    // Validate user inputs
-    if (
-        typeof answers.sourceFile !== 'string' ||
-        answers.sourceFile.trim() === ''
-    ) {
-        throw new Error('Source file must be a non-empty string');
-    }
-    if (
-        typeof answers.targetPath !== 'string' ||
-        answers.targetPath.trim() === ''
-    ) {
-        throw new Error('Target path must be a non-empty string');
-    }
-    if (
-        typeof answers.sheetName !== 'string' ||
-        answers.sheetName.trim() === ''
-    ) {
-        throw new Error('Sheet name must be a non-empty string');
-    }
+  // Validate user inputs
+  if (
+    typeof answers.sourceFile !== 'string' ||
+    answers.sourceFile.trim() === ''
+  ) {
+    throw new Error('Source file must be a non-empty string');
+  }
+  if (
+    typeof answers.targetPath !== 'string' ||
+    answers.targetPath.trim() === ''
+  ) {
+    throw new Error('Target path must be a non-empty string');
+  }
+  if (
+    typeof answers.sheetName !== 'string' ||
+    answers.sheetName.trim() === ''
+  ) {
+    throw new Error('Sheet name must be a non-empty string');
+  }
 
-    await performConversion('toJson', answers);
+  await performConversion('toJson', answers);
 }
 
 /**
@@ -227,41 +227,41 @@ export async function handleToJson() {
  * @returns {Promise<void>}
  */
 export async function performConversion(conversionType, answers) {
-    try {
-        const options = {
-            sheetName: answers.sheetName,
-            dryRun: answers.dryRun,
-            languageMap: CONFIG.languages,
-        };
+  try {
+    const options = {
+      sheetName: answers.sheetName,
+      dryRun: answers.dryRun,
+      languageMap: CONFIG.languages,
+    };
 
-        if (conversionType === 'toExcel') {
-            console.log(
-                chalk.blue(
-                    `${MSG_CONVERTING_I18N_PREFIX}${answers.sourcePath} to ${answers.targetFile}...`,
-                ),
-            );
-            await convertToExcel(answers.sourcePath, answers.targetFile, options);
-        } else {
-            console.log(
-                chalk.blue(
-                    `${MSG_CONVERTING_EXCEL_PREFIX}${answers.sourceFile} to ${answers.targetPath}...`,
-                ),
-            );
-            await convertToJson(answers.sourceFile, answers.targetPath, options);
-        }
-
-        if (answers.dryRun) {
-            console.log(chalk.yellow(MSG_DRY_RUN_PLURAL));
-        } else {
-            const target =
-                conversionType === 'toExcel' ? answers.targetFile : answers.targetPath;
-            console.log(chalk.green(`${MSG_CONVERSION_COMPLETED_PREFIX}${target}`));
-        }
-    } catch (error) {
-        console.error(chalk.red(`❌ Error: ${error.message}`));
+    if (conversionType === 'toExcel') {
+      console.log(
+        chalk.blue(
+          `${MSG_CONVERTING_I18N_PREFIX}${answers.sourcePath} to ${answers.targetFile}...`,
+        ),
+      );
+      await convertToExcel(answers.sourcePath, answers.targetFile, options);
+    } else {
+      console.log(
+        chalk.blue(
+          `${MSG_CONVERTING_EXCEL_PREFIX}${answers.sourceFile} to ${answers.targetPath}...`,
+        ),
+      );
+      await convertToJson(answers.sourceFile, answers.targetPath, options);
     }
 
-    await askForAnotherAction();
+    if (answers.dryRun) {
+      console.log(chalk.yellow(MSG_DRY_RUN_PLURAL));
+    } else {
+      const target =
+        conversionType === 'toExcel' ? answers.targetFile : answers.targetPath;
+      console.log(chalk.green(`${MSG_CONVERSION_COMPLETED_PREFIX}${target}`));
+    }
+  } catch (error) {
+    console.error(chalk.red(`❌ Error: ${error.message}`));
+  }
+
+  await askForAnotherAction();
 }
 
 /**
@@ -270,75 +270,75 @@ export async function performConversion(conversionType, answers) {
  * @returns {Promise<void>}
  */
 export async function askForAnotherAction() {
-    const { again } = await inquirer.prompt([
-        {
-            type: 'confirm',
-            name: 'again',
-            message: 'Do you want to perform another action?',
-            default: true,
-        },
-    ]);
+  const { again } = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'again',
+      message: 'Do you want to perform another action?',
+      default: true,
+    },
+  ]);
 
-    if (again) {
-        await showMainMenu();
-    } else {
-        console.log(chalk.green('Goodbye!'));
-        process.exit(0);
-    }
+  if (again) {
+    await showMainMenu();
+  } else {
+    console.log(chalk.green('Goodbye!'));
+    process.exit(0);
+  }
 }
 
 function computeIsDryRun(options) {
-    return (
-        options.dryRun === true ||
-        process.argv.includes('-d') ||
-        process.argv.includes('--dry-run')
-    );
+  return (
+    options.dryRun === true ||
+    process.argv.includes('-d') ||
+    process.argv.includes('--dry-run')
+  );
 }
 
 async function runI18nToExcel(options, isDryRun) {
-    const sourcePath = options.input || defaultConfig.sourcePath;
-    const targetFile = options.output || defaultConfig.targetFile;
+  const sourcePath = options.input || defaultConfig.sourcePath;
+  const targetFile = options.output || defaultConfig.targetFile;
 
-    console.log(
-        chalk.blue(`Converting i18n files from ${sourcePath} to ${targetFile}...`),
-    );
+  console.log(
+    chalk.blue(`Converting i18n files from ${sourcePath} to ${targetFile}...`),
+  );
 
-    await convertToExcel(sourcePath, targetFile, {
-        sheetName: options.sheetName || defaultConfig.sheetName,
-        dryRun: isDryRun,
-        languageMap: CONFIG.languages,
-        report: options.report,
-    });
+  await convertToExcel(sourcePath, targetFile, {
+    sheetName: options.sheetName || defaultConfig.sheetName,
+    dryRun: isDryRun,
+    languageMap: CONFIG.languages,
+    report: options.report,
+  });
 
-    if (isDryRun) {
-        console.log(chalk.yellow(MSG_DRY_RUN_SINGLE));
-    } else {
-        console.log(chalk.green(`${MSG_CONVERSION_COMPLETED_PREFIX}${targetFile}`));
-    }
+  if (isDryRun) {
+    console.log(chalk.yellow(MSG_DRY_RUN_SINGLE));
+  } else {
+    console.log(chalk.green(`${MSG_CONVERSION_COMPLETED_PREFIX}${targetFile}`));
+  }
 }
 
 async function runExcelToI18n(options, isDryRun) {
-    const sourceFile = options.input || defaultConfig.targetFile;
-    const targetPath = options.output || defaultConfig.targetPath;
+  const sourceFile = options.input || defaultConfig.targetFile;
+  const targetPath = options.output || defaultConfig.targetPath;
 
-    console.log(
-        chalk.blue(`Converting Excel from ${sourceFile} to ${targetPath}...`),
-    );
+  console.log(
+    chalk.blue(`Converting Excel from ${sourceFile} to ${targetPath}...`),
+  );
 
-    await convertToJson(sourceFile, targetPath, {
-        sheetName: options.sheetName || defaultConfig.sheetName,
-        dryRun: isDryRun,
-        languageMap: CONFIG.languages,
-        failOnDuplicates:
-            options.failOnDuplicates === true ||
-            process.argv.includes(FLAG_FAIL_ON_DUP),
-    });
+  await convertToJson(sourceFile, targetPath, {
+    sheetName: options.sheetName || defaultConfig.sheetName,
+    dryRun: isDryRun,
+    languageMap: CONFIG.languages,
+    failOnDuplicates:
+      options.failOnDuplicates === true ||
+      process.argv.includes(FLAG_FAIL_ON_DUP),
+  });
 
-    if (isDryRun) {
-        console.log(chalk.yellow(MSG_DRY_RUN_PLURAL));
-    } else {
-        console.log(chalk.green(`${MSG_CONVERSION_COMPLETED_PREFIX}${targetPath}`));
-    }
+  if (isDryRun) {
+    console.log(chalk.yellow(MSG_DRY_RUN_PLURAL));
+  } else {
+    console.log(chalk.green(`${MSG_CONVERSION_COMPLETED_PREFIX}${targetPath}`));
+  }
 }
 
 /**
@@ -357,101 +357,101 @@ async function runExcelToI18n(options, isDryRun) {
  * @returns {Promise<void>} Resolves when processing is complete.
  */
 export async function processCliOptions(options) {
-    try {
-        options.languageMap = CONFIG.languages;
-        const isDryRun = computeIsDryRun(options);
+  try {
+    options.languageMap = CONFIG.languages;
+    const isDryRun = computeIsDryRun(options);
 
-        if (options.i18nToExcel) {
-            await runI18nToExcel(options, isDryRun);
-        } else if (options.excelToI18n) {
-            await runExcelToI18n(options, isDryRun);
-        }
-    } catch (error) {
-        console.error(chalk.red(`❌ Error: ${error.message}`));
-        process.exit(1);
+    if (options.i18nToExcel) {
+      await runI18nToExcel(options, isDryRun);
+    } else if (options.excelToI18n) {
+      await runExcelToI18n(options, isDryRun);
     }
+  } catch (error) {
+    console.error(chalk.red(`❌ Error: ${error.message}`));
+    process.exit(1);
+  }
 }
 
 /**
  * Configure command line arguments
  */
 program
-    .name(TOOL_NAME)
-    .version(packageJson.version)
-    .description(TOOL_DESCRIPTION);
+  .name(TOOL_NAME)
+  .version(packageJson.version)
+  .description(TOOL_DESCRIPTION);
 
 // Command for i18n to Excel
 program
-    .command('i18n-to-excel')
-    .alias('to-excel')
-    .description('Convert i18n JSON files to Excel')
-    .option(
-        '-i, --input <path>',
-        'path to directory containing i18n JSON files',
-        defaultConfig.sourcePath,
-    )
-    .option(
-        '-o, --output <file>',
-        'path for the output Excel file',
-        defaultConfig.targetFile,
-    )
-    .option('-s, --sheet-name <name>', DESC_SHEET_NAME, defaultConfig.sheetName)
-    .option(FLAG_DRY_RUN, DESC_DRY_RUN)
-    .option('--no-report', DESC_NO_REPORT)
-    .action((options) => {
-        displayHeader();
-        options.i18nToExcel = true;
-        processCliOptions(options);
-    });
+  .command('i18n-to-excel')
+  .alias('to-excel')
+  .description('Convert i18n JSON files to Excel')
+  .option(
+    '-i, --input <path>',
+    'path to directory containing i18n JSON files',
+    defaultConfig.sourcePath,
+  )
+  .option(
+    '-o, --output <file>',
+    'path for the output Excel file',
+    defaultConfig.targetFile,
+  )
+  .option('-s, --sheet-name <name>', DESC_SHEET_NAME, defaultConfig.sheetName)
+  .option(FLAG_DRY_RUN, DESC_DRY_RUN)
+  .option('--no-report', DESC_NO_REPORT)
+  .action((options) => {
+    displayHeader();
+    options.i18nToExcel = true;
+    processCliOptions(options);
+  });
 
 // Command for Excel to i18n
 program
-    .command('excel-to-i18n')
-    .alias('to-json')
-    .description('Convert Excel file to i18n JSON files')
-    .option('-i, --input <file>', 'path to Excel file', defaultConfig.targetFile)
-    .option('-o, --output <path>', DESC_OUTPUT_I18N_DIR, defaultConfig.targetPath)
-    .option('-s, --sheet-name <name>', DESC_SHEET_NAME, defaultConfig.sheetName)
-    .option(FLAG_DRY_RUN, DESC_DRY_RUN)
-    .option(FLAG_FAIL_ON_DUP, DESC_FAIL_ON_DUP)
-    .action((options) => {
-        displayHeader();
-        options.excelToI18n = true;
-        processCliOptions(options);
-    });
+  .command('excel-to-i18n')
+  .alias('to-json')
+  .description('Convert Excel file to i18n JSON files')
+  .option('-i, --input <file>', 'path to Excel file', defaultConfig.targetFile)
+  .option('-o, --output <path>', DESC_OUTPUT_I18N_DIR, defaultConfig.targetPath)
+  .option('-s, --sheet-name <name>', DESC_SHEET_NAME, defaultConfig.sheetName)
+  .option(FLAG_DRY_RUN, DESC_DRY_RUN)
+  .option(FLAG_FAIL_ON_DUP, DESC_FAIL_ON_DUP)
+  .action((options) => {
+    displayHeader();
+    options.excelToI18n = true;
+    processCliOptions(options);
+  });
 
 // Legacy options for backward compatibility
 program
-    .option(
-        '-t, --to-excel',
-        'convert i18n files to Excel (use i18n-to-excel command instead)',
-    )
-    .option(
-        '-f, --from-excel',
-        'convert Excel to i18n files (use excel-to-i18n command instead)',
-    )
-    .option('--input <path>', 'input path (i18n directory or Excel file)')
-    .option('--output <path>', 'output path (Excel file or i18n directory)')
-    .option('--sheet-name <name>', DESC_SHEET_NAME, defaultConfig.sheetName)
-    .option(FLAG_DRY_RUN, DESC_DRY_RUN)
-    .option('--no-report', DESC_NO_REPORT)
-    .option(FLAG_FAIL_ON_DUP, DESC_FAIL_ON_DUP)
-    .action((options) => {
-        // Handle legacy parameters
-        if (options.toExcel || options.fromExcel) {
-            displayHeader();
+  .option(
+    '-t, --to-excel',
+    'convert i18n files to Excel (use i18n-to-excel command instead)',
+  )
+  .option(
+    '-f, --from-excel',
+    'convert Excel to i18n files (use excel-to-i18n command instead)',
+  )
+  .option('--input <path>', 'input path (i18n directory or Excel file)')
+  .option('--output <path>', 'output path (Excel file or i18n directory)')
+  .option('--sheet-name <name>', DESC_SHEET_NAME, defaultConfig.sheetName)
+  .option(FLAG_DRY_RUN, DESC_DRY_RUN)
+  .option('--no-report', DESC_NO_REPORT)
+  .option(FLAG_FAIL_ON_DUP, DESC_FAIL_ON_DUP)
+  .action((options) => {
+    // Handle legacy parameters
+    if (options.toExcel || options.fromExcel) {
+      displayHeader();
 
-            if (!options.input) {
-                console.error(chalk.red('Error: --input parameter is required'));
-                process.exit(1);
-            }
+      if (!options.input) {
+        console.error(chalk.red('Error: --input parameter is required'));
+        process.exit(1);
+      }
 
-            if (options.toExcel) options.i18nToExcel = true;
-            if (options.fromExcel) options.excelToI18n = true;
+      if (options.toExcel) options.i18nToExcel = true;
+      if (options.fromExcel) options.excelToI18n = true;
 
-            processCliOptions(options);
-        }
-    });
+      processCliOptions(options);
+    }
+  });
 
 /**
  * Main entry point for the application. Runs the interactive menu or parses CLI args.
@@ -459,27 +459,27 @@ program
  * @returns {Promise<void>}
  */
 async function main() {
-    // If no arguments provided, show interactive menu
-    if (process.argv.length <= 2) {
-        displayHeader();
-        await showMainMenu();
-    } else {
-        program.parse(process.argv);
-    }
+  // If no arguments provided, show interactive menu
+  if (process.argv.length <= 2) {
+    displayHeader();
+    await showMainMenu();
+  } else {
+    program.parse(process.argv);
+  }
 }
 
 // Error handling for unexpected errors
 process.on('uncaughtException', (error) => {
-    console.error(chalk.red(`Unexpected error: ${error.message}`));
-    console.error(error.stack);
-    process.exit(1);
+  console.error(chalk.red(`Unexpected error: ${error.message}`));
+  console.error(error.stack);
+  process.exit(1);
 });
 
 // Only run main when this file is executed directly (not when imported)
 const thisFile = fileURLToPath(import.meta.url);
 if (process.argv[1] && path.resolve(process.argv[1]) === thisFile) {
-    main().catch((error) => {
-        console.error(chalk.red(`Error during execution: ${error.message}`));
-        process.exit(1);
-    });
+  main().catch((error) => {
+    console.error(chalk.red(`Error during execution: ${error.message}`));
+    process.exit(1);
+  });
 }

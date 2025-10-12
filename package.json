@@ -70,7 +70,10 @@
     "node": ">=18"
   },
   "lint-staged": {
-    "*.{js,mjs,cjs}": "eslint --fix",
+    "*.{js,mjs,cjs}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
     "*.{json,md,yml,yaml}": "prettier --write"
   }
 }
