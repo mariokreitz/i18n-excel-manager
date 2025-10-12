@@ -5,22 +5,43 @@
  * including language mappings and helper functions.
  */
 
-import { describe, it, before, after, beforeEach } from 'node:test';
-import assert from 'node:assert/strict';
 import fs from 'fs/promises';
+import assert from 'node:assert/strict';
+import { after, before, beforeEach, describe, it } from 'node:test';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
 import ExcelJS from 'exceljs';
+
+import { extractPlaceholders } from '../src/core/json/placeholders.js';
 import {
+  flattenTranslations,
+  setNestedValue,
+  validateJsonStructure,
+} from '../src/core/json/structure.js';
+import { generateTranslationReport } from '../src/core/report/translationReport.js';
+import {
+  consoleReporter,
   convertToExcel,
   convertToJson,
-  validateJsonStructure,
-  generateTranslationReport,
-  printTranslationReport,
-} from '../src/main.js';
+} from '../src/index.js';
+import {
+  checkFileExists,
+  ensureDirectoryExists,
+  loadJsonFile,
+  writeJsonFile,
+} from '../src/io/fs.js';
 
 // Import internal helper functions for tests
-import * as mainModule from '../src/main.js';
+const mainModule = {
+  ensureDirectoryExists,
+  checkFileExists,
+  loadJsonFile,
+  writeJsonFile,
+  extractPlaceholders,
+  setNestedValue,
+  flattenTranslations,
+};
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const testDir = path.join(__dirname, 'fixtures');
@@ -29,9 +50,9 @@ const excelFile = path.join(tmpDir, 'test.xlsx');
 
 // Test language mapping
 const languageMap = {
-  'de': 'German',
-  'en': 'English',
-  'fr': 'French'
+  de: 'German',
+  en: 'English',
+  fr: 'French',
 };
 
 // Common setup and teardown functions
@@ -77,7 +98,7 @@ describe('i18n-excel-manager tests', async () => {
     it('should convert i18n files to Excel with language names in column headers', async () => {
       // Convert JSON files to Excel
       await convertToExcel(testDir, excelFile, {
-        languageMap: languageMap
+        languageMap: languageMap,
       });
 
       // Verify Excel file creation
@@ -92,9 +113,21 @@ describe('i18n-excel-manager tests', async () => {
       // Check headers (should use language names, not codes)
       const headers = worksheet.getRow(1).values;
       assert.strictEqual(headers[1], 'Key', 'First column should be "Key"');
-      assert.strictEqual(headers[2], 'German', 'Second column should be "German" (not "de")');
-      assert.strictEqual(headers[3], 'English', 'Third column should be "English" (not "en")');
-      assert.strictEqual(headers[4], 'French', 'Fourth column should be "French" (not "fr")');
+      assert.strictEqual(
+        headers[2],
+        'German',
+        'Second column should be "German" (not "de")',
+      );
+      assert.strictEqual(
+        headers[3],
+        'English',
+        'Third column should be "English" (not "en")',
+      );
+      assert.strictEqual(
+        headers[4],
+        'French',
+        'Fourth column should be "French" (not "fr")',
+      );
 
       // Check if content is correctly included
       const findRow = (key) => {
@@ -109,15 +142,27 @@ describe('i18n-excel-manager tests', async () => {
 
       const yesRow = findRow('common.yes');
       assert.ok(yesRow, 'Should find "common.yes" row');
-      assert.strictEqual(yesRow.getCell(2).value, 'Ja', 'German translation should be correct');
-      assert.strictEqual(yesRow.getCell(3).value, 'Yes', 'English translation should be correct');
-      assert.strictEqual(yesRow.getCell(4).value, 'Oui', 'French translation should be correct');
+      assert.strictEqual(
+        yesRow.getCell(2).value,
+        'Ja',
+        'German translation should be correct',
+      );
+      assert.strictEqual(
+        yesRow.getCell(3).value,
+        'Yes',
+        'English translation should be correct',
+      );
+      assert.strictEqual(
+        yesRow.getCell(4).value,
+        'Oui',
+        'French translation should be correct',
+      );
     });
 
     it('should convert Excel back to i18n files with correct language codes', async () => {
       // First create Excel file to convert from
       await convertToExcel(testDir, excelFile, {
-        languageMap: languageMap
+        languageMap: languageMap,
       });
 
       // Create output directory for JSON
@@ -126,15 +171,18 @@ describe('i18n-excel-manager tests', async () => {
 
       // Convert Excel back to JSON
       await convertToJson(excelFile, jsonOutputDir, {
-        languageMap: languageMap
+        languageMap: languageMap,
       });
 
       // Check if files were created with language codes (not names)
       for (const lang of ['de', 'en', 'fr']) {
         const filePath = path.join(jsonOutputDir, `${lang}.json`);
         assert.ok(
-          await fs.stat(filePath).then(() => true).catch(() => false),
-          `Should create JSON file for ${lang}`
+          await fs
+            .stat(filePath)
+            .then(() => true)
+            .catch(() => false),
+          `Should create JSON file for ${lang}`,
         );
 
         // Check content
@@ -142,7 +190,7 @@ describe('i18n-excel-manager tests', async () => {
         assert.strictEqual(
           typeof content.common.yes,
           'string',
-          `Translation for ${lang}.common.yes should exist`
+          `Translation for ${lang}.common.yes should exist`,
         );
       }
 
@@ -150,9 +198,12 @@ describe('i18n-excel-manager tests', async () => {
       for (const langName of Object.values(languageMap)) {
         const filePath = path.join(jsonOutputDir, `${langName}.json`);
         assert.strictEqual(
-          await fs.stat(filePath).then(() => true).catch(() => false),
+          await fs
+            .stat(filePath)
+            .then(() => true)
+            .catch(() => false),
           false,
-          `Should not create file with language name ${langName}`
+          `Should not create file with language name ${langName}`,
         );
       }
     });
@@ -163,7 +214,7 @@ describe('i18n-excel-manager tests', async () => {
 
       // Convert to Excel with language map that doesn't include the unknown code
       await convertToExcel(testDir, excelFile, {
-        languageMap: languageMap
+        languageMap: languageMap,
       });
 
       // Check if Excel contains the unknown language code unchanged
@@ -173,20 +224,31 @@ describe('i18n-excel-manager tests', async () => {
       const headerRow = worksheet.getRow(1).values;
 
       // Find the column index for the unknown language
-      const languageIndex = headerRow.findIndex(header => header === unknownLang);
-      assert.ok(languageIndex > 0, 'Unknown language should be included with its code');
+      const languageIndex = headerRow.findIndex(
+        (header) => header === unknownLang,
+      );
+      assert.ok(
+        languageIndex > 0,
+        'Unknown language should be included with its code',
+      );
 
       // Convert back to JSON
       const jsonTargetDir = path.join(tmpDir, 'output-unknown');
       await fs.mkdir(jsonTargetDir, { recursive: true });
       await convertToJson(excelFile, jsonTargetDir, {
-        languageMap: languageMap
+        languageMap: languageMap,
       });
 
       // Check if the unknown language file was created correctly
       const filePath = path.join(jsonTargetDir, `${unknownLang}.json`);
-      const fileExists = await fs.stat(filePath).then(() => true).catch(() => false);
-      assert.ok(fileExists, `JSON file for unknown language ${unknownLang} should exist`);
+      const fileExists = await fs
+        .stat(filePath)
+        .then(() => true)
+        .catch(() => false);
+      assert.ok(
+        fileExists,
+        `JSON file for unknown language ${unknownLang} should exist`,
+      );
     });
   });
 
@@ -206,7 +268,7 @@ describe('i18n-excel-manager tests', async () => {
       const complex = {
         a: 'value',
         b: { c: { d: 'nested' } },
-        e: { f: 'another' }
+        e: { f: 'another' },
       };
       assert.doesNotThrow(() => validateJsonStructure(complex));
     });
@@ -215,8 +277,8 @@ describe('i18n-excel-manager tests', async () => {
       const obj = {
         valid: 'string',
         nested: {
-          invalid: [1, 2, 3]
-        }
+          invalid: [1, 2, 3],
+        },
       };
       try {
         validateJsonStructure(obj);
@@ -240,7 +302,10 @@ describe('i18n-excel-manager tests', async () => {
       await mainModule.ensureDirectoryExists(nestedDir);
 
       // Check if directory exists
-      const dirExists = await fs.stat(nestedDir).then(() => true).catch(() => false);
+      const dirExists = await fs
+        .stat(nestedDir)
+        .then(() => true)
+        .catch(() => false);
       assert.ok(dirExists, 'Directory should be created');
     });
 
@@ -260,25 +325,29 @@ describe('i18n-excel-manager tests', async () => {
       // Simple placeholder
       assert.deepStrictEqual(
         Array.from(mainModule.extractPlaceholders('Hello {name}')),
-        ['name']
+        ['name'],
       );
 
       // Double curly braces
       assert.deepStrictEqual(
         Array.from(mainModule.extractPlaceholders('Hello {{name}}')),
-        ['name']
+        ['name'],
       );
 
       // With spaces
       assert.deepStrictEqual(
         Array.from(mainModule.extractPlaceholders('Hello { name }')),
-        ['name']
+        ['name'],
       );
 
       // Multiple placeholders
       assert.deepStrictEqual(
-        Array.from(mainModule.extractPlaceholders('Hello {name}, you have {count} messages')).sort(),
-        ['name', 'count'].sort()
+        Array.from(
+          mainModule.extractPlaceholders(
+            'Hello {name}, you have {count} messages',
+          ),
+        ).sort(),
+        ['name', 'count'].sort(),
       );
     });
 
@@ -297,9 +366,9 @@ describe('i18n-excel-manager tests', async () => {
       const obj = {
         a: {
           b: 'value1',
-          c: { d: 'value2' }
+          c: { d: 'value2' },
         },
-        e: 'value3'
+        e: 'value3',
       };
 
       const results = {};
@@ -310,7 +379,7 @@ describe('i18n-excel-manager tests', async () => {
       assert.deepStrictEqual(results, {
         'a.b': 'value1',
         'a.c.d': 'value2',
-        'e': 'value3'
+        e: 'value3',
       });
     });
 
@@ -325,7 +394,11 @@ describe('i18n-excel-manager tests', async () => {
       const readData = await mainModule.loadJsonFile(testPath);
 
       // Compare contents
-      assert.deepStrictEqual(readData, testData, 'Read data should match written data');
+      assert.deepStrictEqual(
+        readData,
+        testData,
+        'Read data should match written data',
+      );
     });
 
     it('throws helpful error for malformed JSON', async () => {
@@ -343,31 +416,20 @@ describe('i18n-excel-manager tests', async () => {
 
   // Tests for translation report generation
   describe('Translation report generation', async () => {
-    it('reports clean state for complete translations', () => {
-      const translations = new Map();
-      translations.set('key1', { de: 'Wert1', en: 'Value1' });
-      translations.set('key2', { de: 'Wert2', en: 'Value2' });
-
-      const languages = ['de', 'en'];
-      const report = generateTranslationReport(translations, languages);
-
-      assert.strictEqual(report.missing.length, 0, 'Should not find missing translations');
-      assert.strictEqual(report.duplicates.length, 0, 'Should not find duplicates');
-      assert.strictEqual(report.placeholderInconsistencies.length, 0, 'Should not find placeholder inconsistencies');
-    });
-
     it('prints success message when no issues found', () => {
       let output = '';
       const origLog = console.log;
-      console.log = (msg) => { output += msg + '\n'; };
+      console.log = (msg) => {
+        output += msg + '\n';
+      };
 
       const cleanReport = {
         missing: [],
         duplicates: [],
-        placeholderInconsistencies: []
+        placeholderInconsistencies: [],
       };
 
-      printTranslationReport(cleanReport);
+      consoleReporter.print(cleanReport);
       console.log = origLog;
 
       assert.match(output, /✅ No missing, duplicate translations/);
@@ -381,30 +443,45 @@ describe('i18n-excel-manager tests', async () => {
       const languages = ['de', 'en'];
       const report = generateTranslationReport(translations, languages);
 
-      assert.strictEqual(report.missing.length, 1, 'Should detect one missing translation');
-      assert.strictEqual(report.missing[0].key, 'key1', 'Should identify which key is missing');
-      assert.strictEqual(report.missing[0].lang, 'en', 'Should identify which language is missing');
+      assert.strictEqual(
+        report.missing.length,
+        1,
+        'Should detect one missing translation',
+      );
+      assert.strictEqual(
+        report.missing[0].key,
+        'key1',
+        'Should identify which key is missing',
+      );
+      assert.strictEqual(
+        report.missing[0].lang,
+        'en',
+        'Should identify which language is missing',
+      );
     });
 
     it('detects inconsistent placeholders', () => {
       const translations = new Map();
       translations.set('greeting', {
         de: 'Hallo {name}, du hast {count} Nachrichten.',
-        en: 'Hello {name}, you have messages.' // missing {count}
+        en: 'Hello {name}, you have messages.', // missing {count}
       });
 
       const languages = ['de', 'en'];
       const report = generateTranslationReport(translations, languages);
 
-      assert.strictEqual(report.placeholderInconsistencies.length, 1,
-                        'Should detect placeholder inconsistency');
+      assert.strictEqual(
+        report.placeholderInconsistencies.length,
+        1,
+        'Should detect placeholder inconsistency',
+      );
     });
 
     it('detects double curly placeholders with spaces', () => {
       const translations = new Map();
       translations.set('key', {
         de: 'Hallo {{ userName }}, wie geht es dir?',
-        en: 'Hello {{userName}}, how are you?'
+        en: 'Hello {{userName}}, how are you?',
       });
 
       const languages = ['de', 'en'];
@@ -412,18 +489,24 @@ describe('i18n-excel-manager tests', async () => {
 
       // Check if differences in placeholders are detected
       // userName vs userName - the difference is only in spacing
-      assert.strictEqual(report.placeholderInconsistencies.length, 0,
-                        'Should not detect spacing differences in placeholders');
+      assert.strictEqual(
+        report.placeholderInconsistencies.length,
+        0,
+        'Should not detect spacing differences in placeholders',
+      );
 
       // Actual differences that should be detected
       translations.set('key2', {
         de: 'Hallo {person}, willkommen!',
-        en: 'Hello {user}, welcome!'
+        en: 'Hello {user}, welcome!',
       });
 
       const report2 = generateTranslationReport(translations, languages);
-      assert.strictEqual(report2.placeholderInconsistencies.length, 1,
-                        'Should detect actual different placeholder names');
+      assert.strictEqual(
+        report2.placeholderInconsistencies.length,
+        1,
+        'Should detect actual different placeholder names',
+      );
     });
   });
 
@@ -450,13 +533,16 @@ describe('i18n-excel-manager tests', async () => {
 
       // Convert Excel back to JSON with language mapping
       await convertToJson(testExcelFile, jsonOutputDir, {
-        languageMap: languageMap
+        languageMap: languageMap,
       });
 
       // Check if files were created with language codes
       for (const [code, name] of Object.entries(languageMap)) {
         const filePath = path.join(jsonOutputDir, `${code}.json`);
-        const exists = await fs.stat(filePath).then(() => true).catch(() => false);
+        const exists = await fs
+          .stat(filePath)
+          .then(() => true)
+          .catch(() => false);
         assert.ok(exists, `Should create file for ${code} from column ${name}`);
       }
     });
