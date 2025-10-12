@@ -48,7 +48,7 @@
     "commander": "^11.0.0",
     "exceljs": "^4.3.0",
     "figlet": "^1.6.0",
-    "inquirer": "^9.2.10",
+    "inquirer": "^12.9.6",
     "joi": "^17.13.3"
   },
   "devDependencies": {
