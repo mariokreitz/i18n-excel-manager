@@ -1,6 +1,6 @@
 # i18n-excel-manager
 
-[![CI](https://github.com/mariokreitz/i18n-excel-manager/actions/workflows/test.yml/badge.svg)](https://github.com/mariokreitz/i18n-excel-manager/actions/workflows/test.yml)
+[![CI](https://github.com/mariokreitz/i18n-excel-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/mariokreitz/i18n-excel-manager/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/i18n-excel-manager.svg?style=flat)](https://www.npmjs.com/package/i18n-excel-manager)
 [![npm downloads](https://img.shields.io/npm/dm/i18n-excel-manager.svg?style=flat)](https://www.npmjs.com/package/i18n-excel-manager)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -38,6 +38,29 @@
 
 - Node.js >= 18
   - CI runs on Node 18.x, 20.x, and 22.x.
+
+---
+
+## 🔄 CI/CD
+
+This repository uses GitHub Actions for continuous integration and deployment:
+
+- **CI Workflow** (`ci.yml`): Runs on every push and pull request to `main`, plus weekly
+  - Tests across Node.js 18.x, 20.x, 22.x
+  - Linting with ESLint
+  - Code formatting check with Prettier
+  - Unit tests with coverage (minimum 85%)
+  - Security audit with npm audit
+  - CodeQL security analysis
+  - Coverage artifacts uploaded for review
+
+- **Publish Workflow** (`publish.yml`): Triggers on GitHub releases
+  - Publishes package to npm registry
+  - Sends Discord notification
+
+- **Dependabot Auto-Merge** (`dependabot-auto-merge.yml`): Auto-merges patch updates from Dependabot
+
+All workflows must pass before merging PRs. See `.github/workflows/` for details.
 
 ---
 
