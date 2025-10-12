@@ -2,16 +2,16 @@ name: Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [ 18.x, 20.x, 22.x ]
+        node-version: [18.x, 20.x, 22.x]
 
     steps:
       - uses: actions/checkout@v3
@@ -22,4 +22,24 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: npm run lint
-      - run: npm test
+      - run: npm run format:check
+      - name: Run unit tests
+        run: npm test
+      - name: Run tests with coverage (enforced >=85%)
+        run: npm run test:coverage
+      - name: List coverage outputs
+        if: always()
+        run: |
+          ls -la coverage || true
+          find coverage -maxdepth 2 -type f -print | sort || true
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.node-version }}-${{ github.sha }}
+          if-no-files-found: ignore
+          retention-days: 7
+          path: |
+            coverage/**
+            coverage/coverage-summary.json
+            coverage/lcov.info
