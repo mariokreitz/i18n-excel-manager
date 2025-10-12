@@ -28,6 +28,13 @@ jobs:
       - run: npm run format:check
       - run: npm test
       - run: npm run test:coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
       - run: npm audit --audit-level moderate
       - name: Upload coverage artifact
         if: always()
