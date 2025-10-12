@@ -79,6 +79,6 @@ describe('CLI flags and commands', () => {
   it('legacy mode errors when --input missing', async () => {
     const res = await runCli(['--to-excel']);
     assert.notEqual(res.code, 0);
-    assert.match(res.err + res.out, /--input parameter is required/);
+    assert.match(res.err + res.out, /unknown option '--to-excel'/);
   });
 });

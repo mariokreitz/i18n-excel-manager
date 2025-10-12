@@ -343,7 +343,8 @@ async function runExcelToI18n(options, isDryRun) {
 
 /**
  * Processes CLI parameters for non-interactive mode.
- * Handles both i18n-to-excel and excel-to-i18n commands, including legacy options.
+ * Handles both i18n-to-excel and excel-to-i18n commands.
+ * Loads and merges config file if specified, with CLI options taking precedence.
  *
  * @async
  * @param {object} options - Commander options object.
@@ -354,17 +355,39 @@ async function runExcelToI18n(options, isDryRun) {
  * @param {string} [options.sheetName] - Excel sheet name.
  * @param {boolean} [options.dryRun] - If true, simulate only, do not write files.
  * @param {boolean} [options.report] - If false, skip generating translation report.
+ * @param {string} [options.config] - Path to config file.
  * @returns {Promise<void>} Resolves when processing is complete.
  */
 export async function processCliOptions(options) {
   try {
-    options.languageMap = CONFIG.languages;
-    const isDryRun = computeIsDryRun(options);
+    // Load config file if specified
+    let configOptions = {};
+    if (options.config) {
+      try {
+        const configRaw = fs.readFileSync(options.config, 'utf8');
+        const configJson = JSON.parse(configRaw);
+        configOptions = validateConfigObject(configJson);
+      } catch (error) {
+        throw new Error(
+          `Failed to load config file '${options.config}': ${error.message}`,
+        );
+      }
+    }
 
-    if (options.i18nToExcel) {
-      await runI18nToExcel(options, isDryRun);
-    } else if (options.excelToI18n) {
-      await runExcelToI18n(options, isDryRun);
+    // Merge config with CLI options, CLI takes precedence
+    const mergedOptions = {
+      ...configOptions.defaults,
+      ...configOptions,
+      ...options,
+    };
+    mergedOptions.languageMap = mergedOptions.languages || CONFIG.languages;
+
+    const isDryRun = computeIsDryRun(mergedOptions);
+
+    if (mergedOptions.i18nToExcel) {
+      await runI18nToExcel(mergedOptions, isDryRun);
+    } else if (mergedOptions.excelToI18n) {
+      await runExcelToI18n(mergedOptions, isDryRun);
     }
   } catch (error) {
     console.error(chalk.red(`❌ Error: ${error.message}`));
@@ -398,6 +421,7 @@ program
   .option('-s, --sheet-name <name>', DESC_SHEET_NAME, defaultConfig.sheetName)
   .option(FLAG_DRY_RUN, DESC_DRY_RUN)
   .option('--no-report', DESC_NO_REPORT)
+  .option('--config <file>', 'path to config file', './config.json')
   .action((options) => {
     displayHeader();
     options.i18nToExcel = true;
@@ -414,43 +438,11 @@ program
   .option('-s, --sheet-name <name>', DESC_SHEET_NAME, defaultConfig.sheetName)
   .option(FLAG_DRY_RUN, DESC_DRY_RUN)
   .option(FLAG_FAIL_ON_DUP, DESC_FAIL_ON_DUP)
+  .option('--config <file>', 'path to config file', './config.json')
   .action((options) => {
     displayHeader();
     options.excelToI18n = true;
     processCliOptions(options);
-  });
-
-// Legacy options for backward compatibility
-program
-  .option(
-    '-t, --to-excel',
-    'convert i18n files to Excel (use i18n-to-excel command instead)',
-  )
-  .option(
-    '-f, --from-excel',
-    'convert Excel to i18n files (use excel-to-i18n command instead)',
-  )
-  .option('--input <path>', 'input path (i18n directory or Excel file)')
-  .option('--output <path>', 'output path (Excel file or i18n directory)')
-  .option('--sheet-name <name>', DESC_SHEET_NAME, defaultConfig.sheetName)
-  .option(FLAG_DRY_RUN, DESC_DRY_RUN)
-  .option('--no-report', DESC_NO_REPORT)
-  .option(FLAG_FAIL_ON_DUP, DESC_FAIL_ON_DUP)
-  .action((options) => {
-    // Handle legacy parameters
-    if (options.toExcel || options.fromExcel) {
-      displayHeader();
-
-      if (!options.input) {
-        console.error(chalk.red('Error: --input parameter is required'));
-        process.exit(1);
-      }
-
-      if (options.toExcel) options.i18nToExcel = true;
-      if (options.fromExcel) options.excelToI18n = true;
-
-      processCliOptions(options);
-    }
   });
 
 /**

@@ -82,8 +82,7 @@ describe('Entry points', () => {
       '--dry-run',
       '--no-report',
     ]);
-    assert.equal(code, 0, err || '');
-    // Should include header and a completion or dry-run line
-    assert.match(out, /i18n-excel-manager|Dry-run/);
+    assert.notEqual(code, 0);
+    assert.match(err + out, /unknown option '--to-excel'/);
   });
 });

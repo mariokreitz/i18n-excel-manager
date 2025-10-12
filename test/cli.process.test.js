@@ -169,8 +169,8 @@ describe('CLI helpers coverage', () => {
       '--dry-run',
       '--no-report',
     ]);
-    assert.equal(res.code, 0, res.err || res.out);
-    assert.match(res.out, /Dry-run: No file was written|Dry-run/);
+    assert.notEqual(res.code, 0);
+    assert.match(res.err + res.out, /unknown option '--to-excel'/);
   });
 
   it('i18n-to-excel normal run writes Excel and prints completion', async () => {

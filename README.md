@@ -285,17 +285,56 @@ Use with: `i18n-excel-manager --config config.json i18n-to-excel`
 
 ## 📋 Options
 
-| Option                 | Short | Description                                      | Default                |
-| ---------------------- | ----- | ------------------------------------------------ | ---------------------- |
-| `--input <path>`       | `-i`  | Input path (directory for JSON, file for Excel)  | `./public/assets/i18n` |
-| `--output <path>`      | `-o`  | Output path (file for Excel, directory for JSON) | `./public/assets/i18n` |
-| `--sheet-name <name>`  | `-s`  | Excel worksheet name                             | `Translations`         |
-| `--dry-run`            | `-d`  | Preview without writing files                    | `false`                |
-| `--fail-on-duplicates` |       | Exit with error on duplicate keys                | `false`                |
-| `--no-report`          |       | Skip translation report                          | `false`                |
-| `--config <file>`      |       | Path to config file                              |                        |
-| `--help`               | `-h`  | Show help                                        |                        |
-| `--version`            | `-V`  | Show version                                     |                        |
+### i18n-to-excel Command
+
+| Option                | Short | Description                                  | Default                  |
+| --------------------- | ----- | -------------------------------------------- | ------------------------ |
+| `--input <path>`      | `-i`  | Path to directory containing i18n JSON files | `public/assets/i18n`     |
+| `--output <file>`     | `-o`  | Path for the output Excel file               | `dist/translations.xlsx` |
+| `--sheet-name <name>` | `-s`  | Excel worksheet name                         | `Translations`           |
+| `--dry-run`           | `-d`  | Simulate only, do not write files            | `false`                  |
+| `--no-report`         |       | Skip generating translation report           | `false`                  |
+| `--config <file>`     |       | Path to config file                          | `./config.json`          |
+| `--help`              | `-h`  | Show help                                    |                          |
+| `--version`           | `-V`  | Show version                                 |                          |
+
+### excel-to-i18n Command
+
+| Option                 | Short | Description                          | Default                  |
+| ---------------------- | ----- | ------------------------------------ | ------------------------ |
+| `--input <file>`       | `-i`  | Path to Excel file                   | `dist/translations.xlsx` |
+| `--output <path>`      | `-o`  | Target directory for i18n JSON files | `locales`                |
+| `--sheet-name <name>`  | `-s`  | Excel worksheet name                 | `Translations`           |
+| `--dry-run`            | `-d`  | Simulate only, do not write files    | `false`                  |
+| `--fail-on-duplicates` |       | Exit with error on duplicate keys    | `false`                  |
+| `--config <file>`      |       | Path to config file                  | `./config.json`          |
+| `--help`               | `-h`  | Show help                            |                          |
+| `--version`            | `-V`  | Show version                         |                          |
+
+### Config File Precedence
+
+CLI options take precedence over config file settings. The config file is merged with defaults, then CLI options
+override any conflicting values.
+
+Example config file (`my-config.json`):
+
+```json
+{
+  "languages": {
+    "en": "English",
+    "de": "Deutsch",
+    "fr": "Français"
+  },
+  "defaults": {
+    "sourcePath": "./src/assets/i18n",
+    "targetFile": "./translations.xlsx",
+    "targetPath": "./src/assets/i18n",
+    "sheetName": "Translations"
+  }
+}
+```
+
+Usage: `i18n-excel-manager i18n-to-excel --config my-config.json --input ./custom/path`
 
 ---
 
