@@ -418,7 +418,6 @@ program
 // Command for i18n to Excel
 program
   .command('i18n-to-excel')
-  .alias('to-excel')
   .description('Convert i18n JSON files to Excel')
   .option(
     '-i, --input <path>',
@@ -443,7 +442,6 @@ program
 // Command for Excel to i18n
 program
   .command('excel-to-i18n')
-  .alias('to-json')
   .description('Convert Excel file to i18n JSON files')
   .option('-i, --input <file>', 'path to Excel file', defaultConfig.targetFile)
   .option('-o, --output <path>', DESC_OUTPUT_I18N_DIR, defaultConfig.targetPath)
