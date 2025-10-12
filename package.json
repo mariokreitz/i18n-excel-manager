@@ -3,9 +3,9 @@
   "version": "1.2.1",
   "description": "CLI tool for converting and validating i18n JSON and Excel files with placeholder validation.",
   "type": "module",
-  "main": "src/main.js",
+  "main": "src/index.js",
   "exports": {
-    ".": "./src/main.js",
+    ".": "./src/index.js",
     "./cli": "./cli.js"
   },
   "bin": {
@@ -15,7 +15,11 @@
     "start": "node cli.js",
     "test": "node --test",
     "lint": "eslint .",
-    "prepare": "npm test && npm run lint"
+    "lint:fix": "eslint . --fix",
+    "prepare": "husky",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test:coverage": "c8 --reporter=json-summary --reporter=lcov --reporter=text-summary --check-coverage --branches=85 --functions=85 --lines=85 --statements=85 node --test"
   },
   "keywords": [
     "i18n",
@@ -44,12 +48,29 @@
     "commander": "^11.0.0",
     "exceljs": "^4.3.0",
     "figlet": "^1.6.0",
-    "inquirer": "^9.2.10"
+    "inquirer": "^9.2.10",
+    "joi": "^17.13.3"
   },
   "devDependencies": {
-    "eslint": "^8.47.0"
+    "eslint": "^8.47.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-promise": "^6.4.0",
+    "eslint-plugin-security": "^1.7.1",
+    "eslint-plugin-sonarjs": "^0.25.0",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-unicorn": "^51.0.1",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "prettier": "^3.3.3",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.10",
+    "c8": "^10.1.2"
   },
   "engines": {
     "node": ">=18"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs}": "eslint --fix",
+    "*.{json,md,yml,yaml}": "prettier --write"
   }
 }
