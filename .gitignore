@@ -44,5 +44,5 @@ Thumbs.db
 /examples/*.xlsx
 
 # Coverage
-/coverage
+coverage/*
 !coverage/lcov.info
