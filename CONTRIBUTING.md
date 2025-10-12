@@ -93,7 +93,15 @@ Types:
 
 - Keep the README.md up to date
 - Document new features and CLI options
-- Add JSDoc comments for new functions and methods
+- Add JSDoc comments for new functions and methods following the project's standards
+- Update CHANGELOG.md for significant changes (if present)
+
+## Code Quality
+
+- All code must pass ESLint and Prettier checks
+- Maintain test coverage above 85%
+- Follow the existing code patterns and architecture
+- Use TypeScript-style JSDoc for type annotations in JavaScript files
 
 ## Release Process
 

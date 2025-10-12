@@ -3,6 +3,7 @@
 [![CI](https://github.com/mariokreitz/i18n-excel-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/mariokreitz/i18n-excel-manager/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/i18n-excel-manager.svg?style=flat)](https://www.npmjs.com/package/i18n-excel-manager)
 [![npm downloads](https://img.shields.io/npm/dm/i18n-excel-manager.svg?style=flat)](https://www.npmjs.com/package/i18n-excel-manager)
+[![Coverage Status](https://coveralls.io/repos/github/mariokreitz/i18n-excel-manager/badge.svg?branch=main)](https://coveralls.io/github/mariokreitz/i18n-excel-manager?branch=main)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 <p align="center">
@@ -16,63 +17,50 @@
 
 ## ✨ Features
 
-- **i18n → Excel**: Convert multiple i18n JSON files (as used by [ngx-translate](https://github.com/ngx-translate/core))
-  into a single, well-structured Excel file for translators.
-- **Excel → i18n**: Convert an Excel file back into language-specific JSON files for your app.
-- **Interactive CLI**: User-friendly, menu-driven interface for non-technical users.
-- **Dry-Run & Reporting**: Use `--dry-run` to preview missing translations, duplicates, and placeholder inconsistencies
-  without writing files.
-- **Placeholder Consistency**: Detects and reports inconsistent placeholders (e.g., `{name}`, `{count}`) across
-  languages.
-- **Customizable Sheet Name**: Set the Excel worksheet name with `--sheet-name`.
-- **Language Mapping**: Display full language names in Excel instead of codes.
-- **Modern CLI Options**: All options available as short and long flags (e.g., `-d`/`--dry-run`).
-- **No File Written in Dry-Run**: Guaranteed by CLI logic.
-- **Supports Both Interactive and Direct CLI Usage**.
-- **Angular Defaults**: Defaults to `public/assets/i18n` for source files, matching Angular's recommended i18n
-  structure.
+- **Bidirectional Conversion**: Convert i18n JSON files to Excel and vice versa.
+- **Interactive CLI**: User-friendly menu-driven interface.
+- **Dry-Run Mode**: Preview changes without writing files.
+- **Placeholder Validation**: Detect inconsistent placeholders across languages.
+- **Language Mapping**: Use full language names in Excel headers.
+- **Duplicate Detection**: Identify and handle duplicate keys.
+- **Path Safety**: Prevent directory traversal attacks.
+- **Modern CLI**: Short and long flags, comprehensive help.
+- **Node.js API**: Programmatic access for integrations.
 
 ---
 
-## ⚙️ Requirements
+## Table of Contents
+
+- [Installation](#-installation)
+- [Quick Start](#-quick-start)
+- [Usage](#-usage)
+  - [CLI](#cli)
+  - [API](#api)
+- [Angular Integration](#-angular-integration)
+- [Configuration](#-configuration)
+- [Options](#-options)
+- [Error Handling](#-error-handling)
+- [Architecture](#-architecture)
+- [Development](#-development)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
+
+## 📦 Installation
+
+### Requirements
 
 - Node.js >= 18
-  - CI runs on Node 18.x, 20.x, and 22.x.
+- Tested on Node.js 18.x, 20.x, and 22.x
 
----
-
-## 🔄 CI/CD
-
-This repository uses GitHub Actions for continuous integration and deployment:
-
-- **CI Workflow** (`ci.yml`): Runs on every push and pull request to `main`, plus weekly
-  - Tests across Node.js 18.x, 20.x, 22.x
-  - Linting with ESLint
-  - Code formatting check with Prettier
-  - Unit tests with coverage (minimum 85%)
-  - Security audit with npm audit
-  - CodeQL security analysis
-  - Coverage artifacts uploaded for review
-
-- **Publish Workflow** (`publish.yml`): Triggers on GitHub releases
-  - Publishes package to npm registry
-  - Sends Discord notification
-
-- **Dependabot Auto-Merge** (`dependabot-auto-merge.yml`): Auto-merges patch updates from Dependabot
-
-All workflows must pass before merging PRs. See `.github/workflows/` for details.
-
----
-
-## 🚀 Installation
-
-### Global (recommended)
+### Global Installation (Recommended)
 
 ```bash
 npm install -g i18n-excel-manager
 ```
 
-### Local (as a dev dependency)
+### Local Installation (as dev dependency)
 
 ```bash
 npm install --save-dev i18n-excel-manager
@@ -80,105 +68,301 @@ npm install --save-dev i18n-excel-manager
 
 ---
 
+## 🚀 Quick Start
+
+1. Install globally: `npm install -g i18n-excel-manager`
+2. Convert JSON to Excel: `i18n-excel-manager i18n-to-excel --input ./public/assets/i18n --output translations.xlsx`
+3. Edit the Excel file with your translations.
+4. Convert back to JSON: `i18n-excel-manager excel-to-i18n --input translations.xlsx --output ./public/assets/i18n`
+
+---
+
 ## 🛠️ Usage
 
-### Interactive Mode
+### CLI
 
-Launch the tool without arguments for a guided, menu-driven experience:
+#### Interactive Mode
+
+Run without arguments for a guided experience:
 
 ```bash
 i18n-excel-manager
 ```
 
-### CLI Commands
-
-#### Convert i18n JSON → Excel
+#### Convert JSON to Excel
 
 ```bash
-i18n-excel-manager i18n-to-excel --input ./public/assets/i18n --output ./translations.xlsx --sheet-name Translations
+i18n-excel-manager i18n-to-excel --input ./public/assets/i18n --output translations.xlsx
 ```
 
-#### Convert Excel → i18n JSON
+#### Convert Excel to JSON
 
 ```bash
-i18n-excel-manager excel-to-i18n --input ./translations.xlsx --output ./public/assets/i18n --sheet-name Translations
+i18n-excel-manager excel-to-i18n --input translations.xlsx --output ./public/assets/i18n
 ```
 
-#### Strict duplicate handling (fail on duplicates)
+#### Dry Run
+
+Preview changes without writing files:
 
 ```bash
-i18n-excel-manager excel-to-i18n -i ./translations.xlsx -o ./public/assets/i18n --fail-on-duplicates
+i18n-excel-manager i18n-to-excel --dry-run --input ./public/assets/i18n
 ```
 
-#### Dry-Run (no files written, only report)
+### API
 
-```bash
-i18n-excel-manager i18n-to-excel --dry-run
-```
-
-#### Disable Report
-
-```bash
-i18n-excel-manager i18n-to-excel --no-report
-```
-
----
-
-## 💡 Examples
-
-```bash
-# Convert i18n JSON to Excel (Angular default paths)
-i18n-excel-manager i18n-to-excel
-
-# Convert Excel to i18n JSON (with custom sheet name)
-i18n-excel-manager excel-to-i18n -i translations.xlsx -o ./public/assets/i18n -s MySheet
-
-# Dry-Run with report
-i18n-excel-manager i18n-to-excel --dry-run
-```
-
----
-
-## 📦 Node.js API
-
-i18n-excel-manager exposes a Node API along with the CLI. Import functions from the package root:
-
-```js
+```javascript
 import { convertToExcel, convertToJson } from 'i18n-excel-manager';
 
-await convertToExcel('public/assets/i18n', 'translations.xlsx', {
-  dryRun: true,
+// Convert JSON to Excel
+await convertToExcel('./public/assets/i18n', 'translations.xlsx', {
+  sheetName: 'Translations',
+  dryRun: false,
+  languageMap: { en: 'English', de: 'Deutsch' },
 });
-await convertToJson('translations.xlsx', 'public/assets/i18n', {
-  sheetName: 'MySheet',
+
+// Convert Excel to JSON
+await convertToJson('translations.xlsx', './public/assets/i18n', {
+  sheetName: 'Translations',
+  failOnDuplicates: false,
 });
 ```
 
-Note: Importing the CLI entrypoint (`./cli.js`) will not auto-run the interactive UI. The CLI only runs when executed
-directly (e.g., `i18n-excel-manager` or `node cli.js`).
-
 ---
 
-## 🔒 Security & Behavior Notes
+## 🔧 Angular Integration
 
-- Path safety: When converting Excel → i18n JSON, language column headers are validated and output file paths are
-  constrained to the selected output directory. Invalid language codes or unsafe paths are rejected to prevent path
-  traversal.
-- Duplicate keys (Excel): If an Excel sheet contains duplicate values in the "Key" column, they are detected and a
-  warning is printed. The conversion still proceeds by default; use dry-run to review and fix duplicates before writing
-  files. For stricter behavior, pass `--fail-on-duplicates` to cause conversion to fail when duplicates are present.
+This tool is designed to work seamlessly with Angular's i18n workflow. Angular typically stores translation files in
+`public/assets/i18n/` with filenames matching language codes (e.g., `en.json`, `de.json`).
 
----
+### Project Structure
 
-## 🧪 Development & Testing
+A typical Angular project structure for i18n:
+
+```
+my-angular-app/
+├── public/
+│   └── assets/
+│       └── i18n/
+│           ├── en.json
+│           ├── de.json
+│           └── fr.json
+├── src/
+│   ├── app/
+│   │   ├── app.component.ts
+│   │   └── app.config.ts
+│   └── locales/
+│       └── messages.xlf  // For Angular i18n extraction
+└── angular.json
+```
+
+### Generating Translation Files
+
+Use the CLI to convert Excel files to Angular-compatible JSON:
 
 ```bash
+# Convert Excel to Angular i18n files
+i18n-excel-manager excel-to-i18n \
+  --input ./translations.xlsx \
+  --output ./public/assets/i18n \
+  --fail-on-duplicates
+```
+
+This creates `en.json`, `de.json`, etc. in `public/assets/i18n/`.
+
+### Loading Translations in Angular
+
+Configure Angular to load translations from the assets directory. In `src/app/app.config.ts`:
+
+```typescript
+import { ApplicationConfig } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
+import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+
+export function HttpLoaderFactory(http: HttpClient) {
+  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
+}
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideHttpClient(),
+    provideTranslateService({
+      loader: {
+        provide: TranslateLoader,
+        useFactory: HttpLoaderFactory,
+        deps: [HttpClient],
+      },
+      defaultLanguage: 'en',
+    }),
+  ],
+};
+```
+
+In components, use translations:
+
+```typescript
+import { Component } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <h1>{{ 'app.title' | translate }}</h1>
+    <p>{{ 'app.welcome' | translate }}</p>
+  `,
+})
+export class AppComponent {
+  constructor(private translate: TranslateService) {
+    this.translate.setDefaultLang('en');
+    this.translate.use('en'); // or detect from user preference
+  }
+}
+```
+
+### Configuration
+
+Ensure `public/assets/i18n/` is included in `angular.json`:
+
+```json
+{
+  "projects": {
+    "my-app": {
+      "architect": {
+        "build": {
+          "options": {
+            "assets": ["public", "public/assets/i18n"]
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Best Practices
+
+- **Version Control**: Commit translation files to git for version history.
+- **CI/CD Integration**: Automate translation updates in your build pipeline.
+- **Language Detection**: Use browser language or user preferences to set the default language.
+- **Lazy Loading**: Load translations on-demand for better performance.
+- **Fallbacks**: Configure fallback languages for missing translations.
+- **Validation**: Use `--dry-run` to validate translations before deployment.
+
+For Angular's built-in i18n, extract messages first:
+
+```bash
+ng extract-i18n --output-path src/locales
+```
+
+Then use this tool to convert the XLIFF files to Excel for translators, and back to JSON for Angular consumption.
+
+---
+
+## ⚙️ Configuration
+
+Create a `config.json` file for custom settings:
+
+```json
+{
+  "languages": {
+    "en": "English",
+    "de": "Deutsch",
+    "fr": "Français"
+  },
+  "defaults": {
+    "sourcePath": "./public/assets/i18n",
+    "targetFile": "translations.xlsx",
+    "targetPath": "./public/assets/i18n",
+    "sheetName": "Translations"
+  }
+}
+```
+
+Use with: `i18n-excel-manager --config config.json i18n-to-excel`
+
+---
+
+## 📋 Options
+
+| Option                 | Short | Description                                      | Default                |
+| ---------------------- | ----- | ------------------------------------------------ | ---------------------- |
+| `--input <path>`       | `-i`  | Input path (directory for JSON, file for Excel)  | `./public/assets/i18n` |
+| `--output <path>`      | `-o`  | Output path (file for Excel, directory for JSON) | `./public/assets/i18n` |
+| `--sheet-name <name>`  | `-s`  | Excel worksheet name                             | `Translations`         |
+| `--dry-run`            | `-d`  | Preview without writing files                    | `false`                |
+| `--fail-on-duplicates` |       | Exit with error on duplicate keys                | `false`                |
+| `--no-report`          |       | Skip translation report                          | `false`                |
+| `--config <file>`      |       | Path to config file                              |                        |
+| `--help`               | `-h`  | Show help                                        |                        |
+| `--version`            | `-V`  | Show version                                     |                        |
+
+---
+
+## 🚨 Error Handling
+
+The tool provides clear error messages for common issues:
+
+- **Missing files**: "File does not exist: path"
+- **Invalid JSON**: "Invalid JSON in file: error message"
+- **Duplicate keys**: "Duplicate keys detected in Excel: key1, key2"
+- **Invalid language codes**: "Invalid language code: xyz"
+- **Unsafe paths**: "Unsafe output path: path"
+
+Use `--dry-run` to validate before actual conversion.
+
+### Troubleshooting
+
+- **Permission errors**: Ensure you have write access to the output directory.
+- **Invalid language codes**: Use standard ISO language codes (e.g., `en`, `de`, `fr`).
+- **Missing placeholders**: Check for consistent placeholder usage across languages.
+- **Large files**: For very large translation files, consider splitting into multiple sheets.
+
+---
+
+## 🏗️ Architecture
+
+- **Modular Design**: Separate concerns for I/O, core logic, and reporting.
+- **Pure Functions**: Core business logic is testable and side-effect free.
+- **Validation**: Input validation at all boundaries.
+- **Extensibility**: Pluggable reporters and configurable I/O layers.
+
+Project structure:
+
+- `src/app/`: Application logic
+- `src/core/`: Business rules and data processing
+- `src/io/`: File system and Excel operations
+- `src/reporters/`: Output formatting
+
+---
+
+## 🧪 Development
+
+```bash
+# Install dependencies
 npm install
+
+# Run tests
 npm test
+
+# Run with coverage
+npm run test:coverage
+
+# Lint code
+npm run lint
+
+# Format code
+npm run format
 ```
 
 ---
 
-## 📝 License
+## 🤝 Contributing
 
-MIT
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
