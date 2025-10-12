@@ -1,5 +1,8 @@
-// Public API surface
-// Retains existing function names for compatibility and re-exports reporter helpers for extensibility
+/**
+ * Main entry point for the i18n-excel-manager library.
+ * Provides high-level functions for converting between Excel and JSON formats for internationalization.
+ * Also exports advanced APIs and utilities for custom integrations.
+ */
 
 import path from 'node:path';
 
@@ -18,6 +21,13 @@ const defaultIo = {
   dirname: path.dirname,
 };
 
+/**
+ * Converts JSON localization files to an Excel workbook.
+ * @param {string} sourcePath - Path to the directory containing JSON files or a single JSON file.
+ * @param {string} targetFile - Path where the Excel file will be written.
+ * @param {Object} [options={}] - Conversion options.
+ * @returns {Promise<void>} Resolves when conversion is complete.
+ */
 export async function convertToExcel(sourcePath, targetFile, options = {}) {
   return convertToExcelApp(
     defaultIo,
@@ -28,6 +38,13 @@ export async function convertToExcel(sourcePath, targetFile, options = {}) {
   );
 }
 
+/**
+ * Converts an Excel workbook to JSON localization files.
+ * @param {string} sourceFile - Path to the Excel file to convert.
+ * @param {string} targetPath - Path to the directory where JSON files will be written.
+ * @param {Object} [options={}] - Conversion options.
+ * @returns {Promise<void>} Resolves when conversion is complete.
+ */
 export async function convertToJson(sourceFile, targetPath, options = {}) {
   return convertToJsonApp(
     defaultIo,

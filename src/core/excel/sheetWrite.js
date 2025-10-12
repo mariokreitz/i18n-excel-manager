@@ -1,3 +1,19 @@
+/**
+ * Core logic for writing translation data to Excel worksheets.
+ * Creates worksheets with proper headers, styling, and translation rows.
+ */
+
+/**
+ * Creates a translation worksheet in the given workbook.
+ * Adds a header row with language names, then rows for each translation key with values per language.
+ * Applies basic styling like column widths and header formatting.
+ * @param {Object} workbook - ExcelJS workbook object to add the worksheet to.
+ * @param {string} sheetName - Name of the worksheet to create.
+ * @param {Map<string, Object>} translations - Map of translation keys to objects with language values.
+ * @param {string[]} languageCodes - Array of language codes to include as columns.
+ * @param {Object} languageMap - Mapping from language codes to display names for headers.
+ * @returns {Object} The created ExcelJS worksheet object.
+ */
 export function createTranslationWorksheet(
   workbook,
   sheetName,

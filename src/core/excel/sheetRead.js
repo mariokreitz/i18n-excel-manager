@@ -1,7 +1,24 @@
+/**
+ * Core logic for reading translation data from Excel worksheets.
+ * Handles header validation, language mapping, and duplicate detection.
+ */
+
 import { validateLanguageCode } from '../../io/paths.js';
 import { setNestedValue } from '../json/structure.js';
 import { createReverseLanguageMap } from '../languages/mapping.js';
 
+/**
+ * Reads translation data from an Excel worksheet.
+ * Parses the header row for language codes, validates them, and extracts translations for each language.
+ * Detects duplicate keys within the sheet.
+ * @param {Object} worksheet - ExcelJS worksheet object to read from.
+ * @param {Object} [languageMap={}] - Mapping from display names to language codes.
+ * @returns {Object} Result object containing languages array, translationsByLanguage object, and duplicates array.
+ * @returns {string[]} result.languages - Array of validated language codes.
+ * @returns {Object.<string, Object>} result.translationsByLanguage - Object mapping language codes to nested translation objects.
+ * @returns {string[]} result.duplicates - Array of duplicate key strings found in the sheet.
+ * @throws {Error} If headers are empty, language codes are invalid, or duplicate language columns exist.
+ */
 export function readTranslationsFromWorksheet(worksheet, languageMap = {}) {
   const reverseLanguageMap = createReverseLanguageMap(languageMap);
   const headerRow = worksheet.getRow(1).values;

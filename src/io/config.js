@@ -1,7 +1,17 @@
+/**
+ * Configuration loading and validation utilities.
+ * Handles reading config files and validating against a schema.
+ */
+
 import fs from 'node:fs/promises';
 
 import Joi from 'joi';
 
+/**
+ * Joi schema for validating configuration objects.
+ * Defines the structure for languages mapping and default paths.
+ * @type {Joi.ObjectSchema}
+ */
 export const configSchema = Joi.object({
   languages: Joi.object()
     .pattern(/^[\w.-]+$/, Joi.string().min(1))
@@ -21,6 +31,13 @@ export const configSchema = Joi.object({
     .messages({ 'any.required': 'defaults is required' }),
 }).required();
 
+/**
+ * Loads and validates a configuration file.
+ * Reads the JSON file, parses it, and validates against the config schema.
+ * @param {string} filePath - Path to the configuration JSON file.
+ * @returns {Promise<Object>} Validated configuration object.
+ * @throws {Error} If file reading fails, JSON parsing fails, or validation fails.
+ */
 export async function loadValidatedConfig(filePath) {
   // The config path is resolved by the caller and not user-supplied at runtime.
   // We validate the content immediately after reading.
@@ -35,6 +52,12 @@ export async function loadValidatedConfig(filePath) {
   return validateConfigObject(json);
 }
 
+/**
+ * Validates a configuration object against the schema.
+ * @param {Object} obj - The configuration object to validate.
+ * @returns {Object} The validated and potentially transformed configuration object.
+ * @throws {Error} If validation fails, with detailed error messages.
+ */
 export function validateConfigObject(obj) {
   const { value, error } = configSchema.validate(obj, {
     abortEarly: false,
