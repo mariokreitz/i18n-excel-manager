@@ -43,6 +43,6 @@ Thumbs.db
 # Beispiel-Dateien
 /examples/*.xlsx
 
-# Coverage-Verzeichnisse
+# coverage
 /coverage
 /test
