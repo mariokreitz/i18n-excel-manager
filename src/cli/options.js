@@ -1,4 +1,3 @@
-// filepath: /Users/mariokreitz/dev/github/i18n-excel-manager/src/cli/options.js
 /**
  * Helpers for merging CLI options with config defaults.
  * @module cli/options

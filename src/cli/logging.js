@@ -1,4 +1,3 @@
-// filepath: /Users/mariokreitz/dev/github/i18n-excel-manager/src/cli/logging.js
 /**
  * Centralized logging helpers for CLI messages.
  * @module cli/logging

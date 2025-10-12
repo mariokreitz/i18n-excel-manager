@@ -1,4 +1,3 @@
-// filepath: /Users/mariokreitz/dev/github/i18n-excel-manager/src/cli/configLoader.js
 /**
  * Utilities for loading and validating CLI configuration from a file.
  * @module cli/configLoader

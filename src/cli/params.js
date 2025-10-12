@@ -1,4 +1,3 @@
-// filepath: /Users/mariokreitz/dev/github/i18n-excel-manager/src/cli/params.js
 /**
  * CLI parameter resolution helpers to keep command handlers simple.
  * @module cli/params
