@@ -287,7 +287,8 @@ Then use this tool to convert the XLIFF files to Excel for translators, and back
 
 ## ⚙️ Configuration
 
-Create a `config.json` file for custom settings:
+Create a `config.json` file for custom settings. The CLI will automatically load `./config.json` from your current
+working directory (CWD) when present. You can also pass a custom path with `--config path/to/config.json`.
 
 ```json
 {
@@ -305,7 +306,18 @@ Create a `config.json` file for custom settings:
 }
 ```
 
-Use with: `i18n-excel-manager --config config.json i18n-to-excel`
+Precedence:
+
+- CLI flags > config.defaults > built-in defaults.
+- languageMap precedence: CLI > config.languages > runtime config.
+
+Examples:
+
+- Autoload from CWD: `i18n-excel-manager i18n-to-excel --dry-run`
+- Custom path: `i18n-excel-manager i18n-to-excel --config ./my-config.json --dry-run`
+- Flags override: `i18n-excel-manager i18n-to-excel -i ./custom -o out.xlsx --dry-run`
+
+Note: For safety, `--config` must point within the current working directory.
 
 ---
 
