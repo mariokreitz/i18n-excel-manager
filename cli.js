@@ -45,14 +45,15 @@ const packageJson = JSON.parse(
 function tryLoadLocalConfig(configRelPath = DEFAULT_CONFIG_FILE) {
   try {
     const abs = path.resolve(process.cwd(), configRelPath);
-    if (!fs.existsSync(abs)) return undefined;
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    if (!fs.existsSync(abs)) return;
     // eslint-disable-next-line security/detect-non-literal-fs-filename
     const raw = fs.readFileSync(abs, 'utf8');
     const parsed = JSON.parse(raw);
     return validateConfigObject(parsed);
   } catch {
     // Swallow and treat as no config; actual loading with --config will surface errors
-    return undefined;
+    return;
   }
 }
 
@@ -93,14 +94,8 @@ program
 program
   .command('i18n-to-excel')
   .description('Convert i18n JSON files to Excel')
-  .option(
-    '-i, --input <path>',
-    'path to directory containing i18n JSON files',
-  )
-  .option(
-    '-o, --output <file>',
-    'path for the output Excel file',
-  )
+  .option('-i, --input <path>', 'path to directory containing i18n JSON files')
+  .option('-o, --output <file>', 'path for the output Excel file')
   .option('-s, --sheet-name <name>', DESC_SHEET_NAME)
   .option('-d, --dry-run', DESC_DRY_RUN)
   .option('--no-report', DESC_NO_REPORT)
@@ -108,7 +103,12 @@ program
   .action((options) => {
     displayHeader();
     options.i18nToExcel = true;
-    processCliOptions(options, defaultConfig, LOCAL_CONFIG || {}, validateConfigObject);
+    processCliOptions(
+      options,
+      defaultConfig,
+      LOCAL_CONFIG || {},
+      validateConfigObject,
+    );
   });
 
 // Command for Excel to i18n
@@ -124,7 +124,12 @@ program
   .action((options) => {
     displayHeader();
     options.excelToI18n = true;
-    processCliOptions(options, defaultConfig, LOCAL_CONFIG || {}, validateConfigObject);
+    processCliOptions(
+      options,
+      defaultConfig,
+      LOCAL_CONFIG || {},
+      validateConfigObject,
+    );
   });
 
 // Command for initializing i18n directory and files
@@ -138,7 +143,12 @@ program
   .action((options) => {
     displayHeader();
     options.init = true;
-    processCliOptions(options, defaultConfig, LOCAL_CONFIG || {}, validateConfigObject);
+    processCliOptions(
+      options,
+      defaultConfig,
+      LOCAL_CONFIG || {},
+      validateConfigObject,
+    );
   });
 
 /**

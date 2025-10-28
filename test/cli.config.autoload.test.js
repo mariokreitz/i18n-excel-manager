@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { describe, it } from 'node:test';
-import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -11,11 +11,15 @@ const projectRoot = path.resolve(__dirname, '..');
 
 function runCliIn(cwd, args) {
   return new Promise((resolve) => {
-    const proc = spawn(process.execPath, [path.resolve(projectRoot, 'cli.js'), ...args], {
-      cwd,
-      env: { ...process.env, FORCE_COLOR: '0', CI: '1' },
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
+    const proc = spawn(
+      process.execPath,
+      [path.resolve(projectRoot, 'cli.js'), ...args],
+      {
+        cwd,
+        env: { ...process.env, FORCE_COLOR: '0', CI: '1' },
+        stdio: ['ignore', 'pipe', 'pipe'],
+      },
+    );
     let out = '';
     let err = '';
     proc.stdout.on('data', (d) => (out += String(d)));
@@ -48,15 +52,27 @@ describe('CLI config autoload from CWD', () => {
           sheetName: 'Translations',
         },
       };
-      await fs.writeFile(path.join(tmp, 'config.json'), JSON.stringify(cfg), 'utf8');
+      await fs.writeFile(
+        path.join(tmp, 'config.json'),
+        JSON.stringify(cfg),
+        'utf8',
+      );
 
       // And create minimal i18n source files
       const localesDir = path.join(tmp, 'locales');
       await fs.mkdir(localesDir, { recursive: true });
-      await fs.writeFile(path.join(localesDir, 'en.json'), JSON.stringify({ hello: 'Hello' }), 'utf8');
+      await fs.writeFile(
+        path.join(localesDir, 'en.json'),
+        JSON.stringify({ hello: 'Hello' }),
+        'utf8',
+      );
 
       // Act: run CLI without -i/-o, only dry-run
-      const res = await runCliIn(tmp, ['i18n-to-excel', '--dry-run', '--no-report']);
+      const res = await runCliIn(tmp, [
+        'i18n-to-excel',
+        '--dry-run',
+        '--no-report',
+      ]);
 
       // Assert
       assert.equal(res.code, 0, res.err || res.out);
