@@ -1,0 +1,12 @@
+{
+  "app": {
+    "title": "Meine App",
+    "welcome": "Willkommen in Ihrer lokalisierten App",
+    "test1": "Das ist ein Test"
+  },
+  "footer": {
+    "content": {
+      "title": "das ist dein footer title"
+    }
+  }
+}

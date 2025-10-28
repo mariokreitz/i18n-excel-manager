@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url';
 
 import ExcelJS from 'exceljs';
 
-import { displayHeader, processCliOptions } from '../cli.js';
+import { displayHeader } from '../cli.js';
+import { processCliOptions } from '../src/cli/commands.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
