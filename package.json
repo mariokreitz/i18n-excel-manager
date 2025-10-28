@@ -45,7 +45,7 @@
   "homepage": "https://github.com/mariokreitz/i18n-excel-manager#readme",
   "dependencies": {
     "chalk": "^5.3.0",
-    "commander": "^11.0.0",
+    "commander": "^14.0.2",
     "exceljs": "^4.3.0",
     "figlet": "^1.6.0",
     "inquirer": "^12.9.6",
@@ -54,16 +54,16 @@
   "devDependencies": {
     "c8": "^10.1.2",
     "eslint": "^8.47.0",
-    "eslint-config-prettier": "^9.1.0",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-n": "^16.6.2",
-    "eslint-plugin-promise": "^6.4.0",
+    "eslint-plugin-promise": "^7.2.1",
     "eslint-plugin-security": "^1.7.1",
     "eslint-plugin-sonarjs": "^0.25.0",
     "eslint-plugin-unicorn": "^51.0.1",
     "husky": "^9.0.11",
-    "lint-staged": "^15.2.10",
+    "lint-staged": "^16.2.6",
     "prettier": "^3.3.3"
   },
   "engines": {
