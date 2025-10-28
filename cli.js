@@ -41,12 +41,26 @@ const packageJson = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'),
 );
 
-// Load configuration and validate with Joi
-const configPath = path.join(__dirname, 'config.json');
-const RAW_CONFIG = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-const CONFIG = validateConfigObject(RAW_CONFIG);
+// Helper: try loading a config file from CWD; return undefined if missing/invalid
+function tryLoadLocalConfig(configRelPath = DEFAULT_CONFIG_FILE) {
+  try {
+    const abs = path.resolve(process.cwd(), configRelPath);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    if (!fs.existsSync(abs)) return;
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    const raw = fs.readFileSync(abs, 'utf8');
+    const parsed = JSON.parse(raw);
+    return validateConfigObject(parsed);
+  } catch {
+    // Swallow and treat as no config; actual loading with --config will surface errors
+    return;
+  }
+}
 
-const defaultConfig = CONFIG.defaults || {
+// Establish runtime defaults for CLI declarations (used only for UI prompts)
+// Prefer local config if present; otherwise fall back to conservative built-ins
+const LOCAL_CONFIG = tryLoadLocalConfig();
+const defaultConfig = (LOCAL_CONFIG && LOCAL_CONFIG.defaults) || {
   sourcePath: 'public/assets/i18n',
   targetFile: 'dist/translations.xlsx',
   targetPath: 'locales',
@@ -80,54 +94,61 @@ program
 program
   .command('i18n-to-excel')
   .description('Convert i18n JSON files to Excel')
-  .option(
-    '-i, --input <path>',
-    'path to directory containing i18n JSON files',
-    defaultConfig.sourcePath,
-  )
-  .option(
-    '-o, --output <file>',
-    'path for the output Excel file',
-    defaultConfig.targetFile,
-  )
-  .option('-s, --sheet-name <name>', DESC_SHEET_NAME, defaultConfig.sheetName)
+  .option('-i, --input <path>', 'path to directory containing i18n JSON files')
+  .option('-o, --output <file>', 'path for the output Excel file')
+  .option('-s, --sheet-name <name>', DESC_SHEET_NAME)
   .option('-d, --dry-run', DESC_DRY_RUN)
   .option('--no-report', DESC_NO_REPORT)
-  .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE, DEFAULT_CONFIG_FILE)
+  .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
   .action((options) => {
     displayHeader();
     options.i18nToExcel = true;
-    processCliOptions(options, defaultConfig, CONFIG, validateConfigObject);
+    processCliOptions(
+      options,
+      defaultConfig,
+      LOCAL_CONFIG || {},
+      validateConfigObject,
+    );
   });
 
 // Command for Excel to i18n
 program
   .command('excel-to-i18n')
   .description('Convert Excel file to i18n JSON files')
-  .option('-i, --input <file>', 'path to Excel file', defaultConfig.targetFile)
-  .option('-o, --output <path>', DESC_OUTPUT_I18N_DIR, defaultConfig.targetPath)
-  .option('-s, --sheet-name <name>', DESC_SHEET_NAME, defaultConfig.sheetName)
+  .option('-i, --input <file>', 'path to Excel file')
+  .option('-o, --output <path>', DESC_OUTPUT_I18N_DIR)
+  .option('-s, --sheet-name <name>', DESC_SHEET_NAME)
   .option('-d, --dry-run', DESC_DRY_RUN)
   .option('--fail-on-duplicates', DESC_FAIL_ON_DUP)
-  .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE, DEFAULT_CONFIG_FILE)
+  .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
   .action((options) => {
     displayHeader();
     options.excelToI18n = true;
-    processCliOptions(options, defaultConfig, CONFIG, validateConfigObject);
+    processCliOptions(
+      options,
+      defaultConfig,
+      LOCAL_CONFIG || {},
+      validateConfigObject,
+    );
   });
 
 // Command for initializing i18n directory and files
 program
   .command('init')
   .description('Initialize i18n directory and create starter JSON files')
-  .option('-o, --output <path>', DESC_OUTPUT_I18N_DIR, defaultConfig.sourcePath)
+  .option('-o, --output <path>', DESC_OUTPUT_I18N_DIR)
   .option('-l, --languages <list>', DESC_INIT_LANGS)
   .option('-d, --dry-run', DESC_DRY_RUN)
-  .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE, DEFAULT_CONFIG_FILE)
+  .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
   .action((options) => {
     displayHeader();
     options.init = true;
-    processCliOptions(options, defaultConfig, CONFIG, validateConfigObject);
+    processCliOptions(
+      options,
+      defaultConfig,
+      LOCAL_CONFIG || {},
+      validateConfigObject,
+    );
   });
 
 /**
@@ -139,7 +160,9 @@ async function main() {
   // If no arguments provided, show interactive menu
   if (process.argv.length <= 2) {
     displayHeader();
-    await showMainMenu(CONFIG, defaultConfig);
+    // For interactive mode, use any local config if available for defaults and languages
+    const cfg = LOCAL_CONFIG || {};
+    await showMainMenu(cfg, defaultConfig);
   } else {
     program.parse(process.argv);
   }
