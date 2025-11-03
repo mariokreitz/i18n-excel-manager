@@ -63,7 +63,7 @@ const LOCAL_CONFIG = tryLoadLocalConfig();
 const defaultConfig = (LOCAL_CONFIG && LOCAL_CONFIG.defaults) || {
   sourcePath: 'public/assets/i18n',
   targetFile: 'dist/translations.xlsx',
-  targetPath: 'locales',
+  targetPath: 'public/assets/i18n',
   sheetName: 'Translations',
 };
 
