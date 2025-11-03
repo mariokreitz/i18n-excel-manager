@@ -41,20 +41,44 @@ const packageJson = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'),
 );
 
-// Helper: try loading a config file from CWD; return undefined if missing/invalid
+/**
+ * Read and validate a config JSON file at an absolute path.
+ * @param {string} absPath
+ * @returns {object}
+ */
+function loadAndValidateConfig(absPath) {
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
+  const raw = fs.readFileSync(absPath, 'utf8');
+  const parsed = JSON.parse(raw);
+  return validateConfigObject(parsed);
+}
+
 function tryLoadLocalConfig(configRelPath = DEFAULT_CONFIG_FILE) {
+  // Contract: return validated config object, or undefined if none found/valid anywhere
+  // Precedence: CWD config.json > packaged config.json > undefined
   try {
-    const abs = path.resolve(process.cwd(), configRelPath);
+    const absCwd = path.resolve(process.cwd(), configRelPath);
     // eslint-disable-next-line security/detect-non-literal-fs-filename
-    if (!fs.existsSync(abs)) return;
-    // eslint-disable-next-line security/detect-non-literal-fs-filename
-    const raw = fs.readFileSync(abs, 'utf8');
-    const parsed = JSON.parse(raw);
-    return validateConfigObject(parsed);
+    if (fs.existsSync(absCwd)) {
+      return loadAndValidateConfig(absCwd);
+    }
   } catch {
-    // Swallow and treat as no config; actual loading with --config will surface errors
-    return;
+    // ignore and continue to packaged fallback
   }
+
+  // Fallback: packaged default config shipped with the tool
+  try {
+    const packaged = path.resolve(__dirname, 'config.json');
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    if (fs.existsSync(packaged)) {
+      return loadAndValidateConfig(packaged);
+    }
+  } catch {
+    // ignore and surface as undefined below
+  }
+
+  // Swallow and treat as no config; actual loading with --config will surface errors
+  // Intentionally return nothing (undefined) when no config could be loaded
 }
 
 // Establish runtime defaults for CLI declarations (used only for UI prompts)
