@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.1] - 2025-11-03
+
+### Fixed
+
+- CLI config fallback now robust when installed as a dependency or run via npx/global: if no `config.json` exists in the
+  user's CWD, the packaged `config.json` is used automatically. Prevents interactive init error "[checkbox prompt] No
+  selectable choices" when no local config is present.
+- Interactive init now has a safe fallback language choice list (`en`, `de`) when `config.languages` is missing or
+  empty, ensuring a non-empty choices array.
+
 ## [2.1.0] - 2025-10-28
 
 ### Added

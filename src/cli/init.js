@@ -16,24 +16,41 @@ import {
 } from './helpers.js';
 
 /**
+ * Builds language choices for the init prompt with a safe fallback when no languages are configured.
+ * @param {object} config - Configuration object that may contain a languages map.
+ * @returns {{choices: Array<{name:string,value:string,checked:boolean}>, allLangs: string[]}} Choices and language list.
+ */
+export function buildLanguageChoices(config) {
+  const provided = (config && config.languages) || {};
+  const hasProvided = Object.keys(provided).length > 0;
+  // Minimal safe fallback to avoid empty checkbox choices in interactive mode
+  const fallback = { en: 'English', de: 'German' };
+  const map = hasProvided ? provided : fallback;
+  const allLangs = Object.keys(map);
+  const defaults = new Set(['en', 'de'].filter((l) => allLangs.includes(l)));
+  return {
+    allLangs,
+    choices: allLangs.map((code) => ({
+      name: `${code} – ${map[code]}`,
+      value: code,
+      checked: defaults.has(code),
+    })),
+  };
+}
+
+/**
  * Prompts the user to select languages for initialization.
  * @param {object} config - Configuration object with languages.
  * @returns {Promise<string[]>} Array of selected language codes.
  */
 export async function promptForLanguages(config) {
-  const allLangs = Object.keys(config.languages || {});
-  const defaultList = ['en', 'de'].filter((l) => allLangs.includes(l));
-  const defaults = new Set(defaultList);
+  const { choices } = buildLanguageChoices(config);
   const { langs } = await inquirer.prompt([
     {
       type: 'checkbox',
       name: 'langs',
       message: 'Select languages to initialize:',
-      choices: allLangs.map((code) => ({
-        name: `${code} – ${config.languages[code]}`,
-        value: code,
-        checked: defaults.has(code),
-      })),
+      choices,
       validate: (arr) =>
         arr.length > 0 ? true : 'Select at least one language',
     },
