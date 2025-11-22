@@ -4,13 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.1.2] - 2025-11-22
+
 ### Chore
 
+- Updated Inquirer to `13.0.1` with new API which will be later migrated to their newer package `@inquirer/core` in a
+  future release.
 - Upgrade dev dependency `eslint-plugin-sonarjs` to `3.0.5` to support ESLint 9 peer range and resolve `npm ci` peer
   dependency conflict (previous `^0.25.x` only supported ESLint <=8). No rule renames; existing configuration remains
   valid.
 - Migrate from legacy `.eslintrc.json` to flat config `eslint.config.js` required by ESLint v9; rule set preserved with
   prior overrides.
+- Comprehensive JSDoc improvements across all modules for better code documentation and maintainability.
+- Code refactoring and cleanup to improve code quality and consistency.
 
 ## [2.1.1] - 2025-11-03
 

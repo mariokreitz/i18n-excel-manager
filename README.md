@@ -53,8 +53,8 @@
 
 ### Requirements
 
-- Node.js >= 18
-- Tested on Node.js 18.x, 20.x, and 22.x
+- Node.js >= 20
+- Tested on Node.js 20.x, 22.x, and 24.x
 
 ### Global Installation (Recommended)
 
