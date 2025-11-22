@@ -7,8 +7,6 @@
  * @module cli
  */
 
-/* eslint-disable sonarjs/no-duplicate-string */
-
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -47,7 +45,6 @@ const packageJson = JSON.parse(
  * @returns {object}
  */
 function loadAndValidateConfig(absPath) {
-  // eslint-disable-next-line security/detect-non-literal-fs-filename
   const raw = fs.readFileSync(absPath, 'utf8');
   const parsed = JSON.parse(raw);
   return validateConfigObject(parsed);
@@ -58,7 +55,6 @@ function tryLoadLocalConfig(configRelPath = DEFAULT_CONFIG_FILE) {
   // Precedence: CWD config.json > packaged config.json > undefined
   try {
     const absCwd = path.resolve(process.cwd(), configRelPath);
-    // eslint-disable-next-line security/detect-non-literal-fs-filename
     if (fs.existsSync(absCwd)) {
       return loadAndValidateConfig(absCwd);
     }
@@ -69,7 +65,6 @@ function tryLoadLocalConfig(configRelPath = DEFAULT_CONFIG_FILE) {
   // Fallback: packaged default config shipped with the tool
   try {
     const packaged = path.resolve(__dirname, 'config.json');
-    // eslint-disable-next-line security/detect-non-literal-fs-filename
     if (fs.existsSync(packaged)) {
       return loadAndValidateConfig(packaged);
     }
@@ -207,9 +202,7 @@ function isExecutedDirectly() {
     const argv1 = process.argv[1];
     if (!argv1) return false;
     // Resolve symlinks for robust comparison when invoked via npm bin shims
-    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const argvReal = fs.realpathSync(argv1);
-    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const selfReal = fs.realpathSync(thisFile);
     return argvReal === selfReal;
   } catch {
@@ -224,5 +217,3 @@ if (isExecutedDirectly()) {
     process.exit(1);
   });
 }
-
-/* eslint-enable sonarjs/no-duplicate-string */

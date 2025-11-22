@@ -1,4 +1,9 @@
 /**
+ * @module io/excel
+ * Excel workbook read/write helpers wrapping ExcelJS.
+ */
+
+/**
  * Excel file input/output utilities.
  * Handles reading and writing Excel workbooks using ExcelJS.
  */
@@ -15,11 +20,10 @@ export async function readWorkbook(filePath, workbook) {
 }
 
 /**
- * Writes the workbook to an Excel file.
- * @param {string} filePath - Path where the Excel file will be written.
- * @param {Object} workbook - ExcelJS workbook object to write.
- * @returns {Promise<void>} Resolves when the file is written.
- * @throws {Error} If file writing fails.
+ * Write an Excel workbook to disk.
+ * @param {string} filePath Destination file path.
+ * @param {Object} workbook ExcelJS Workbook instance.
+ * @returns {Promise<void>}
  */
 export async function writeWorkbook(filePath, workbook) {
   await workbook.xlsx.writeFile(filePath);

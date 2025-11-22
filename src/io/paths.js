@@ -1,5 +1,6 @@
 /**
- * Path utilities for validation and safe joining.
+ * @module io/paths
+ * Path validation & safe joining utilities.
  * Handles language code validation and secure path construction.
  */
 
@@ -15,6 +16,10 @@ const SEGMENT_SPLIT = /[_-]/;
  * @param {string} lang - The language code to validate.
  * @returns {string} The validated language code.
  * @throws {TypeError} If the language code is invalid.
+ * Validate language code format (alphanumeric segments separated by '-' or '_').
+ * @param {string} lang Language code candidate.
+ * @returns {string} Same code on success.
+ * @throws {TypeError} If invalid format.
  */
 export function validateLanguageCode(lang) {
   if (typeof lang !== 'string') {
@@ -44,6 +49,11 @@ export function validateLanguageCode(lang) {
  * @param {string} filename - The filename to join.
  * @returns {string} The safe absolute path.
  * @throws {Error} If the resulting path would be outside the base directory.
+ * Safely join filename within base directory; prevents directory traversal.
+ * @param {string} baseDir Base directory.
+ * @param {string} filename Relative filename.
+ * @returns {string} Resolved safe absolute path.
+ * @throws {Error} If resulting path escapes base.
  */
 export function safeJoinWithin(baseDir, filename) {
   const resolvedBase = path.resolve(baseDir);
