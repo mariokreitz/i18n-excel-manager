@@ -1,11 +1,17 @@
 /**
+ * @module reporters/console
+ * Console-based reporter implementation.
+ * @typedef {import('../types.js').Reporter} Reporter
+ */
+
+/**
  * Console-based reporter for translation reports.
  * Outputs translation issues and warnings to the console.
  */
 
 /**
  * Reporter object that prints translation reports to the console.
- * @type {Object}
+ * @type {Reporter}
  * @property {Function} print - Prints a translation report summary.
  * @property {Function} warn - Prints a warning message.
  */

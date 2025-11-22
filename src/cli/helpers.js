@@ -1,6 +1,6 @@
 /**
- * Helper functions for CLI operations.
  * @module cli/helpers
+ * Support utilities for CLI operations (presence detection, parsing, initialization).
  */
 
 import fsp from 'node:fs/promises';
@@ -18,8 +18,8 @@ import {
 } from './constants.js';
 
 /**
- * Detects whether the default i18n directory contains any JSON files.
- * @param {string} dir - Directory to check.
+ * Detect whether directory contains JSON translation files.
+ * @param {string} dir Directory path.
  * @returns {Promise<{exists:boolean,jsonCount:number,files:string[]}>} Detection result.
  */
 export async function detectI18nPresence(dir) {
@@ -35,9 +35,9 @@ export async function detectI18nPresence(dir) {
 }
 
 /**
- * Parses a comma-separated string of language codes into an array.
- * @param {string} langs - Comma-separated language codes.
- * @returns {string[]|undefined} Array of unique language codes, or undefined if input is falsy.
+ * Parse comma-separated language codes.
+ * @param {string} langs Comma separated list.
+ * @returns {string[]|undefined} Unique trimmed codes or undefined.
  */
 export function parseLanguagesArg(langs) {
   if (!langs) return;
@@ -52,9 +52,9 @@ export function parseLanguagesArg(langs) {
 }
 
 /**
- * Builds starter content for a given language.
- * @param {string} lang - Language code.
- * @returns {object} Starter translation object.
+ * Build starter content for a language.
+ * @param {string} lang Language code.
+ * @returns {Object} Starter translation object.
  */
 export function buildStarterContentFor(lang) {
   // Minimal example translations; fallback to English for unknown languages
@@ -82,10 +82,10 @@ export function buildStarterContentFor(lang) {
 }
 
 /**
- * Writes initialization files for the given languages in the target directory.
- * @param {string} targetDir - Target directory path.
- * @param {string[]} languages - Array of language codes.
- * @param {boolean} dryRun - If true, simulate without writing files.
+ * Write language initialization files (or simulate if dryRun).
+ * @param {string} targetDir Target directory path.
+ * @param {string[]} languages Language codes.
+ * @param {boolean} dryRun Dry-run mode.
  * @returns {Promise<{created:string[],skipped:string[],dir:string}>} Result of the operation.
  */
 export async function writeInitFiles(targetDir, languages, dryRun) {
@@ -122,10 +122,9 @@ export async function writeInitFiles(targetDir, languages, dryRun) {
 }
 
 /**
- * Computes whether dry-run mode is enabled based on options and process args.
- * @param {object} options - Options object.
- * @param {boolean} [options.dryRun] - Dry-run flag.
- * @returns {boolean} True if dry-run is enabled.
+ * Compute dry-run flag from options and process argv.
+ * @param {Object} options Options object.
+ * @returns {boolean} True if dry-run.
  */
 export function computeIsDryRun(options) {
   return (

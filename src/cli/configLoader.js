@@ -1,6 +1,6 @@
 /**
- * Utilities for loading and validating CLI configuration from a file.
  * @module cli/configLoader
+ * Load & validate CLI configuration JSON file.
  */
 
 import fs from 'node:fs';
@@ -9,16 +9,10 @@ import path from 'node:path';
 import { assertNonEmptyString } from '../core/validation.js';
 
 /**
- * Loads configuration JSON from a file path specified via CLI options and validates it.
- *
- * Contract
- * - Input: options object that may include { config: string }, and a validate function.
- * - Output: a plain object containing validated config options (may include defaults, languages).
- * - Errors: throws Error with a clear message on path traversal, I/O, or validation/parse failures.
- *
- * @param {object} options - CLI options that may include a `config` path.
- * @param {(obj: object) => object} [validateConfigObject] - Optional validator/transformer for the loaded JSON.
- * @returns {object} The validated config object. Empty object when no config path provided.
+ * Load configuration JSON from provided CLI options.
+ * @param {Object} options CLI options (expects `config` path when used).
+ * @param {(obj:Object)=>Object} [validateConfigObject] Optional validator/transformer.
+ * @returns {Object} Validated config or empty object.
  * @throws {Error} When the path is outside CWD, file read fails, or JSON is invalid.
  * @example
  * const cfg = loadConfigOptions({ config: './config.json' }, validate);

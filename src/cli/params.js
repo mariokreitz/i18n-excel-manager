@@ -1,6 +1,6 @@
 /**
- * CLI parameter resolution helpers to keep command handlers simple.
  * @module cli/params
+ * Thin wrappers delegating to `configResolution` helpers.
  */
 
 import {
@@ -15,6 +15,7 @@ import {
  * @param {object} options - CLI options.
  * @param {object} defaultConfig - Default configuration.
  * @returns {{sourcePath: string, targetFile: string}}
+ * @see configResolution.resolveI18nToExcelPaths
  */
 export function resolveI18nToExcelPaths(options, defaultConfig) {
   return rI2E(options, defaultConfig);
@@ -25,6 +26,7 @@ export function resolveI18nToExcelPaths(options, defaultConfig) {
  * @param {object} options - CLI options.
  * @param {object} defaultConfig - Default configuration.
  * @returns {{sourceFile: string, targetPath: string}}
+ * @see configResolution.resolveExcelToI18nPaths
  */
 export function resolveExcelToI18nPaths(options, defaultConfig) {
   return rE2I(options, defaultConfig);
@@ -37,6 +39,7 @@ export function resolveExcelToI18nPaths(options, defaultConfig) {
  * @param {object} runtimeConfig - Runtime validated config (may include languages).
  * @param {boolean} isDryRun - Dry run flag.
  * @returns {{sheetName: string, dryRun: boolean, languageMap?: object, report?: boolean}}
+ * @see configResolution.buildCommonOptions
  */
 export function buildCommonOptions(
   options,
@@ -53,6 +56,7 @@ export function buildCommonOptions(
  * @param {string[]} argv - Process argv array.
  * @param {string} flagLiteral - The long flag literal to check in argv.
  * @returns {boolean}
+ * @see configResolution.resolveFailOnDuplicates
  */
 export function resolveFailOnDuplicates(options, argv, flagLiteral) {
   return rFailDup(options, argv, flagLiteral);

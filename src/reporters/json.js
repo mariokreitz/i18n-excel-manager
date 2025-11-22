@@ -1,4 +1,10 @@
 /**
+ * @module reporters/json
+ * JSON file-based reporter implementation.
+ * @typedef {import('../types.js').Reporter} Reporter
+ */
+
+/**
  * JSON file-based reporter for translation reports.
  * Outputs translation reports to a JSON file.
  */
@@ -11,7 +17,7 @@ import { assertStringPath } from '../core/validation.js';
 /**
  * Creates a reporter that writes translation reports to a JSON file.
  * @param {string} filePath - Path where the JSON report file will be written.
- * @returns {Object} Reporter object with print and warn methods.
+ * @returns {Reporter} Reporter object with print and warn methods.
  * @returns {Function} result.print - Async function that writes the report to the file.
  * @returns {Function} result.warn - Function that prints a warning to console.
  * @throws {TypeError} If filePath is invalid.

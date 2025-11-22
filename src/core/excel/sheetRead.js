@@ -1,6 +1,8 @@
 /**
  * Core logic for reading translation data from Excel worksheets.
  * Handles header validation, language mapping, and duplicate detection.
+ * @module core/excel/sheetRead
+ * Read operations for Excel translation worksheets.
  */
 
 import { validateLanguageCode } from '../../io/paths.js';
@@ -11,13 +13,11 @@ import { createReverseLanguageMap } from '../languages/mapping.js';
  * Reads translation data from an Excel worksheet.
  * Parses the header row for language codes, validates them, and extracts translations for each language.
  * Detects duplicate keys within the sheet.
- * @param {Object} worksheet - ExcelJS worksheet object to read from.
- * @param {Object} [languageMap={}] - Mapping from display names to language codes.
- * @returns {Object} Result object containing languages array, translationsByLanguage object, and duplicates array.
- * @returns {string[]} result.languages - Array of validated language codes.
- * @returns {Object.<string, Object>} result.translationsByLanguage - Object mapping language codes to nested translation objects.
- * @returns {string[]} result.duplicates - Array of duplicate key strings found in the sheet.
- * @throws {Error} If headers are empty, language codes are invalid, or duplicate language columns exist.
+ * Header row expected in row 1 with first column 'Key' and subsequent language headers.
+ * @param {Object} worksheet ExcelJS Worksheet instance.
+ * @param {Object<string,string>} [languageMap={}] Optional map of code->display name; reverse mapping applied.
+ * @returns {{languages:string[],translationsByLanguage:Object<string,Object>,duplicates:string[]}} Parsed result set.
+ * @throws {Error} On empty headers, invalid language codes, or duplicate language columns.
  */
 export function readTranslationsFromWorksheet(worksheet, languageMap = {}) {
   const reverseLanguageMap = createReverseLanguageMap(languageMap);
