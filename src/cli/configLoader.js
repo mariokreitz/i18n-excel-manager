@@ -33,7 +33,6 @@ export function loadConfigOptions(options, validateConfigObject) {
     );
   }
 
-  // eslint-disable-next-line security/detect-non-literal-fs-filename
   const configRaw = fs.readFileSync(resolvedConfigPath, 'utf8');
   const configJson = JSON.parse(configRaw);
   return validateConfigObject ? validateConfigObject(configJson) : configJson;

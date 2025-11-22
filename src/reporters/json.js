@@ -37,8 +37,6 @@ export function jsonFileReporter(filePath) {
      */
     print: async (report) => {
       const content = JSON.stringify(report, null, 2);
-      // Writing to a resolved path controlled by the caller (e.g., CLI arg)
-      // eslint-disable-next-line security/detect-non-literal-fs-filename
       await fs.writeFile(resolved, content, 'utf8');
     },
     /**
@@ -46,8 +44,7 @@ export function jsonFileReporter(filePath) {
      * @param {string} m - The warning message.
      */
     warn: (m) => {
-      /* eslint-disable no-console */
-      console.warn(m); /* eslint-enable no-console */
+      console.warn(m);
     },
   };
 }

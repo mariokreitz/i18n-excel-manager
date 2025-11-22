@@ -24,7 +24,6 @@ import {
 export async function detectI18nPresence(dir) {
   const resolved = path.resolve(dir);
   try {
-    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const entries = await fsp.readdir(resolved);
     const files = entries.filter((f) => f.toLowerCase().endsWith('.json'));
     return { exists: true, jsonCount: files.length, files };
@@ -98,7 +97,6 @@ export async function writeInitFiles(targetDir, languages, dryRun) {
     const file = path.join(resolvedDir, `${lang}.json`);
     let exists = false;
     try {
-      // eslint-disable-next-line security/detect-non-literal-fs-filename
       await fsp.access(file);
       exists = true;
     } catch {

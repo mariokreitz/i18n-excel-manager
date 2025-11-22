@@ -39,9 +39,6 @@ export const configSchema = Joi.object({
  * @throws {Error} If file reading fails, JSON parsing fails, or validation fails.
  */
 export async function loadValidatedConfig(filePath) {
-  // The config path is resolved by the caller and not user-supplied at runtime.
-  // We validate the content immediately after reading.
-  // eslint-disable-next-line security/detect-non-literal-fs-filename
   const raw = await fs.readFile(filePath, 'utf8');
   let json;
   try {
