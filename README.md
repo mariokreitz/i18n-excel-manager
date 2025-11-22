@@ -19,6 +19,7 @@
 
 - **Bidirectional Conversion**: Convert i18n JSON files to Excel and vice versa.
 - **Interactive CLI**: User-friendly menu-driven interface.
+- **Initialization**: Quickly scaffold i18n folders and starter JSON files in fresh projects.
 - **Dry-Run Mode**: Preview changes without writing files.
 - **Placeholder Validation**: Detect inconsistent placeholders across languages.
 - **Language Mapping**: Use full language names in Excel headers.
@@ -72,9 +73,18 @@ npm install --save-dev i18n-excel-manager
 ## 🚀 Quick Start
 
 1. Install globally: `npm install -g i18n-excel-manager`
-2. Convert JSON to Excel: `i18n-excel-manager i18n-to-excel --input ./public/assets/i18n --output translations.xlsx`
-3. Edit the Excel file with your translations.
-4. Convert back to JSON: `i18n-excel-manager excel-to-i18n --input translations.xlsx --output ./public/assets/i18n`
+2. Initialize a new project (creates `public/assets/i18n` with starter files):
+
+```bash
+i18n-excel-manager init --output ./public/assets/i18n --languages en,de,fr
+```
+
+3. Convert JSON to Excel: `i18n-excel-manager i18n-to-excel --input ./public/assets/i18n --output translations.xlsx`
+4. Edit the Excel file with your translations.
+5. Convert back to JSON: `i18n-excel-manager excel-to-i18n --input translations.xlsx --output ./public/assets/i18n`
+
+Tip: Running `i18n-excel-manager` without arguments opens an interactive menu. If no i18n files are detected in the
+default directory, you'll be prompted to initialize them.
 
 ---
 
@@ -89,6 +99,21 @@ Run without arguments for a guided experience:
 ```bash
 i18n-excel-manager
 ```
+
+If the default i18n folder (from `config.json` defaults) is missing or empty, the CLI will offer to run initialization.
+
+#### Initialize i18n Files (New Projects)
+
+Create the default i18n directory and language files with minimal content. Existing files are never overwritten.
+
+```bash
+i18n-excel-manager init \
+  --output ./public/assets/i18n \
+  --languages en,de,fr
+```
+
+- Use `--dry-run` to preview which files would be created.
+- Omit `--languages` to choose interactively from configured languages.
 
 #### Convert JSON to Excel
 
@@ -262,7 +287,8 @@ Then use this tool to convert the XLIFF files to Excel for translators, and back
 
 ## ⚙️ Configuration
 
-Create a `config.json` file for custom settings:
+Create a `config.json` file for custom settings. The CLI will automatically load `./config.json` from your current
+working directory (CWD) when present. You can also pass a custom path with `--config path/to/config.json`.
 
 ```json
 {
@@ -280,11 +306,38 @@ Create a `config.json` file for custom settings:
 }
 ```
 
-Use with: `i18n-excel-manager --config config.json i18n-to-excel`
+Precedence:
+
+- CLI flags > config.defaults > built-in defaults.
+- languageMap precedence: CLI > config.languages > runtime config.
+
+Examples:
+
+- Autoload from CWD: `i18n-excel-manager i18n-to-excel --dry-run`
+- Custom path: `i18n-excel-manager i18n-to-excel --config ./my-config.json --dry-run`
+- Flags override: `i18n-excel-manager i18n-to-excel -i ./custom -o out.xlsx --dry-run`
+
+Note: For safety, `--config` must point within the current working directory.
 
 ---
 
 ## 📋 Options
+
+### init Command
+
+| Option               | Short | Description                                  | Default               |
+| -------------------- | ----- | -------------------------------------------- | --------------------- |
+| `--output <path>`    | `-o`  | Target directory for i18n JSON files         | `public/assets/i18n`  |
+| `--languages <list>` | `-l`  | Comma-separated language codes to initialize | prompts interactively |
+| `--dry-run`          | `-d`  | Simulate only, do not write files            | `false`               |
+| `--config <file>`    |       | Path to config file                          | `./config.json`       |
+| `--help`             | `-h`  | Show help                                    |                       |
+| `--version`          | `-V`  | Show version                                 |                       |
+
+Notes:
+
+- Existing files are never overwritten; they are reported as "Skipped".
+- When `--languages` is omitted, a checkbox prompt is shown with languages from your `config.json`.
 
 ### i18n-to-excel Command
 
@@ -398,34 +451,3 @@ Project structure:
 - `src/reporters/`: Output formatting
 
 ---
-
-## 🧪 Development
-
-```bash
-# Install dependencies
-npm install
-
-# Run tests
-npm test
-
-# Run with coverage
-npm run test:coverage
-
-# Lint code
-npm run lint
-
-# Format code
-npm run format
-```
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
