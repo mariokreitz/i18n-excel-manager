@@ -1,4 +1,9 @@
 /**
+ * @module core/excel/sheetWrite
+ * Write operations for Excel translation worksheets.
+ */
+
+/**
  * Core logic for writing translation data to Excel worksheets.
  * Creates worksheets with proper headers, styling, and translation rows.
  */

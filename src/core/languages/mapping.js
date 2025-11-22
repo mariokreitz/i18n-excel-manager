@@ -1,13 +1,17 @@
 /**
+ * @module core/languages/mapping
+ * Language mapping utilities (code <-> display name).
+ */
+
+/**
  * Utilities for language code mapping and validation.
  * Handles bidirectional mapping between language codes and display names.
  */
 
 /**
- * Creates a reverse mapping from display names to language codes.
- * Given a map of code -> name, returns name -> code.
- * @param {Object} languageMap - Object mapping language codes to display names.
- * @returns {Object} Reverse mapping from display names to codes.
+ * Create reverse displayName->code map from code->name input.
+ * @param {Object<string,string>} languageMap Code->display name mapping.
+ * @returns {Object<string,string>} Reverse mapping.
  */
 export function createReverseLanguageMap(languageMap) {
   const reverseMap = {};

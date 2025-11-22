@@ -1,6 +1,6 @@
 /**
- * Centralized logging helpers for CLI messages.
  * @module cli/logging
+ * Chalk-based output helpers for consistent CLI messaging.
  */
 
 import chalk from 'chalk';
@@ -12,9 +12,9 @@ import {
 } from './constants.js';
 
 /**
- * Log start of i18n -> Excel conversion.
- * @param {string} sourcePath - Directory with JSON files.
- * @param {string} targetFile - Output Excel path.
+ * Log start of i18n->Excel conversion.
+ * @param {string} sourcePath Source JSON directory.
+ * @param {string} targetFile Destination Excel file.
  * @returns {void}
  */
 export function logConvertI18nToExcel(sourcePath, targetFile) {
@@ -24,9 +24,9 @@ export function logConvertI18nToExcel(sourcePath, targetFile) {
 }
 
 /**
- * Log start of Excel -> i18n conversion.
- * @param {string} sourceFile - Source Excel file.
- * @param {string} targetPath - Target directory for JSON files.
+ * Log start of Excel->i18n conversion.
+ * @param {string} sourceFile Source Excel file path.
+ * @param {string} targetPath Target directory for JSON files.
  * @returns {void}
  */
 export function logConvertExcelToI18n(sourceFile, targetPath) {
@@ -36,7 +36,7 @@ export function logConvertExcelToI18n(sourceFile, targetPath) {
 }
 
 /**
- * Log a single-file dry-run message.
+ * Log dry-run single-file message.
  * @returns {void}
  */
 export function logDryRunSingle() {
@@ -44,7 +44,7 @@ export function logDryRunSingle() {
 }
 
 /**
- * Log a multi-file dry-run message.
+ * Log dry-run multi-file message.
  * @returns {void}
  */
 export function logDryRunPlural() {
@@ -52,8 +52,8 @@ export function logDryRunPlural() {
 }
 
 /**
- * Log a successful conversion completion message.
- * @param {string} target - Target file or directory path.
+ * Log conversion completion.
+ * @param {string} target Target path written.
  * @returns {void}
  */
 export function logConversionCompleted(target) {
@@ -61,8 +61,8 @@ export function logConversionCompleted(target) {
 }
 
 /**
- * Log a formatted error line.
- * @param {unknown} err - Error or message.
+ * Log formatted error message (red prefix).
+ * @param {unknown} err Error or message value.
  * @returns {void}
  */
 export function logError(err) {
