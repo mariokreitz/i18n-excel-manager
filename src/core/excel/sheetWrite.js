@@ -35,7 +35,7 @@ export function createTranslationWorksheet(
   const headerRow = ['Key', ...languageNames];
   worksheet.addRow(headerRow);
 
-  const keys = Array.from(translations.keys()).sort();
+  const keys = Array.from(translations.keys()).toSorted();
   for (const key of keys) {
     const langValues = translations.get(key) || {};
     const row = [key];

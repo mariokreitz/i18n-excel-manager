@@ -8,9 +8,10 @@ import { createTranslationWorksheet } from '../src/core/excel/sheetWrite.js';
 describe('Excel determinism', () => {
   it('sorts keys and keeps language columns stable', () => {
     const wb = new ExcelJS.Workbook();
-    const translations = new Map();
-    translations.set('b.key', { en: 'B', de: 'B' });
-    translations.set('a.key', { en: 'A', de: 'A' });
+    const translations = new Map([
+      ['b.key', { en: 'B', de: 'B' }],
+      ['a.key', { en: 'A', de: 'A' }],
+    ]);
     const languageCodes = ['de', 'en']; // intentionally unsorted order preserved
     createTranslationWorksheet(
       wb,

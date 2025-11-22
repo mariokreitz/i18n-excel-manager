@@ -50,4 +50,5 @@
  * @property {boolean} [failOnDuplicates=false] Throw on duplicate key detection in sheet.
  */
 
-export {}; // Ensure this is treated as an ES module
+// Ensure this is treated as an ES module
+export const TYPE_DEFINITIONS = true;

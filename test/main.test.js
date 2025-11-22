@@ -346,8 +346,8 @@ describe('i18n-excel-manager tests', async () => {
           mainModule.extractPlaceholders(
             'Hello {name}, you have {count} messages',
           ),
-        ).sort(),
-        ['name', 'count'].sort(),
+        ).toSorted(),
+        ['name', 'count'].toSorted(),
       );
     });
 
@@ -436,9 +436,11 @@ describe('i18n-excel-manager tests', async () => {
     });
 
     it('detects missing translations', () => {
-      const translations = new Map();
-      translations.set('key1', { de: 'Wert1' }); // missing 'en'
-      translations.set('key2', { de: 'Wert2', en: 'Value2' });
+      const translations = new Map([
+        ['key1', { de: 'Wert1' }],
+        ['key2', { de: 'Wert2', en: 'Value2' }],
+      ]);
+      // missing 'en'
 
       const languages = ['de', 'en'];
       const report = generateTranslationReport(translations, languages);
@@ -461,11 +463,15 @@ describe('i18n-excel-manager tests', async () => {
     });
 
     it('detects inconsistent placeholders', () => {
-      const translations = new Map();
-      translations.set('greeting', {
-        de: 'Hallo {name}, du hast {count} Nachrichten.',
-        en: 'Hello {name}, you have messages.', // missing {count}
-      });
+      const translations = new Map([
+        [
+          'greeting',
+          {
+            de: 'Hallo {name}, du hast {count} Nachrichten.',
+            en: 'Hello {name}, you have messages.', // missing {count}
+          },
+        ],
+      ]);
 
       const languages = ['de', 'en'];
       const report = generateTranslationReport(translations, languages);
@@ -478,11 +484,15 @@ describe('i18n-excel-manager tests', async () => {
     });
 
     it('detects double curly placeholders with spaces', () => {
-      const translations = new Map();
-      translations.set('key', {
-        de: 'Hallo {{ userName }}, wie geht es dir?',
-        en: 'Hello {{userName}}, how are you?',
-      });
+      const translations = new Map([
+        [
+          'key',
+          {
+            de: 'Hallo {{ userName }}, wie geht es dir?',
+            en: 'Hello {{userName}}, how are you?',
+          },
+        ],
+      ]);
 
       const languages = ['de', 'en'];
       const report = generateTranslationReport(translations, languages);
