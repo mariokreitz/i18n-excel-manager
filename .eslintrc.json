@@ -193,6 +193,15 @@
     },
     {
       "files": [
+        "src/cli/**/*.js",
+        "src/cli/*.js"
+      ],
+      "rules": {
+        "import/no-unresolved": "off"
+      }
+    },
+    {
+      "files": [
         "cli.js"
       ],
       "rules": {
