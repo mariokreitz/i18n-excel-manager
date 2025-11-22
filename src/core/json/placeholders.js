@@ -1,13 +1,16 @@
 /**
- * Utilities for handling placeholders in translation strings.
- * Extracts and processes placeholder patterns for validation or processing.
+ * @module core/json/placeholders
+ * Placeholder extraction utilities for translation strings.
  */
 
 /**
- * Extracts placeholder names from a translation text string.
- * Supports both double curly braces {{name}} and single {name} formats.
- * @param {string} text - The text to extract placeholders from.
- * @returns {Set<string>} A set of unique placeholder names found in the text.
+ * Extract placeholder names from a translation string.
+ * Supports formats: {name} and {{name}}.
+ * Trims internal whitespace inside braces.
+ * @param {string} text Source text.
+ * @returns {Set<string>} Unique placeholder identifiers.
+ * @example
+ * extractPlaceholders('Hello {user}, balance {{ amount }}') // => Set(['user','amount'])
  */
 export function extractPlaceholders(text) {
   const placeholders = new Set();

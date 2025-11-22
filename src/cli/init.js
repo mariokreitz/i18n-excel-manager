@@ -1,6 +1,6 @@
 /**
- * Initialization-related functions for CLI.
  * @module cli/init
+ * Interactive i18n directory initialization workflow.
  */
 
 import path from 'node:path';
@@ -14,11 +14,12 @@ import {
   parseLanguagesArg,
   writeInitFiles,
 } from './helpers.js';
+import { logError } from './logging.js';
 
 /**
  * Builds language choices for the init prompt with a safe fallback when no languages are configured.
  * @param {object} config - Configuration object that may contain a languages map.
- * @returns {{choices: Array<{name:string,value:string,checked:boolean}>, allLangs: string[]}} Choices and language list.
+ * @returns {{choices:Array<{name:string,value:string,checked:boolean}>,allLangs:string[]}} Choices and language list.
  */
 export function buildLanguageChoices(config) {
   const provided = (config && config.languages) || {};
@@ -87,7 +88,7 @@ export async function runInitCommand(options, config, defaultConfig) {
     }
     console.log(chalk.green(`${MSG_INIT_COMPLETED_PREFIX}${res.dir}`));
   } catch (error) {
-    console.error(chalk.red(`❌ Error: ${error.message}`));
+    logError(error);
     process.exit(1); // eslint-disable-line n/no-process-exit, unicorn/no-process-exit
   }
 }

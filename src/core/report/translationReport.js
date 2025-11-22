@@ -1,15 +1,19 @@
 /**
  * Core logic for generating translation reports.
  * Analyzes translations for missing values, duplicates, and placeholder inconsistencies.
+ * @module core/report/translationReport
+ * Translation report generation utilities.
+ * @typedef {import('../../types.js').TranslationReport} TranslationReport
  */
 
 import { extractPlaceholders } from '../json/placeholders.js';
 
 /**
  * Computes languages that are missing translations for a given key.
- * @param {string[]} languages - Array of language codes.
- * @param {Object} langValues - Object mapping languages to translation values.
- * @returns {string[]} Array of language codes with missing or empty translations.
+ * Compute languages missing a translation value (empty string counts as missing).
+ * @param {string[]} languages - Known language codes.
+ * @param {Object<string,string>} langValues - Map of language->value for a key.
+ * @returns {string[]} Language codes missing values.
  */
 function computeMissingLangs(languages, langValues) {
   const res = [];
@@ -26,9 +30,10 @@ function computeMissingLangs(languages, langValues) {
 
 /**
  * Builds a map of placeholders for each language's translation value.
- * @param {string[]} languages - Array of language codes.
- * @param {Object} langValues - Object mapping languages to translation values.
- * @returns {Object.<string, Set<string>>} Map of language to set of placeholders.
+ * Build a map of placeholders per language for a given key.
+ * @param {string[]} languages - Language codes.
+ * @param {Object<string,string>} langValues - Map of language->string value.
+ * @returns {Object<string,Set<string>>} Placeholder sets per language.
  */
 function buildPlaceholderMap(languages, langValues) {
   const map = {};
@@ -41,8 +46,9 @@ function buildPlaceholderMap(languages, langValues) {
 
 /**
  * Collects all unique placeholders across all languages.
- * @param {Object.<string, Set<string>>} placeholderMap - Map of language to placeholders.
- * @returns {Set<string>} Set of all unique placeholders.
+ * Aggregate all unique placeholders across languages.
+ * @param {Object<string,Set<string>>} placeholderMap - Map of language->Set.
+ * @returns {Set<string>} Unified placeholder set.
  */
 function collectAllPlaceholders(placeholderMap) {
   const all = new Set();
@@ -54,10 +60,11 @@ function collectAllPlaceholders(placeholderMap) {
 
 /**
  * Checks if there are placeholder inconsistencies across languages.
- * @param {Object.<string, Set<string>>} placeholderMap - Map of language to placeholders.
- * @param {Set<string>} allPlaceholders - Set of all placeholders found.
- * @param {string[]} languages - Array of language codes.
- * @returns {boolean} True if any language is missing a placeholder.
+ * Detect any placeholder inconsistencies: missing placeholder in any language.
+ * @param {Object<string,Set<string>>} placeholderMap - Map of language->Set.
+ * @param {Set<string>} allPlaceholders - Unified placeholder set.
+ * @param {string[]} languages - Language codes.
+ * @returns {boolean} True if any language omits a placeholder.
  */
 function hasPlaceholderInconsistency(
   placeholderMap,
@@ -75,10 +82,10 @@ function hasPlaceholderInconsistency(
 
 /**
  * Generates a comprehensive report on translation data.
- * Identifies missing translations, duplicate keys, and placeholder inconsistencies.
- * @param {Map<string, Object>} translations - Map of translation keys to language value objects.
- * @param {string[]} languages - Array of language codes.
- * @returns {Object} Report object with missing, duplicates, and placeholderInconsistencies.
+ * Generate a translation report from aggregated translations.
+ * @param {Map<string,Object<string,string>>} translations - Map of key->language values.
+ * @param {string[]} languages - Language codes.
+ * @returns {TranslationReport} Report data object.
  * @returns {Array<{key: string, lang: string}>} result.missing - Array of missing translation entries.
  * @returns {string[]} result.duplicates - Array of duplicate key strings.
  * @returns {Array<{key: string, placeholders: Object.<string, Set<string>>}>} result.placeholderInconsistencies - Array of keys with inconsistent placeholders.
