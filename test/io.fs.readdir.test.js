@@ -33,7 +33,7 @@ describe('io/fs readDirJsonFiles', () => {
     await fs.writeFile(path.join(TMP, 'ignore.txt'), 'nope', 'utf8');
 
     const files = await readDirJsonFiles(TMP);
-    const names = files.map((f) => f.name).sort();
+    const names = files.map((f) => f.name).toSorted();
     assert.deepEqual(names, ['a.json', 'b.json']);
     const fileA = files.find((f) => f.name === 'a.json');
     assert.equal(fileA?.data?.x, 1);
