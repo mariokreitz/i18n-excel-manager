@@ -1,0 +1,53 @@
+[
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/cli/init.js",
+    "messages": [
+      {
+        "ruleId": "import/no-unresolved",
+        "severity": 2,
+        "message": "Unable to resolve path to module 'inquirer'.",
+        "line": 9,
+        "column": 22,
+        "nodeType": "Literal",
+        "endLine": 9,
+        "endColumn": 32
+      }
+    ],
+    "suppressedMessages": [
+      {
+        "ruleId": "n/no-process-exit",
+        "severity": 2,
+        "message": "Don't use process.exit(); throw an error instead.",
+        "line": 91,
+        "column": 5,
+        "nodeType": "CallExpression",
+        "messageId": "noProcessExit",
+        "endLine": 91,
+        "endColumn": 20,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      },
+      {
+        "ruleId": "unicorn/no-process-exit",
+        "severity": 2,
+        "message": "Only use `process.exit()` in CLI apps. Throw an error instead.",
+        "line": 91,
+        "column": 5,
+        "nodeType": "CallExpression",
+        "messageId": "no-process-exit",
+        "endLine": 91,
+        "endColumn": 20,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      }
+    ],
+    "errorCount": 1,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "source": "/**\n * Initialization-related functions for CLI.\n * @module cli/init\n */\n\nimport path from 'node:path';\n\nimport chalk from 'chalk';\nimport inquirer from 'inquirer';\n\nimport { MSG_DRY_RUN_PLURAL, MSG_INIT_COMPLETED_PREFIX } from './constants.js';\nimport {\n  computeIsDryRun,\n  parseLanguagesArg,\n  writeInitFiles,\n} from './helpers.js';\n\n/**\n * Builds language choices for the init prompt with a safe fallback when no languages are configured.\n * @param {object} config - Configuration object that may contain a languages map.\n * @returns {{choices: Array<{name:string,value:string,checked:boolean}>, allLangs: string[]}} Choices and language list.\n */\nexport function buildLanguageChoices(config) {\n  const provided = (config && config.languages) || {};\n  const hasProvided = Object.keys(provided).length > 0;\n  // Minimal safe fallback to avoid empty checkbox choices in interactive mode\n  const fallback = { en: 'English', de: 'German' };\n  const map = hasProvided ? provided : fallback;\n  const allLangs = Object.keys(map);\n  const defaults = new Set(['en', 'de'].filter((l) => allLangs.includes(l)));\n  return {\n    allLangs,\n    choices: allLangs.map((code) => ({\n      name: `${code} – ${map[code]}`,\n      value: code,\n      checked: defaults.has(code),\n    })),\n  };\n}\n\n/**\n * Prompts the user to select languages for initialization.\n * @param {object} config - Configuration object with languages.\n * @returns {Promise<string[]>} Array of selected language codes.\n */\nexport async function promptForLanguages(config) {\n  const { choices } = buildLanguageChoices(config);\n  const { langs } = await inquirer.prompt([\n    {\n      type: 'checkbox',\n      name: 'langs',\n      message: 'Select languages to initialize:',\n      choices,\n      validate: (arr) =>\n        arr.length > 0 ? true : 'Select at least one language',\n    },\n  ]);\n  return langs;\n}\n\n/**\n * Runs the init command to initialize i18n files.\n * @param {object} options - Command options.\n * @param {string} [options.output] - Output directory.\n * @param {string} [options.languages] - Comma-separated languages.\n * @param {object} config - Configuration object.\n * @param {object} defaultConfig - Default configuration.\n * @returns {Promise<void>}\n */\nexport async function runInitCommand(options, config, defaultConfig) {\n  try {\n    const targetDir = options.output || defaultConfig.sourcePath;\n    let languages = parseLanguagesArg(options.languages);\n    if (!languages) {\n      // Ask interactively if not provided\n      languages = await promptForLanguages(config);\n    }\n    const dryRun = computeIsDryRun(options);\n    console.log(\n      chalk.blue(\n        `Initializing i18n directory at ${path.resolve(targetDir)} for languages: ${languages.join(', ')}`,\n      ),\n    );\n    const res = await writeInitFiles(targetDir, languages, dryRun);\n    if (dryRun) {\n      console.log(chalk.yellow(MSG_DRY_RUN_PLURAL));\n    }\n    console.log(chalk.green(`${MSG_INIT_COMPLETED_PREFIX}${res.dir}`));\n  } catch (error) {\n    console.error(chalk.red(`❌ Error: ${error.message}`));\n    process.exit(1); // eslint-disable-line n/no-process-exit, unicorn/no-process-exit\n  }\n}\n",
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  }
+]
