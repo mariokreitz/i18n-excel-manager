@@ -95,18 +95,18 @@ describe('app.convert', () => {
       reporter,
     );
 
-    const written = io.calls.writeJson.sort((a, b) =>
+    const written = io.calls.writeJson.toSorted((a, b) =>
       a.filePath.localeCompare(b.filePath),
     );
     assert.equal(written.length, 2);
     assert.equal(
       written[0].filePath.endsWith('/de.json') ||
-        written[0].filePath.endsWith('\\de.json'),
+        written[0].filePath.endsWith(String.raw`\de.json`),
       true,
     );
     assert.equal(
       written[1].filePath.endsWith('/en.json') ||
-        written[1].filePath.endsWith('\\en.json'),
+        written[1].filePath.endsWith(String.raw`\en.json`),
       true,
     );
     assert.equal(written[0].data.a.b, 'Wert');
