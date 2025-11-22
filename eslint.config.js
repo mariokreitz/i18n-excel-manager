@@ -114,6 +114,7 @@ export default [
       'promise/no-multiple-resolved': 'error',
       'n/no-deprecated-api': 'error',
       'n/no-unsupported-features/es-syntax': 'off',
+      'n/no-unsupported-features/node-builtins': 'off',
       'security/detect-child-process': 'off',
       'security/detect-non-literal-fs-filename': 'off',
       'security/detect-object-injection': 'off',
