@@ -15,6 +15,72 @@ import { generateTranslationReport } from '../core/report/translationReport.js';
 import { safeJoinWithin, validateLanguageCode } from '../io/paths.js';
 import { consoleReporter as defaultConsoleReporter } from '../reporters/console.js';
 
+function collectTranslations(files) {
+  const translations = new Map();
+  const langSet = new Set();
+  for (const { name, data } of files) {
+    const lang = name.replace(/\.json$/, '');
+    langSet.add(lang);
+    validateJsonStructure(data);
+    flattenTranslations(data, '', (k, v) => {
+      if (!translations.has(k)) translations.set(k, {});
+      translations.get(k)[lang] = v;
+    });
+  }
+  return { translations, languages: Array.from(langSet).sort() };
+}
+
+function maybeReport(translations, languages, reporter, shouldReport) {
+  if (!shouldReport) return;
+  const r = generateTranslationReport(translations, languages);
+  reporter.print(r);
+}
+
+async function writeExcel(
+  io,
+  targetFile,
+  { sheetName, translations, languages, languageMap },
+) {
+  const workbook = new ExcelJS.Workbook();
+  createTranslationWorksheet(
+    workbook,
+    sheetName,
+    translations,
+    languages,
+    languageMap,
+  );
+  await io.ensureDirectoryExists(io.dirname(targetFile));
+  await io.writeWorkbook(targetFile, workbook);
+}
+
+async function readWorksheet(io, sourceFile, sheetName) {
+  const workbook = new ExcelJS.Workbook();
+  await io.readWorkbook(sourceFile, workbook);
+  const ws = workbook.getWorksheet(sheetName);
+  if (!ws) throw new Error(`Worksheet "${sheetName}" not found`);
+  return ws;
+}
+
+function handleDuplicates(duplicates, failOnDuplicates, reporter) {
+  if (duplicates.length === 0) return;
+  const msg = `Duplicate keys detected in Excel: ${duplicates.join(', ')}`;
+  if (failOnDuplicates) throw new Error(msg);
+  reporter.warn(msg);
+}
+
+async function writeLanguages(
+  io,
+  targetPath,
+  languages,
+  translationsByLanguage,
+) {
+  for (const lang of languages) {
+    validateLanguageCode(lang);
+    const filePath = safeJoinWithin(targetPath, `${lang}.json`);
+    await io.writeJsonFile(filePath, translationsByLanguage[lang]);
+  }
+}
+
 /**
  * Converts JSON localization files to an Excel workbook.
  * @param {Object} io - IO utilities object containing file system and Excel operations.
@@ -42,45 +108,23 @@ export async function convertToExcelApp(
     languageMap = {},
     report = true,
   } = opts;
+
   await io.checkFileExists(sourcePath);
   const files = await io.readDirJsonFiles(sourcePath);
   if (files.length === 0) {
     throw new Error(`No JSON files found in directory: ${sourcePath}`);
   }
-
-  const translations = new Map();
-  const langSet = new Set();
-
-  for (const { name, data } of files) {
-    const lang = name.replace(/\.json$/, '');
-    langSet.add(lang);
-    validateJsonStructure(data);
-    flattenTranslations(data, '', (k, v) => {
-      if (!translations.has(k)) translations.set(k, {});
-      translations.get(k)[lang] = v;
-    });
-  }
-
-  const languages = Array.from(langSet).sort();
-
+  const { translations, languages } = collectTranslations(files);
   if (dryRun) {
-    if (report) {
-      const r = generateTranslationReport(translations, languages);
-      reporter.print(r);
-    }
+    maybeReport(translations, languages, reporter, report);
     return;
   }
-
-  const workbook = new ExcelJS.Workbook();
-  createTranslationWorksheet(
-    workbook,
+  await writeExcel(io, targetFile, {
     sheetName,
     translations,
     languages,
     languageMap,
-  );
-  await io.ensureDirectoryExists(io.dirname(targetFile));
-  await io.writeWorkbook(targetFile, workbook);
+  });
 }
 
 /**
@@ -114,26 +158,10 @@ export async function convertToJsonApp(
   await io.checkFileExists(sourceFile);
   if (!dryRun) await io.ensureDirectoryExists(targetPath);
 
-  const workbook = new ExcelJS.Workbook();
-  await io.readWorkbook(sourceFile, workbook);
-
-  const ws = workbook.getWorksheet(sheetName);
-  if (!ws) throw new Error(`Worksheet "${sheetName}" not found`);
-
+  const ws = await readWorksheet(io, sourceFile, sheetName);
   const { languages, translationsByLanguage, duplicates } =
     readTranslationsFromWorksheet(ws, languageMap);
-
-  if (duplicates.length > 0) {
-    const msg = `Duplicate keys detected in Excel: ${duplicates.join(', ')}`;
-    if (failOnDuplicates) throw new Error(msg);
-    reporter.warn(msg);
-  }
-
-  if (!dryRun) {
-    for (const lang of languages) {
-      validateLanguageCode(lang);
-      const filePath = safeJoinWithin(targetPath, `${lang}.json`);
-      await io.writeJsonFile(filePath, translationsByLanguage[lang]);
-    }
-  }
+  handleDuplicates(duplicates, failOnDuplicates, reporter);
+  if (dryRun) return;
+  await writeLanguages(io, targetPath, languages, translationsByLanguage);
 }

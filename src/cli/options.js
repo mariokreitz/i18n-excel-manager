@@ -3,6 +3,22 @@
  * @module cli/options
  */
 
+function resolveBaseDefaults(configOptions, defaultConfig) {
+  return configOptions?.defaults || defaultConfig || {};
+}
+
+function resolveLanguageMap(cliOptions, configOptions, runtimeConfig) {
+  return (
+    cliOptions?.languageMap ??
+    configOptions?.languages ??
+    runtimeConfig?.languages
+  );
+}
+
+function ensureSheetName(merged, baseDefaults) {
+  return merged.sheetName || baseDefaults.sheetName || 'Translations';
+}
+
 /**
  * Merge configuration coming from the config file and CLI, with clear precedence.
  *
@@ -25,17 +41,11 @@ export function mergeCliOptions(
   defaultConfig,
   runtimeConfig,
 ) {
-  const baseDefaults = configOptions?.defaults || defaultConfig || {};
-  const merged = Object.assign({}, baseDefaults, cliOptions);
-
-  const lm =
-    cliOptions?.languageMap ??
-    configOptions?.languages ??
-    runtimeConfig?.languages;
+  const baseDefaults = resolveBaseDefaults(configOptions, defaultConfig);
+  const opts = cliOptions || {};
+  const merged = { ...baseDefaults, ...opts };
+  const lm = resolveLanguageMap(opts, configOptions, runtimeConfig);
   if (lm) merged.languageMap = lm;
-
-  if (!merged.sheetName) {
-    merged.sheetName = baseDefaults.sheetName || 'Translations';
-  }
+  merged.sheetName = ensureSheetName(merged, baseDefaults);
   return merged;
 }
