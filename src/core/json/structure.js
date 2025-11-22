@@ -1,18 +1,25 @@
 /**
- * Utilities for validating and manipulating JSON structures used in translations.
- * Handles nested object validation, flattening, and setting nested values.
+ * @module core/json/structure
+ * Structural utilities for nested translation JSON objects.
+ * @typedef {import('../../types.js').TranslationReport} TranslationReport
  */
 
+/**
+ * Determines if a value is a plain object (not null, not an array).
+ * @param {unknown} value Value to test.
+ * @returns {boolean} True when value is a non-null object and not an array.
+ */
 function isPlainObject(value) {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /**
- * Validates that the JSON structure is suitable for translations.
- * Ensures the object is a plain object with nested plain objects and string values only.
- * @param {Object} obj - The object to validate.
- * @param {string} [path=''] - Current path for error reporting.
- * @throws {Error} If the structure contains arrays, non-objects, or non-strings.
+ * Validates translation JSON structure recursively.
+ * Ensures every node is either a string leaf or a plain object whose children obey the same rule.
+ * @param {Object} obj Root object to validate.
+ * @param {string} [path=''] Dot path used for error context.
+ * @throws {Error} When a non-string leaf (array, number, etc.) is encountered.
+ * @returns {void}
  */
 export function validateJsonStructure(obj, path = '') {
   if (!isPlainObject(obj)) {
@@ -36,19 +43,21 @@ export function validateJsonStructure(obj, path = '') {
 }
 
 /**
- * Ensures that a key in the object is an object, creating it if necessary.
- * @param {Object} obj - The object to modify.
- * @param {string} key - The key to ensure is an object.
+ * Guarantee an object branch for a given key, creating if absent.
+ * @param {Object} obj Parent object.
+ * @param {string} key Key to ensure as object.
+ * @returns {void}
  */
 export function ensureObjectBranch(obj, key) {
   if (!obj[key] || typeof obj[key] !== 'object') obj[key] = {};
 }
 
 /**
- * Sets a value at a nested path in an object, creating intermediate objects as needed.
- * @param {Object} obj - The root object to set the value in.
- * @param {string[]} pathParts - Array of path segments to navigate.
- * @param {*} value - The value to set at the final path.
+ * Set a nested value following path segments, creating intermediate objects.
+ * @param {Object} obj Root object.
+ * @param {string[]} pathParts Segments representing the nested path.
+ * @param {*} value Value to assign at leaf.
+ * @returns {void}
  */
 export function setNestedValue(obj, pathParts, value) {
   if (pathParts.length === 1) {
@@ -61,11 +70,11 @@ export function setNestedValue(obj, pathParts, value) {
 }
 
 /**
- * Flattens a nested translation object into flat key-value pairs.
- * Traverses the object recursively, building dotted keys for nested paths.
- * @param {Object} obj - The nested object to flatten.
- * @param {string} prefix - Current prefix for the key path.
- * @param {Function} visit - Callback function called for each leaf value: visit(key, value).
+ * Flatten nested translations into dotted paths.
+ * @param {Object} obj Nested translations object.
+ * @param {string} prefix Current path prefix.
+ * @param {(key:string,value:any)=>void} visit Callback invoked for each leaf entry.
+ * @returns {void}
  */
 export function flattenTranslations(obj, prefix, visit) {
   for (const [key, value] of Object.entries(obj)) {

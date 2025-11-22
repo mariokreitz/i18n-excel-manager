@@ -1,6 +1,6 @@
 /**
- * Configuration loading and validation utilities.
- * Handles reading config files and validating against a schema.
+ * @module io/config
+ * Configuration loading & validation utilities.
  */
 
 import fs from 'node:fs/promises';
@@ -35,13 +35,10 @@ export const configSchema = Joi.object({
  * Loads and validates a configuration file.
  * Reads the JSON file, parses it, and validates against the config schema.
  * @param {string} filePath - Path to the configuration JSON file.
- * @returns {Promise<Object>} Validated configuration object.
+ * @returns {Promise<Object>} Validated configuration object (shape defined by Joi schema).
  * @throws {Error} If file reading fails, JSON parsing fails, or validation fails.
  */
 export async function loadValidatedConfig(filePath) {
-  // The config path is resolved by the caller and not user-supplied at runtime.
-  // We validate the content immediately after reading.
-  // eslint-disable-next-line security/detect-non-literal-fs-filename
   const raw = await fs.readFile(filePath, 'utf8');
   let json;
   try {

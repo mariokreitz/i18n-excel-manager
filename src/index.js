@@ -2,6 +2,17 @@
  * Main entry point for the i18n-excel-manager library.
  * Provides high-level functions for converting between Excel and JSON formats for internationalization.
  * Also exports advanced APIs and utilities for custom integrations.
+ * @module index
+ * Public entrypoint exporting high-level conversion APIs.
+ *
+ * High-level functions:
+ * - convertToExcel(sourcePath, targetFile, options)
+ * - convertToJson(sourceFile, targetPath, options)
+ *
+ * @typedef {import('./types.js').IoAdapter} IoAdapter
+ * @typedef {import('./types.js').Reporter} Reporter
+ * @typedef {import('./types.js').ConvertToExcelOptions} ConvertToExcelOptions
+ * @typedef {import('./types.js').ConvertToJsonOptions} ConvertToJsonOptions
  */
 
 import path from 'node:path';
@@ -23,10 +34,10 @@ const defaultIo = {
 
 /**
  * Converts JSON localization files to an Excel workbook.
- * @param {string} sourcePath - Path to the directory containing JSON files or a single JSON file.
- * @param {string} targetFile - Path where the Excel file will be written.
- * @param {Object} [options={}] - Conversion options.
- * @returns {Promise<void>} Resolves when conversion is complete.
+ * @param {string} sourcePath Path to directory containing JSON files (or a single JSON file).
+ * @param {string} targetFile Destination Excel file path.
+ * @param {ConvertToExcelOptions} [options] Conversion options.
+ * @returns {Promise<void>} Resolves when conversion completes.
  */
 export async function convertToExcel(sourcePath, targetFile, options = {}) {
   return convertToExcelApp(
@@ -40,10 +51,10 @@ export async function convertToExcel(sourcePath, targetFile, options = {}) {
 
 /**
  * Converts an Excel workbook to JSON localization files.
- * @param {string} sourceFile - Path to the Excel file to convert.
- * @param {string} targetPath - Path to the directory where JSON files will be written.
- * @param {Object} [options={}] - Conversion options.
- * @returns {Promise<void>} Resolves when conversion is complete.
+ * @param {string} sourceFile Path to the Excel file.
+ * @param {string} targetPath Directory path where JSON files will be written.
+ * @param {ConvertToJsonOptions} [options] Conversion options.
+ * @returns {Promise<void>} Resolves when conversion completes.
  */
 export async function convertToJson(sourceFile, targetPath, options = {}) {
   return convertToJsonApp(
@@ -55,7 +66,6 @@ export async function convertToJson(sourceFile, targetPath, options = {}) {
   );
 }
 
-// Optional advanced exports
 export { convertToExcelApp, convertToJsonApp } from './app/convert.js';
 export { consoleReporter } from './reporters/console.js';
 export { jsonFileReporter } from './reporters/json.js';
