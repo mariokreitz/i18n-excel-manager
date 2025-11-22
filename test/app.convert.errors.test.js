@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { convertToExcelApp, convertToJsonApp } from '../src/app/convert.js';
+import { convertToExcelApp, convertToJsonApp } from '../src/index.js';
 
 function baseIo() {
   return {
