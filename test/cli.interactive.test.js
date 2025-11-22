@@ -6,7 +6,10 @@ import { fileURLToPath } from 'node:url';
 import ExcelJS from 'exceljs';
 import inquirer from 'inquirer';
 
-import { askForAnotherAction, performConversion } from '../cli.js';
+import {
+  askForAnotherAction,
+  performConversion,
+} from '../src/cli/interactive.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
