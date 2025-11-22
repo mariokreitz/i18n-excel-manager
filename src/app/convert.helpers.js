@@ -32,7 +32,7 @@ export function collectTranslations(files) {
       translations.get(k)[lang] = v;
     });
   }
-  return { translations, languages: Array.from(langSet).sort() };
+  return { translations, languages: Array.from(langSet).toSorted() };
 }
 
 /**

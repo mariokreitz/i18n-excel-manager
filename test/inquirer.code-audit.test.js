@@ -1,17 +1,17 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import path from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import inquirer from 'inquirer';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = path.dirname(__filename);
 
 describe('Interactive.js Inquirer v13 Compatibility', () => {
   it('should detect usage of deprecated list prompt type', () => {
-    const interactivePath = join(
+    const interactivePath = path.join(
       __dirname,
       '..',
       'src',
@@ -38,7 +38,7 @@ describe('Interactive.js Inquirer v13 Compatibility', () => {
   });
 
   it('should verify select prompt type is used instead of list', () => {
-    const interactivePath = join(
+    const interactivePath = path.join(
       __dirname,
       '..',
       'src',
@@ -56,7 +56,7 @@ describe('Interactive.js Inquirer v13 Compatibility', () => {
   });
 
   it('should verify all prompt types used in interactive.js are v13 compatible', () => {
-    const interactivePath = join(
+    const interactivePath = path.join(
       __dirname,
       '..',
       'src',
@@ -85,7 +85,7 @@ describe('Interactive.js Inquirer v13 Compatibility', () => {
   });
 
   it('should verify init.js uses compatible prompt types', () => {
-    const initPath = join(__dirname, '..', 'src', 'cli', 'init.js');
+    const initPath = path.join(__dirname, '..', 'src', 'cli', 'init.js');
     const content = readFileSync(initPath, 'utf8');
 
     const promptModule = inquirer.createPromptModule();
@@ -113,7 +113,7 @@ describe('Interactive.js Inquirer v13 Compatibility', () => {
     const results = [];
 
     for (const file of filesWithPrompts) {
-      const filePath = join(__dirname, '..', file);
+      const filePath = path.join(__dirname, '..', file);
       const content = readFileSync(filePath, 'utf8');
 
       const typeRegex = /type:\s*["'](\w+)["']/g;
