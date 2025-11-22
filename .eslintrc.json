@@ -181,7 +181,17 @@
         "unicorn/prefer-optional-catch-binding": "off",
         "max-lines-per-function": "off",
         "security/detect-non-literal-fs-filename": "off",
-        "unicorn/no-empty-file": "off"
+        "unicorn/no-empty-file": "off",
+        "import/no-unresolved": "off"
+      }
+    },
+    {
+      "files": [
+        "src/cli/**/*.js",
+        "src/cli/*.js"
+      ],
+      "rules": {
+        "import/no-unresolved": "off"
       }
     },
     {
