@@ -1,0 +1,954 @@
+[
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/cli.js",
+    "messages": [],
+    "suppressedMessages": [
+      {
+        "ruleId": "security/detect-non-literal-fs-filename",
+        "severity": 1,
+        "message": "Found readFileSync from package \"node:fs\" with non literal argument at index 0",
+        "line": 51,
+        "column": 15,
+        "nodeType": "CallExpression",
+        "endLine": 51,
+        "endColumn": 47,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      },
+      {
+        "ruleId": "security/detect-non-literal-fs-filename",
+        "severity": 1,
+        "message": "Found existsSync from package \"node:fs\" with non literal argument at index 0",
+        "line": 62,
+        "column": 9,
+        "nodeType": "CallExpression",
+        "endLine": 62,
+        "endColumn": 30,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      },
+      {
+        "ruleId": "sonarjs/no-duplicate-string",
+        "severity": 2,
+        "message": "Define a constant instead of duplicating this literal 3 times.",
+        "line": 124,
+        "column": 11,
+        "nodeType": "Literal",
+        "messageId": "defineConstant",
+        "endLine": 124,
+        "endColumn": 26,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      },
+      {
+        "ruleId": "security/detect-non-literal-fs-filename",
+        "severity": 1,
+        "message": "Found realpathSync from package \"node:fs\" with non literal argument at index 0",
+        "line": 211,
+        "column": 22,
+        "nodeType": "CallExpression",
+        "endLine": 211,
+        "endColumn": 44,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/app/convert.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/cli/commands.js",
+    "messages": [],
+    "suppressedMessages": [
+      {
+        "ruleId": "n/no-process-exit",
+        "severity": 2,
+        "message": "Don't use process.exit(); throw an error instead.",
+        "line": 128,
+        "column": 5,
+        "nodeType": "CallExpression",
+        "messageId": "noProcessExit",
+        "endLine": 128,
+        "endColumn": 20,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      },
+      {
+        "ruleId": "unicorn/no-process-exit",
+        "severity": 2,
+        "message": "Only use `process.exit()` in CLI apps. Throw an error instead.",
+        "line": 128,
+        "column": 5,
+        "nodeType": "CallExpression",
+        "messageId": "no-process-exit",
+        "endLine": 128,
+        "endColumn": 20,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/cli/configLoader.js",
+    "messages": [],
+    "suppressedMessages": [
+      {
+        "ruleId": "security/detect-non-literal-fs-filename",
+        "severity": 1,
+        "message": "Found readFileSync from package \"node:fs\" with non literal argument at index 0",
+        "line": 37,
+        "column": 21,
+        "nodeType": "CallExpression",
+        "endLine": 37,
+        "endColumn": 64,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/cli/constants.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/cli/helpers.js",
+    "messages": [],
+    "suppressedMessages": [
+      {
+        "ruleId": "security/detect-non-literal-fs-filename",
+        "severity": 1,
+        "message": "Found readdir from package \"node:fs/promises\" with non literal argument at index 0",
+        "line": 28,
+        "column": 27,
+        "nodeType": "CallExpression",
+        "endLine": 28,
+        "endColumn": 48,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/cli/init.js",
+    "messages": [],
+    "suppressedMessages": [
+      {
+        "ruleId": "n/no-process-exit",
+        "severity": 2,
+        "message": "Don't use process.exit(); throw an error instead.",
+        "line": 91,
+        "column": 5,
+        "nodeType": "CallExpression",
+        "messageId": "noProcessExit",
+        "endLine": 91,
+        "endColumn": 20,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      },
+      {
+        "ruleId": "unicorn/no-process-exit",
+        "severity": 2,
+        "message": "Only use `process.exit()` in CLI apps. Throw an error instead.",
+        "line": 91,
+        "column": 5,
+        "nodeType": "CallExpression",
+        "messageId": "no-process-exit",
+        "endLine": 91,
+        "endColumn": 20,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/cli/interactive.js",
+    "messages": [],
+    "suppressedMessages": [
+      {
+        "ruleId": "n/no-process-exit",
+        "severity": 2,
+        "message": "Don't use process.exit(); throw an error instead.",
+        "line": 88,
+        "column": 7,
+        "nodeType": "CallExpression",
+        "messageId": "noProcessExit",
+        "endLine": 88,
+        "endColumn": 22,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      },
+      {
+        "ruleId": "unicorn/no-process-exit",
+        "severity": 2,
+        "message": "Only use `process.exit()` in CLI apps. Throw an error instead.",
+        "line": 88,
+        "column": 7,
+        "nodeType": "CallExpression",
+        "messageId": "no-process-exit",
+        "endLine": 88,
+        "endColumn": 22,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      },
+      {
+        "ruleId": "n/no-process-exit",
+        "severity": 2,
+        "message": "Don't use process.exit(); throw an error instead.",
+        "line": 281,
+        "column": 5,
+        "nodeType": "CallExpression",
+        "messageId": "noProcessExit",
+        "endLine": 281,
+        "endColumn": 20,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      },
+      {
+        "ruleId": "unicorn/no-process-exit",
+        "severity": 2,
+        "message": "Only use `process.exit()` in CLI apps. Throw an error instead.",
+        "line": 281,
+        "column": 5,
+        "nodeType": "CallExpression",
+        "messageId": "no-process-exit",
+        "endLine": 281,
+        "endColumn": 20,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/cli/logging.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/cli/options.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/cli/params.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/core/excel/sheetRead.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/core/excel/sheetWrite.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/core/json/placeholders.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/core/json/structure.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/core/languages/mapping.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/core/report/translationReport.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/index.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/io/config.js",
+    "messages": [],
+    "suppressedMessages": [
+      {
+        "ruleId": "security/detect-non-literal-fs-filename",
+        "severity": 1,
+        "message": "Found readFile from package \"node:fs/promises\" with non literal argument at index 0",
+        "line": 45,
+        "column": 21,
+        "nodeType": "CallExpression",
+        "endLine": 45,
+        "endColumn": 50,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/io/excel.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/io/fs.js",
+    "messages": [],
+    "suppressedMessages": [
+      {
+        "ruleId": "security/detect-non-literal-fs-filename",
+        "severity": 1,
+        "message": "Found mkdir from package \"node:fs/promises\" with non literal argument at index 0",
+        "line": 32,
+        "column": 9,
+        "nodeType": "CallExpression",
+        "endLine": 32,
+        "endColumn": 48,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      },
+      {
+        "ruleId": "security/detect-non-literal-fs-filename",
+        "severity": 1,
+        "message": "Found readFile from package \"node:fs/promises\" with non literal argument at index 0",
+        "line": 65,
+        "column": 25,
+        "nodeType": "CallExpression",
+        "endLine": 65,
+        "endColumn": 54,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      },
+      {
+        "ruleId": "security/detect-non-literal-fs-filename",
+        "severity": 1,
+        "message": "Found writeFile from package \"node:fs/promises\" with non literal argument at index 0",
+        "line": 85,
+        "column": 9,
+        "nodeType": "CallExpression",
+        "endLine": 85,
+        "endColumn": 70,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      },
+      {
+        "ruleId": "security/detect-non-literal-fs-filename",
+        "severity": 1,
+        "message": "Found readdir from package \"node:fs/promises\" with non literal argument at index 0",
+        "line": 100,
+        "column": 23,
+        "nodeType": "CallExpression",
+        "endLine": 100,
+        "endColumn": 46,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/io/paths.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/reporters/console.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/src/reporters/json.js",
+    "messages": [],
+    "suppressedMessages": [
+      {
+        "ruleId": "security/detect-non-literal-fs-filename",
+        "severity": 1,
+        "message": "Found writeFile from package \"node:fs/promises\" with non literal argument at index 0",
+        "line": 42,
+        "column": 13,
+        "nodeType": "CallExpression",
+        "endLine": 42,
+        "endColumn": 52,
+        "suppressions": [{ "kind": "directive", "justification": "" }]
+      }
+    ],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/app.convert.errors.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/app.convert.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/app.duplicates.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/cli.commands.coverage.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/cli.config.autoload.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/cli.config.custompath.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/cli.config.fallback.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/cli.flags.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/cli.init.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/cli.interactive.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/cli.params.branches.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/cli.process.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/entrypoints.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/excel.determinism.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/excel.sheetWrite.styles.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/header.validation.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/index.exports.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/init.languages.choices.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/io.config.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/io.excel.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/io.fs.readdir.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/io.paths.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/languages.mapping.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/main.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/reporters.console.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/reporters.json.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  },
+  {
+    "filePath": "/Users/mariokreitz/dev/github/i18n-excel-manager/test/security-and-consistency.test.js",
+    "messages": [],
+    "suppressedMessages": [],
+    "errorCount": 0,
+    "fatalErrorCount": 0,
+    "warningCount": 0,
+    "fixableErrorCount": 0,
+    "fixableWarningCount": 0,
+    "usedDeprecatedRules": [
+      { "ruleId": "quotes", "replacedBy": [] },
+      { "ruleId": "semi", "replacedBy": [] }
+    ]
+  }
+]
