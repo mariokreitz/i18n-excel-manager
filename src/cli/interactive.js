@@ -1,6 +1,6 @@
 /**
- * Interactive menu functions for CLI.
  * @module cli/interactive
+ * Interactive menu & prompt-driven conversion flows.
  */
 
 import path from 'node:path';
@@ -19,11 +19,12 @@ import {
 } from './constants.js';
 import { detectI18nPresence } from './helpers.js';
 import { runInitCommand } from './init.js';
+import { logError } from './logging.js';
 
 /**
- * Shows the main interactive menu and processes the user's selection.
- * @param {object} config - Configuration object.
- * @param {object} defaultConfig - Default configuration.
+ * Display main interactive menu and dispatch chosen action.
+ * @param {Object} config Runtime config.
+ * @param {Object} defaultConfig Default config values.
  * @returns {Promise<void>}
  */
 export async function showMainMenu(config, defaultConfig) {
@@ -92,9 +93,9 @@ export async function showMainMenu(config, defaultConfig) {
 }
 
 /**
- * Prompts the user for i18n-to-Excel conversion options and starts the process.
- * @param {object} defaultConfig - Default configuration.
- * @param {object} config - Configuration object.
+ * Prompt user for i18n->Excel parameters and invoke conversion.
+ * @param {Object} defaultConfig Default config values.
+ * @param {Object} config Runtime config.
  * @returns {Promise<void>}
  */
 export async function handleToExcel(defaultConfig, config) {
@@ -148,9 +149,9 @@ export async function handleToExcel(defaultConfig, config) {
 }
 
 /**
- * Prompts the user for Excel-to-i18n conversion options and starts the process.
- * @param {object} defaultConfig - Default configuration.
- * @param {object} config - Configuration object.
+ * Prompt user for Excel->i18n parameters and invoke conversion.
+ * @param {Object} defaultConfig Default config values.
+ * @param {Object} config Runtime config.
  * @returns {Promise<void>}
  */
 export async function handleToJson(defaultConfig, config) {
@@ -205,12 +206,11 @@ export async function handleToJson(defaultConfig, config) {
 }
 
 /**
- * Performs the actual conversion based on the conversion type and user answers.
- * Handles both directions and prints results to the console.
- * @param {'toExcel'|'toJson'} conversionType - The conversion direction.
- * @param {object} answers - User answers from inquirer.
- * @param {object} defaultConfig - Default configuration.
- * @param {object} config - Configuration object.
+ * Perform a conversion given user answers (direction-specific).
+ * @param {'toExcel'|'toJson'} conversionType Direction indicator.
+ * @param {Object} answers Inquirer answers object.
+ * @param {Object} defaultConfig Default config.
+ * @param {Object} config Runtime config.
  * @returns {Promise<void>}
  */
 export async function performConversion(
@@ -252,16 +252,17 @@ export async function performConversion(
       console.log(chalk.green(`${MSG_CONVERSION_COMPLETED_PREFIX}${target}`));
     }
   } catch (error) {
-    console.error(chalk.red(`❌ Error: ${error.message}`));
+    logError(error);
+    process.exit(1); // eslint-disable-line n/no-process-exit, unicorn/no-process-exit
   }
 
   await askForAnotherAction(config, defaultConfig);
 }
 
 /**
- * Asks the user if they want to perform another action after a conversion.
- * @param {object} config - Configuration object.
- * @param {object} defaultConfig - Default configuration.
+ * Ask user whether to perform another action after conversion.
+ * @param {Object} config Runtime config.
+ * @param {Object} defaultConfig Default config.
  * @returns {Promise<void>}
  */
 export async function askForAnotherAction(config, defaultConfig) {

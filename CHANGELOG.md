@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Chore
+
+- Upgrade dev dependency `eslint-plugin-sonarjs` to `3.0.5` to support ESLint 9 peer range and resolve `npm ci` peer
+  dependency conflict (previous `^0.25.x` only supported ESLint <=8). No rule renames; existing configuration remains
+  valid.
+- Migrate from legacy `.eslintrc.json` to flat config `eslint.config.js` required by ESLint v9; rule set preserved with
+  prior overrides.
+
 ## [2.1.1] - 2025-11-03
 
 ### Fixed

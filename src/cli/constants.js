@@ -1,6 +1,11 @@
 /**
- * Constants used throughout the CLI module.
  * @module cli/constants
+ * String literals & flag descriptors for CLI usage.
+ * Categories:
+ * - Option descriptions (DESC_*)
+ * - Messages (MSG_*)
+ * - Flags (FLAG_*)
+ * - Metadata (TOOL_*)
  */
 
 /**

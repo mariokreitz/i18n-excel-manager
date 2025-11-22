@@ -1,4 +1,10 @@
 /**
+ * @module reporters/json
+ * JSON file-based reporter implementation.
+ * @typedef {import('../types.js').Reporter} Reporter
+ */
+
+/**
  * JSON file-based reporter for translation reports.
  * Outputs translation reports to a JSON file.
  */
@@ -6,22 +12,12 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-/**
- * Asserts that the path is a non-empty string.
- * @param {*} p - The path to check.
- * @param {string} label - Label for error message.
- * @throws {TypeError} If path is not a non-empty string.
- */
-function assertStringPath(p, label) {
-  if (typeof p !== 'string' || p.length === 0) {
-    throw new TypeError(`${label} must be a non-empty string`);
-  }
-}
+import { assertStringPath } from '../core/validation.js';
 
 /**
  * Creates a reporter that writes translation reports to a JSON file.
  * @param {string} filePath - Path where the JSON report file will be written.
- * @returns {Object} Reporter object with print and warn methods.
+ * @returns {Reporter} Reporter object with print and warn methods.
  * @returns {Function} result.print - Async function that writes the report to the file.
  * @returns {Function} result.warn - Function that prints a warning to console.
  * @throws {TypeError} If filePath is invalid.
@@ -37,8 +33,6 @@ export function jsonFileReporter(filePath) {
      */
     print: async (report) => {
       const content = JSON.stringify(report, null, 2);
-      // Writing to a resolved path controlled by the caller (e.g., CLI arg)
-      // eslint-disable-next-line security/detect-non-literal-fs-filename
       await fs.writeFile(resolved, content, 'utf8');
     },
     /**
@@ -46,8 +40,7 @@ export function jsonFileReporter(filePath) {
      * @param {string} m - The warning message.
      */
     warn: (m) => {
-      /* eslint-disable no-console */
-      console.warn(m); /* eslint-enable no-console */
+      console.warn(m);
     },
   };
 }
