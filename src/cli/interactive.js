@@ -54,7 +54,7 @@ export async function showMainMenu(config, defaultConfig) {
   }
   const { action } = await inquirer.prompt([
     {
-      type: 'list',
+      type: 'select',
       name: 'action',
       message: 'Choose an action:',
       choices: [
