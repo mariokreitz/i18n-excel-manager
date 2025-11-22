@@ -19,6 +19,7 @@ import {
 } from './constants.js';
 import { detectI18nPresence } from './helpers.js';
 import { runInitCommand } from './init.js';
+import { logError } from './logging.js';
 
 /**
  * Shows the main interactive menu and processes the user's selection.
@@ -252,7 +253,8 @@ export async function performConversion(
       console.log(chalk.green(`${MSG_CONVERSION_COMPLETED_PREFIX}${target}`));
     }
   } catch (error) {
-    console.error(chalk.red(`❌ Error: ${error.message}`));
+    logError(error);
+    process.exit(1); // eslint-disable-line n/no-process-exit, unicorn/no-process-exit
   }
 
   await askForAnotherAction(config, defaultConfig);

@@ -8,6 +8,7 @@ import path from 'node:path';
 
 import chalk from 'chalk';
 
+import { assertNonEmptyString } from '../core/validation.js';
 import { ensureDirectoryExists, writeJsonFile } from '../io/fs.js';
 
 import {
@@ -22,6 +23,7 @@ import {
  * @returns {Promise<{exists:boolean,jsonCount:number,files:string[]}>} Detection result.
  */
 export async function detectI18nPresence(dir) {
+  assertNonEmptyString(dir, 'i18n directory');
   const resolved = path.resolve(dir);
   try {
     const entries = await fsp.readdir(resolved);

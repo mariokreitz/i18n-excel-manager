@@ -6,17 +6,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-/**
- * Asserts that the path is a non-empty string.
- * @param {*} p - The path to check.
- * @param {string} label - Label for error message.
- * @throws {TypeError} If path is not a non-empty string.
- */
-function assertStringPath(p, label) {
-  if (typeof p !== 'string' || p.length === 0) {
-    throw new TypeError(`${label} must be a non-empty string`);
-  }
-}
+import { assertStringPath } from '../core/validation.js';
 
 /**
  * Creates a reporter that writes translation reports to a JSON file.

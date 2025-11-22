@@ -6,6 +6,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { assertNonEmptyString } from '../core/validation.js';
+
 /**
  * Loads configuration JSON from a file path specified via CLI options and validates it.
  *
@@ -23,6 +25,7 @@ import path from 'node:path';
  */
 export function loadConfigOptions(options, validateConfigObject) {
   if (!options || !options.config) return {};
+  assertNonEmptyString(options.config, 'config');
 
   // Validate config file path to prevent directory traversal
   const resolvedConfigPath = path.resolve(options.config);

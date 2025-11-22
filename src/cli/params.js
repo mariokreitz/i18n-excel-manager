@@ -3,6 +3,13 @@
  * @module cli/params
  */
 
+import {
+  buildCommonOptions as bCommon,
+  resolveExcelToI18nPaths as rE2I,
+  resolveFailOnDuplicates as rFailDup,
+  resolveI18nToExcelPaths as rI2E,
+} from './configResolution.js';
+
 /**
  * Resolve source and target paths for i18n->Excel conversion.
  * @param {object} options - CLI options.
@@ -10,11 +17,7 @@
  * @returns {{sourcePath: string, targetFile: string}}
  */
 export function resolveI18nToExcelPaths(options, defaultConfig) {
-  const sourcePath =
-    options.input || options.sourcePath || defaultConfig?.sourcePath || '';
-  const targetFile =
-    options.output || options.targetFile || defaultConfig?.targetFile || '';
-  return { sourcePath, targetFile };
+  return rI2E(options, defaultConfig);
 }
 
 /**
@@ -24,11 +27,7 @@ export function resolveI18nToExcelPaths(options, defaultConfig) {
  * @returns {{sourceFile: string, targetPath: string}}
  */
 export function resolveExcelToI18nPaths(options, defaultConfig) {
-  const sourceFile =
-    options.input || options.targetFile || defaultConfig?.targetFile || '';
-  const targetPath =
-    options.output || options.targetPath || defaultConfig?.targetPath || '';
-  return { sourceFile, targetPath };
+  return rE2I(options, defaultConfig);
 }
 
 /**
@@ -45,13 +44,7 @@ export function buildCommonOptions(
   runtimeConfig,
   isDryRun,
 ) {
-  const sheetName =
-    options.sheetName || defaultConfig?.sheetName || 'Translations';
-  const languageMap = options.languageMap ?? runtimeConfig?.languages;
-  const out = { sheetName, dryRun: isDryRun };
-  if (languageMap) out.languageMap = languageMap;
-  if ('report' in options) out.report = options.report;
-  return out;
+  return bCommon(options, defaultConfig, runtimeConfig, isDryRun);
 }
 
 /**
@@ -62,8 +55,5 @@ export function buildCommonOptions(
  * @returns {boolean}
  */
 export function resolveFailOnDuplicates(options, argv, flagLiteral) {
-  return (
-    options.failOnDuplicates === true ||
-    (Array.isArray(argv) && argv.includes(flagLiteral))
-  );
+  return rFailDup(options, argv, flagLiteral);
 }

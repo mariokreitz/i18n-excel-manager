@@ -14,6 +14,7 @@ import {
   parseLanguagesArg,
   writeInitFiles,
 } from './helpers.js';
+import { logError } from './logging.js';
 
 /**
  * Builds language choices for the init prompt with a safe fallback when no languages are configured.
@@ -87,7 +88,7 @@ export async function runInitCommand(options, config, defaultConfig) {
     }
     console.log(chalk.green(`${MSG_INIT_COMPLETED_PREFIX}${res.dir}`));
   } catch (error) {
-    console.error(chalk.red(`❌ Error: ${error.message}`));
+    logError(error);
     process.exit(1); // eslint-disable-line n/no-process-exit, unicorn/no-process-exit
   }
 }

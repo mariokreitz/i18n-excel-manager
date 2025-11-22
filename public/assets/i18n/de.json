@@ -1,8 +1,8 @@
 {
   "app": {
+    "test1": "Das ist ein Test",
     "title": "Meine App",
-    "welcome": "Willkommen in Ihrer lokalisierten App",
-    "test1": "Das ist ein Test"
+    "welcome": "Willkommen in Ihrer lokalisierten App"
   },
   "footer": {
     "content": {
