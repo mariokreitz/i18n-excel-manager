@@ -1,3 +1,21 @@
+# v2.1.2 (2025-11-22)
+
+## Highlights
+
+- Inquirer updated to `13.0.1` with new API (future migration to `@inquirer/core` planned)
+- ESLint 9 migration with flat config (`eslint.config.js`)
+- Upgraded `eslint-plugin-sonarjs` to v3.0.5 for ESLint 9 compatibility
+- Comprehensive JSDoc improvements across all modules
+- Code refactoring and quality improvements
+
+## Upgrade Notes
+
+- No breaking changes
+- ESLint configuration modernized but rule set preserved
+- Node.js >= 20 required (aligned with CI test matrix)
+
+---
+
 # v2.1.0 (2025-10-28)
 
 Highlights
