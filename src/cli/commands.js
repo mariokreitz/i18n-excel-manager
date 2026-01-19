@@ -8,7 +8,9 @@
  */
 
 // Parent-level internal modules
-import { convertToExcel, convertToJson } from '../index.js';
+import chalk from 'chalk';
+
+import { convertToExcel, convertToJson, analyze } from '../index.js';
 
 // Same-directory utilities and constants
 import { loadConfigOptions } from './configLoader.js';
@@ -86,6 +88,46 @@ export async function runExcelToI18n(options, isDryRun, defaultConfig, config) {
 }
 
 /**
+ * Run Analysis.
+ * @param {Object} options CLI options.
+ * @param {Object} defaultConfig Default config.
+ */
+export async function runAnalyze(options, defaultConfig) {
+  const sourcePath = options.input || defaultConfig.sourcePath;
+  const codePattern = options.pattern || '**/*.{ts,html,js}';
+
+  console.log(chalk.cyan(`Scanning for i18n keys in: ${codePattern}`));
+  console.log(chalk.cyan(`Comparing with JSONs in: ${sourcePath}`));
+
+  const report = await analyze({ sourcePath, codePattern });
+
+  console.log(
+    chalk.green(`\nFound ${report.totalCodeKeys} unique keys in code.`),
+  );
+
+  let hasIssues = false;
+  for (const [file, result] of Object.entries(report.fileReports)) {
+    if (result.missing.length > 0 || result.unused.length > 0) {
+      console.log(chalk.yellow(`\n[${file}]`));
+      if (result.missing.length > 0) {
+        hasIssues = true;
+        console.log(chalk.red('  Missing keys (in code but not in JSON):'));
+        result.missing.forEach((k) => console.log(`    - ${k}`));
+      }
+      if (result.unused.length > 0) {
+        hasIssues = true;
+        console.log(chalk.gray('  Unused keys (in JSON but not in code):'));
+        result.unused.forEach((k) => console.log(`    - ${k}`));
+      }
+    }
+  }
+
+  if (!hasIssues) {
+    console.log(chalk.green('\nBuild successful! All keys are consistent.'));
+  }
+}
+
+/**
  * Process CLI options and dispatch chosen command.
  * @param {Object} options Raw commander options.
  * @param {Object} defaultConfig Entry default config.
@@ -119,6 +161,8 @@ export async function processCliOptions(
       await runExcelToI18n(mergedOptions, isDryRun, defaultConfig, config);
     } else if (mergedOptions.init) {
       await runInitCommand(mergedOptions, config, defaultConfig);
+    } else if (mergedOptions.analyze) {
+      await runAnalyze(mergedOptions, defaultConfig);
     }
   } catch (error) {
     logError(error);

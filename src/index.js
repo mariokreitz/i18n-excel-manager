@@ -17,6 +17,7 @@
 
 import path from 'node:path';
 
+import { analyzeApp } from './app/analyze.js';
 import { convertToExcelApp, convertToJsonApp } from './app/convert.js';
 import * as ioExcel from './io/excel.js';
 import * as ioFs from './io/fs.js';
@@ -66,7 +67,18 @@ export async function convertToJson(sourceFile, targetPath, options = {}) {
   );
 }
 
+/**
+ * Analyzes the codebase for missing and unused translation keys.
+ * @param {object} options Analysis options.
+ * @returns {Promise<object>} Analysis report.
+ */
+export async function analyze(options = {}) {
+  // Use default sourcePath from options if provided, otherwise rely on defaults handled by caller or app
+  return analyzeApp(defaultIo, options);
+}
+
 export { convertToExcelApp, convertToJsonApp } from './app/convert.js';
+export { analyzeApp } from './app/analyze.js';
 export { consoleReporter } from './reporters/console.js';
 export { jsonFileReporter } from './reporters/json.js';
 export { loadValidatedConfig } from './io/config.js';

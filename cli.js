@@ -170,6 +170,28 @@ program
     );
   });
 
+// Command for analyzing codebase
+program
+  .command('analyze')
+  .description('Scan codebase for missing or unused translation keys')
+  .option('-i, --input <path>', 'Path to directory containing i18n JSON files')
+  .option(
+    '-p, --pattern <glob>',
+    'Glob pattern for source code files',
+    '**/*.{html,ts,js}',
+  )
+  .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
+  .action((options) => {
+    displayHeader();
+    options.analyze = true;
+    processCliOptions(
+      options,
+      defaultConfig,
+      LOCAL_CONFIG || {},
+      validateConfigObject,
+    );
+  });
+
 /**
  * Main entry point for the application. Runs the interactive menu or parses CLI args.
  * @async
