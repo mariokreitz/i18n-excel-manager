@@ -1,12 +1,6 @@
 {
   "app": {
-    "test1": "This is a test",
     "title": "My App",
     "welcome": "Welcome to your localized app"
-  },
-  "footer": {
-    "content": {
-      "title": ""
-    }
   }
 }

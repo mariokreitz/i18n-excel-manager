@@ -4,7 +4,7 @@ import path from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import inquirer from 'inquirer';
+import { createPromptModule } from 'inquirer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,7 +65,7 @@ describe('Interactive.js Inquirer v13 Compatibility', () => {
     );
     const content = readFileSync(interactivePath, 'utf8');
 
-    const promptModule = inquirer.createPromptModule();
+    const promptModule = createPromptModule();
     const availableTypes = Object.keys(promptModule.prompts);
 
     const typeRegex = /type:\s*["'](\w+)["']/g;
@@ -88,7 +88,7 @@ describe('Interactive.js Inquirer v13 Compatibility', () => {
     const initPath = path.join(__dirname, '..', 'src', 'cli', 'init.js');
     const content = readFileSync(initPath, 'utf8');
 
-    const promptModule = inquirer.createPromptModule();
+    const promptModule = createPromptModule();
     const availableTypes = Object.keys(promptModule.prompts);
 
     const typeRegex = /type:\s*["'](\w+)["']/g;

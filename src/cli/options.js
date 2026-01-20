@@ -3,18 +3,4 @@
  * @module cli/options
  */
 
-import { mergeCliOptions as coreMergeCliOptions } from './configResolution.js';
-
-export function mergeCliOptions(
-  cliOptions,
-  configOptions,
-  defaultConfig,
-  runtimeConfig,
-) {
-  return coreMergeCliOptions(
-    cliOptions,
-    configOptions,
-    defaultConfig,
-    runtimeConfig,
-  );
-}
+export { mergeCliOptions } from './configResolution.js';

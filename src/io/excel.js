@@ -28,3 +28,4 @@ export async function readWorkbook(filePath, workbook) {
 export async function writeWorkbook(filePath, workbook) {
   await workbook.xlsx.writeFile(filePath);
 }
+export { default as Excel } from 'exceljs';

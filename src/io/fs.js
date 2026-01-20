@@ -1,6 +1,7 @@
 /**
+ * @fileoverview Filesystem utility functions for JSON translation file operations.
+ * Provides promise-based functions for reading, writing, and managing translation assets.
  * @module io/fs
- * Filesystem utility functions (promise-based) for JSON translation assets.
  */
 
 import fs from 'node:fs/promises';
@@ -9,24 +10,29 @@ import path from 'node:path';
 import { assertStringPath } from '../core/validation.js';
 
 /**
- * Ensure directory exists (recursive), no-op if already present.
- * @param {string} dirPath Directory path.
- * @returns {Promise<void>}
- * @throws {TypeError} If dirPath is invalid.
+ * Ensures a directory exists, creating it recursively if necessary.
+ *
+ * @param {string} dirPath - Directory path to create.
+ * @returns {Promise<void>} Resolves when directory exists.
+ * @throws {TypeError} If dirPath is not a valid string.
+ * @example
+ * await ensureDirectoryExists('./locales/i18n');
  */
 export async function ensureDirectoryExists(dirPath) {
   assertStringPath(dirPath, 'dirPath');
   const resolved = path.resolve(dirPath);
-  // Path is resolved and controlled by caller; mkdir is safe here.
   await fs.mkdir(resolved, { recursive: true });
 }
 
 /**
- * Assert file existence (reject if missing).
- * @param {string} filePath File path to test.
- * @returns {Promise<void>}
- * @throws {TypeError} If filePath is invalid.
+ * Asserts that a file exists at the given path.
+ *
+ * @param {string} filePath - File path to check.
+ * @returns {Promise<void>} Resolves if file exists.
+ * @throws {TypeError} If filePath is not a valid string.
  * @throws {Error} If file does not exist.
+ * @example
+ * await checkFileExists('./translations.xlsx');
  */
 export async function checkFileExists(filePath) {
   assertStringPath(filePath, 'filePath');
@@ -39,16 +45,18 @@ export async function checkFileExists(filePath) {
 }
 
 /**
- * Read and parse a JSON file.
- * @param {string} filePath JSON file path.
- * @returns {Promise<Object>} Parsed object.
- * @throws {TypeError} If filePath is invalid.
+ * Reads and parses a JSON file.
+ *
+ * @param {string} filePath - Path to JSON file.
+ * @returns {Promise<Object>} Parsed JSON object.
+ * @throws {TypeError} If filePath is not a valid string.
  * @throws {Error} If file reading or JSON parsing fails.
+ * @example
+ * const translations = await loadJsonFile('./locales/en.json');
  */
 export async function loadJsonFile(filePath) {
   assertStringPath(filePath, 'filePath');
   const resolved = path.resolve(filePath);
-  // Reading a resolved file path; content is validated via JSON.parse.
   const content = await fs.readFile(resolved, 'utf8');
   try {
     return JSON.parse(content);
@@ -58,30 +66,35 @@ export async function loadJsonFile(filePath) {
 }
 
 /**
- * Serialize data as JSON to given path.
- * @param {string} filePath Output file path.
- * @param {*} data Serializable data.
- * @returns {Promise<void>}
- * @throws {TypeError} If filePath is invalid.
+ * Writes data to a JSON file with pretty formatting.
+ *
+ * @param {string} filePath - Output file path.
+ * @param {unknown} data - Data to serialize as JSON.
+ * @returns {Promise<void>} Resolves when file is written.
+ * @throws {TypeError} If filePath is not a valid string.
+ * @example
+ * await writeJsonFile('./locales/en.json', { greeting: 'Hello' });
  */
 export async function writeJsonFile(filePath, data) {
   assertStringPath(filePath, 'filePath');
   const resolved = path.resolve(filePath);
-  // Writing to a resolved path; upstream callers control/sanitize path.
   await fs.writeFile(resolved, JSON.stringify(data, null, 2), 'utf8');
 }
 
 /**
- * Read all *.json files inside a directory returning names and parsed data.
- * @param {string} dir Directory path.
- * @returns {Promise<Array<{name:string,data:Object}>>}
- * @throws {TypeError} If dir is invalid.
- * @throws {Error} If directory reading or file parsing fails.
+ * Reads all JSON files in a directory and returns their parsed contents.
+ *
+ * @param {string} dir - Directory path containing JSON files.
+ * @returns {Promise<Array<{name: string, data: Object}>>} Array of objects with filename and parsed data.
+ * @throws {TypeError} If dir is not a valid string.
+ * @throws {Error} If directory reading or JSON parsing fails.
+ * @example
+ * const files = await readDirJsonFiles('./locales');
+ * // Returns: [{ name: 'en', data: { ... } }, { name: 'de', data: { ... } }]
  */
 export async function readDirJsonFiles(dir) {
   assertStringPath(dir, 'dir');
   const resolvedDir = path.resolve(dir);
-  // List entries in a resolved directory path.
   const files = await fs.readdir(resolvedDir);
   const jsonFiles = files.filter((f) => f.endsWith('.json'));
   const results = [];
