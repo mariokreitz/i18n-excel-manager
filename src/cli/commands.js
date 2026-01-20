@@ -142,16 +142,21 @@ export async function runTranslate(options) {
   }
 
   // Check for API Key in flag or ENV
-  const apiKey = options.apiKey || process.env.I18N_MANAGER_API_KEY;
+  const apiKey =
+    options.apiKey ||
+    process.env.GEMINI_API_KEY ||
+    process.env.I18N_MANAGER_API_KEY;
   if (!apiKey) {
     throw new Error(
-      'API Key is missing. Pass --api-key or set I18N_MANAGER_API_KEY.',
+      'API Key is missing. Pass --api-key or set GEMINI_API_KEY (fallback: I18N_MANAGER_API_KEY).',
     );
   }
 
   console.log(chalk.blue('Use --source-lang to specify source (default: en).'));
   console.log(
-    chalk.blue('Use --model to specify OpenAI model (default: gpt-4o-mini).\n'),
+    chalk.blue(
+      'Use --model to specify Gemini model (default: gemini-2.5-flash).\n',
+    ),
   );
 
   const languageMap =
@@ -161,7 +166,7 @@ export async function runTranslate(options) {
     input: options.input,
     sourceLang: options.sourceLang || 'en',
     apiKey,
-    model: options.model,
+    model: options.model || 'gemini-2.5-flash',
     languageMap,
   });
 }

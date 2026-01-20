@@ -10,6 +10,7 @@
  */
 
 import { readTranslationsFromWorksheet } from '../core/excel/sheetRead.js';
+import { generateDefaultLanguageMap } from '../core/languages/mapping.js';
 import { consoleReporter as defaultConsoleReporter } from '../reporters/console.js';
 
 import {
@@ -51,6 +52,12 @@ export async function convertToExcelApp(
     throw new Error(`No JSON files found in directory: ${sourcePath}`);
   }
   const { translations, languages } = collectTranslations(files);
+
+  const effectiveLanguageMap =
+    Object.keys(languageMap).length > 0
+      ? languageMap
+      : generateDefaultLanguageMap(languages);
+
   if (dryRun) {
     maybeReport(translations, languages, reporter, report);
     return;
@@ -59,7 +66,7 @@ export async function convertToExcelApp(
     sheetName,
     translations,
     languages,
-    languageMap,
+    languageMap: effectiveLanguageMap,
   });
 }
 

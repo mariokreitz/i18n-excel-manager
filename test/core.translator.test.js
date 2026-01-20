@@ -1,25 +1,27 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { OpenAIProvider } from '../src/core/translator.js';
+import { GeminiProvider } from '../src/core/translator.js';
 
-class FakeCompletionClient {
+class FakeGenAiClient {
   constructor(responder) {
-    this.chat = {
-      completions: {
-        create: responder,
-      },
+    this.responder = responder;
+  }
+
+  get models() {
+    return {
+      generateContent: this.responder,
     };
   }
 }
 
 const makeProviderWithResponder = (responder) => {
-  const provider = new OpenAIProvider('fake-key', 'test-model');
-  provider.client = new FakeCompletionClient(responder);
+  const provider = new GeminiProvider('fake-key', 'test-model');
+  provider.client = new FakeGenAiClient(responder);
   return provider;
 };
 
-describe('OpenAIProvider translateBatch', () => {
+describe('GeminiProvider translateBatch', () => {
   it('returns empty array for empty input', async () => {
     const provider = makeProviderWithResponder(async () => {
       throw new Error('should not be called');
@@ -30,9 +32,7 @@ describe('OpenAIProvider translateBatch', () => {
 
   it('translates via mocked completion response', async () => {
     const provider = makeProviderWithResponder(async () => ({
-      choices: [
-        { message: { content: JSON.stringify({ translations: ['Hallo'] }) } },
-      ],
+      text: JSON.stringify({ translations: ['Hallo'] }),
     }));
 
     const result = await provider.translateBatch(['Hello'], 'en', 'de');
@@ -41,9 +41,7 @@ describe('OpenAIProvider translateBatch', () => {
 
   it('warns when translation count mismatches input length', async () => {
     const provider = makeProviderWithResponder(async () => ({
-      choices: [
-        { message: { content: JSON.stringify({ translations: ['A', 'B'] }) } },
-      ],
+      text: JSON.stringify({ translations: ['A', 'B'] }),
     }));
 
     let warned = false;
@@ -62,7 +60,7 @@ describe('OpenAIProvider translateBatch', () => {
 
   it('throws a helpful error on invalid response format', async () => {
     const provider = makeProviderWithResponder(async () => ({
-      choices: [{ message: { content: JSON.stringify({ wrong: [] }) } }],
+      text: JSON.stringify({ wrong: [] }),
     }));
 
     await assert.rejects(

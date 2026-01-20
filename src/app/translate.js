@@ -1,10 +1,10 @@
 /**
  * @fileoverview Application logic for AI-powered auto-translation of Excel workbooks.
- * Uses OpenAI API to translate missing values from a source language to target languages.
+ * Uses Gemini API to translate missing values from a source language to target languages.
  * @module app/translate
  */
 
-import { OpenAIProvider } from '../core/translator.js';
+import { GeminiProvider } from '../core/translator.js';
 import { assertNonEmptyString } from '../core/validation.js';
 
 /** @constant {number} Index of the header row in Excel worksheets */
@@ -223,15 +223,15 @@ const translateTarget = async (
 /**
  * Orchestrates the AI auto-translation process for an Excel workbook.
  *
- * Reads an Excel file, identifies missing translations, uses OpenAI API
+ * Reads an Excel file, identifies missing translations, uses Gemini API
  * to translate missing values, and writes the updated workbook.
  *
  * @param {import('../types.js').IoAdapter} io - IO adapter with Excel read/write support.
  * @param {Object} options - Translation options.
  * @param {string} options.input - Path to Excel file.
  * @param {string} [options.sourceLang='en'] - Source language code.
- * @param {string} options.apiKey - OpenAI API key.
- * @param {string} [options.model='gpt-4o-mini'] - OpenAI model to use.
+ * @param {string} options.apiKey - Gemini API key.
+ * @param {string} [options.model='gemini-2.5-flash'] - Gemini model to use.
  * @param {Object<string, string>} [options.languageMap={}] - Language code to display name mapping.
  * @param {Object} [deps={}] - Dependencies for testing (e.g., mock provider).
  * @param {Object} [deps.provider] - Translation provider instance (for testing).
@@ -257,7 +257,7 @@ export async function translateApp(io, options, deps = {}) {
   assertNonEmptyString(input, 'input');
   assertNonEmptyString(sourceLang, 'sourceLang');
 
-  const provider = deps.provider ?? new OpenAIProvider(apiKey, model);
+  const provider = deps.provider ?? new GeminiProvider(apiKey, model);
 
   const workbook = new io.Excel.Workbook();
   await io.readWorkbook(input, workbook);

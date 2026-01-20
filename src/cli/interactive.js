@@ -178,15 +178,16 @@ async function handleTranslate(defaultConfig, config) {
     {
       type: 'password',
       name: 'apiKey',
-      message: 'OpenAI API Key (leave empty if I18N_MANAGER_API_KEY is set):',
+      message:
+        'Gemini API Key (leave empty if GEMINI_API_KEY/I18N_MANAGER_API_KEY is set):',
       mask: '*',
     },
     {
       type: 'select',
       name: 'model',
-      message: 'OpenAI Model:',
-      choices: ['gpt-4.1', 'gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo'],
-      default: 'gpt-4o-mini',
+      message: 'Gemini Model:',
+      choices: ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'],
+      default: 'gemini-2.5-flash',
     },
   ]);
 

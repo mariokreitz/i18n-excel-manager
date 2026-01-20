@@ -37,6 +37,10 @@ const applyHeaderStyles = (worksheet) => {
  * followed by rows for each translation key with values in each language column.
  * Keys are sorted alphabetically for deterministic output.
  *
+ * **Important**: Language headers should always be display names (e.g., 'German', 'English'),
+ * not language codes (e.g., 'de', 'en'). If languageMap is not provided, this function
+ * will still work but will use codes as headers. For consistency, always pass a languageMap.
+ *
  * @param {Object} workbook - ExcelJS Workbook instance.
  * @param {string} sheetName - Name for the new worksheet.
  * @param {Map<string, Object<string, string>>} translations - Map of translation keys to language value objects.

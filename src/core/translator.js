@@ -1,10 +1,10 @@
 /**
  * @fileoverview Translation provider implementations for AI-powered translations.
- * Provides an abstract interface and concrete OpenAI implementation.
+ * Provides an abstract interface and concrete Gemini implementation.
  * @module core/translator
  */
 
-import OpenAI from 'openai';
+import { GoogleGenAI } from '@google/genai';
 
 /**
  * Abstract base class for translation providers.
@@ -29,38 +29,32 @@ export class TranslationProvider {
 }
 
 /**
- * OpenAI-powered translation provider.
- * Uses GPT models to translate text while preserving placeholders and formatting.
+ * Gemini-powered translation provider.
+ * Uses Gemini models to translate text while preserving placeholders and formatting.
  * @extends TranslationProvider
  */
-export class OpenAIProvider extends TranslationProvider {
+export class GeminiProvider extends TranslationProvider {
   /**
-   * Creates an OpenAI translation provider instance.
+   * Creates a Gemini translation provider instance.
    *
-   * @param {string} apiKey - OpenAI API key.
-   * @param {string} [model='gpt-4o-mini'] - OpenAI model to use for translations.
+   * @param {string} apiKey - Gemini API key.
+   * @param {string} [model='gemini-2.5-flash'] - Gemini model to use for translations.
    */
-  constructor(apiKey, model = 'gpt-4o-mini') {
+  constructor(apiKey, model = 'gemini-2.5-flash') {
     super();
-    this.client = new OpenAI({ apiKey });
-    this.model = model;
+    this.client = new GoogleGenAI({ apiKey });
+    this.modelName = model;
   }
 
   /**
-   * Translates a batch of texts using OpenAI's chat completion API.
+   * Translates a batch of texts using Gemini's generateContent API.
    * Preserves placeholders (e.g., {{value}}), formatting, and HTML tags.
    *
    * @param {string[]} texts - Array of source texts to translate.
    * @param {string} sourceLang - Source language code.
    * @param {string} targetLang - Target language code.
    * @returns {Promise<string[]>} Array of translated texts.
-   * @throws {Error} If OpenAI API call fails or returns invalid format.
-   * @example
-   * const translations = await provider.translateBatch(
-   *   ['Hello', 'Welcome {{name}}'],
-   *   'en',
-   *   'de'
-   * );
+   * @throws {Error} If Gemini API call fails or returns invalid format.
    */
   async translateBatch(texts, sourceLang, targetLang) {
     if (texts.length === 0) return [];
@@ -75,14 +69,29 @@ ${JSON.stringify(texts)}
 `;
 
     try {
-      const completion = await this.client.chat.completions.create({
-        messages: [{ role: 'user', content: prompt }],
-        model: this.model,
-        response_format: { type: 'json_object' },
+      const result = await this.client.models.generateContent({
+        model: this.modelName,
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: 'OBJECT',
+            properties: {
+              translations: {
+                type: 'ARRAY',
+                items: { type: 'STRING' },
+              },
+            },
+            required: ['translations'],
+          },
+          temperature: 0.2,
+        },
       });
 
-      const content = completion.choices[0].message.content;
-      if (!content) throw new Error('Empty response from OpenAI');
+      const content = result?.text;
+      if (!content) {
+        throw new Error('Empty response from Gemini');
+      }
 
       const parsed = JSON.parse(content);
       if (!Array.isArray(parsed.translations)) {
@@ -99,7 +108,7 @@ ${JSON.stringify(texts)}
 
       return parsed.translations;
     } catch (error) {
-      throw new Error(`OpenAI API Error: ${error.message}`);
+      throw new Error(`Gemini API Error: ${error.message}`);
     }
   }
 }

@@ -91,23 +91,14 @@ export async function analyze(options = {}) {
 /**
  * Auto-translates missing keys in an Excel workbook using AI.
  *
- * Uses OpenAI API to translate missing values from a source language
+ * Uses Gemini API to translate missing values from a source language
  * to target languages defined in the Excel worksheet columns.
  *
  * @param {Object} options - Translation options.
  * @param {string} options.input - Path to the Excel file.
- * @param {string} options.apiKey - OpenAI API key.
+ * @param {string} options.apiKey - Gemini API key.
  * @param {string} [options.sourceLang='en'] - Source language code.
- * @param {string} [options.model='gpt-4o-mini'] - OpenAI model to use.
- * @param {Object<string, string>} [options.languageMap] - Language code to display name mapping.
- * @returns {Promise<void>} Resolves when translation is complete.
- * @throws {Error} If API key is missing or translation fails.
- * @example
- * await translate({
- *   input: './translations.xlsx',
- *   apiKey: 'sk-...',
- *   sourceLang: 'en'
- * });
+ * @param {string} [options.model='gemini-2.5-flash'] - Gemini model to use.
  */
 export async function translate(options) {
   return translateApp(defaultIo, options);
@@ -115,6 +106,10 @@ export async function translate(options) {
 
 export { convertToExcelApp, convertToJsonApp } from './app/convert.js';
 export { analyzeApp } from './app/analyze.js';
+export {
+  createReverseLanguageMap,
+  generateDefaultLanguageMap,
+} from './core/languages/mapping.js';
 export { consoleReporter } from './reporters/console.js';
 export { jsonFileReporter } from './reporters/json.js';
 export { loadValidatedConfig } from './io/config.js';
