@@ -185,7 +185,7 @@ async function handleTranslate(defaultConfig, config) {
       type: 'select',
       name: 'model',
       message: 'OpenAI Model:',
-      choices: ['gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo'],
+      choices: ['gpt-4.1', 'gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo'],
       default: 'gpt-4o-mini',
     },
   ]);
