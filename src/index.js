@@ -1,14 +1,13 @@
 /**
- * Main entry point for the i18n-excel-manager library.
- * Provides high-level functions for converting between Excel and JSON formats for internationalization.
- * Also exports advanced APIs and utilities for custom integrations.
- * @module index
- * Public entrypoint exporting high-level conversion APIs.
- *
- * High-level functions:
- * - convertToExcel(sourcePath, targetFile, options)
- * - convertToJson(sourceFile, targetPath, options)
- *
+ * @fileoverview Main entry point for the i18n-excel-manager library.
+ * Provides high-level functions for converting between Excel and JSON formats,
+ * analyzing codebases for translation issues, and auto-translating missing keys.
+ * @module i18n-excel-manager
+ * @author Mario Kreitz
+ * @license MIT
+ */
+
+/**
  * @typedef {import('./types.js').IoAdapter} IoAdapter
  * @typedef {import('./types.js').Reporter} Reporter
  * @typedef {import('./types.js').ConvertToExcelOptions} ConvertToExcelOptions
@@ -17,7 +16,9 @@
 
 import path from 'node:path';
 
+import { analyzeApp } from './app/analyze.js';
 import { convertToExcelApp, convertToJsonApp } from './app/convert.js';
+import { translateApp } from './app/translate.js';
 import * as ioExcel from './io/excel.js';
 import * as ioFs from './io/fs.js';
 import { consoleReporter } from './reporters/console.js';
@@ -29,6 +30,7 @@ const defaultIo = {
   writeJsonFile: ioFs.writeJsonFile,
   readWorkbook: ioExcel.readWorkbook,
   writeWorkbook: ioExcel.writeWorkbook,
+  Excel: ioExcel.Excel, // Expose low-level Excel object for custom operations
   dirname: path.dirname,
 };
 
@@ -66,7 +68,48 @@ export async function convertToJson(sourceFile, targetPath, options = {}) {
   );
 }
 
+/**
+ * Analyzes the codebase for missing and unused translation keys.
+ *
+ * Scans source code files for translation key usage and compares against
+ * defined keys in JSON translation files to identify discrepancies.
+ *
+ * @param {Object} options - Analysis options.
+ * @param {string} options.sourcePath - Path to the i18n JSON directory.
+ * @param {string} [options.codePattern='**\/*.{ts,js,html}'] - Glob pattern for source files.
+ * @returns {Promise<{totalCodeKeys: number, fileReports: Object}>} Analysis report with missing/unused keys.
+ * @example
+ * const report = await analyze({
+ *   sourcePath: './public/assets/i18n',
+ *   codePattern: 'src/**\/*.ts'
+ * });
+ */
+export async function analyze(options = {}) {
+  return analyzeApp(defaultIo, options);
+}
+
+/**
+ * Auto-translates missing keys in an Excel workbook using AI.
+ *
+ * Uses Gemini API to translate missing values from a source language
+ * to target languages defined in the Excel worksheet columns.
+ *
+ * @param {Object} options - Translation options.
+ * @param {string} options.input - Path to the Excel file.
+ * @param {string} options.apiKey - Gemini API key.
+ * @param {string} [options.sourceLang='en'] - Source language code.
+ * @param {string} [options.model='gemini-2.5-flash'] - Gemini model to use.
+ */
+export async function translate(options) {
+  return translateApp(defaultIo, options);
+}
+
 export { convertToExcelApp, convertToJsonApp } from './app/convert.js';
+export { analyzeApp } from './app/analyze.js';
+export {
+  createReverseLanguageMap,
+  generateDefaultLanguageMap,
+} from './core/languages/mapping.js';
 export { consoleReporter } from './reporters/console.js';
 export { jsonFileReporter } from './reporters/json.js';
 export { loadValidatedConfig } from './io/config.js';

@@ -1,25 +1,31 @@
 /**
+ * @fileoverview Path validation and safe joining utilities.
+ * Provides security functions for language code validation and directory traversal prevention.
  * @module io/paths
- * Path validation & safe joining utilities.
- * Handles language code validation and secure path construction.
  */
 
 import path from 'node:path';
 
+/** @constant {RegExp} Pattern for alphanumeric characters only */
 const IS_ALNUM = /^[\dA-Za-z]+$/;
+
+/** @constant {RegExp} Pattern for splitting language codes on hyphens or underscores */
 const SEGMENT_SPLIT = /[_-]/;
 
 /**
- * Validates a language code format.
+ * Validates a language code format for security and correctness.
+ *
  * Ensures the code consists of alphanumeric segments separated by hyphens or underscores,
- * with the first segment being 2-3 characters long.
+ * with the first segment being 2-3 characters long (e.g., 'en', 'de-DE', 'zh_Hans').
+ * This prevents path traversal attacks when language codes are used in file paths.
+ *
  * @param {string} lang - The language code to validate.
  * @returns {string} The validated language code.
- * @throws {TypeError} If the language code is invalid.
- * Validate language code format (alphanumeric segments separated by '-' or '_').
- * @param {string} lang Language code candidate.
- * @returns {string} Same code on success.
- * @throws {TypeError} If invalid format.
+ * @throws {TypeError} If the language code is invalid or contains unsafe characters.
+ * @example
+ * validateLanguageCode('en');      // Returns: 'en'
+ * validateLanguageCode('de-DE');   // Returns: 'de-DE'
+ * validateLanguageCode('../etc');  // Throws: TypeError
  */
 export function validateLanguageCode(lang) {
   if (typeof lang !== 'string') {
@@ -29,11 +35,9 @@ export function validateLanguageCode(lang) {
   if (parts.length === 0) {
     throw new TypeError(`Invalid language code: ${lang}`);
   }
-  // First segment length 2-3, alnum only
   if (parts[0].length < 2 || parts[0].length > 3 || !IS_ALNUM.test(parts[0])) {
     throw new TypeError(`Invalid language code: ${lang}`);
   }
-  // Subsequent segments must be non-empty and alnum
   for (let i = 1; i < parts.length; i += 1) {
     if (parts[i].length === 0 || !IS_ALNUM.test(parts[i])) {
       throw new TypeError(`Invalid language code: ${lang}`);
@@ -43,24 +47,24 @@ export function validateLanguageCode(lang) {
 }
 
 /**
- * Safely joins a filename to a base directory, preventing directory traversal.
- * Ensures the resulting path is within the base directory.
+ * Safely joins a filename to a base directory, preventing directory traversal attacks.
+ *
+ * Ensures the resulting path is within the base directory by checking that
+ * the resolved path doesn't escape upward using '..' or absolute paths.
+ *
  * @param {string} baseDir - The base directory path.
  * @param {string} filename - The filename to join.
  * @returns {string} The safe absolute path.
  * @throws {Error} If the resulting path would be outside the base directory.
- * Safely join filename within base directory; prevents directory traversal.
- * @param {string} baseDir Base directory.
- * @param {string} filename Relative filename.
- * @returns {string} Resolved safe absolute path.
- * @throws {Error} If resulting path escapes base.
+ * @example
+ * safeJoinWithin('./locales', 'en.json');     // Returns: '/abs/path/locales/en.json'
+ * safeJoinWithin('./locales', '../etc/passwd'); // Throws: Error
  */
 export function safeJoinWithin(baseDir, filename) {
   const resolvedBase = path.resolve(baseDir);
   const candidate = path.resolve(resolvedBase, filename);
   const rel = path.relative(resolvedBase, candidate);
-  if (rel === '' || rel === '.') return candidate; // exact base dir
-  // If rel starts with '..' or is absolute, it's outside the base
+  if (rel === '' || rel === '.') return candidate;
   if (rel.startsWith('..') || path.isAbsolute(rel)) {
     throw new Error(`Unsafe output path: ${candidate}`);
   }

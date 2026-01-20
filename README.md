@@ -17,32 +17,57 @@
 
 ## ✨ Features
 
+### Core Conversion
+
 - **Bidirectional Conversion**: Convert i18n JSON files to Excel and vice versa.
-- **Interactive CLI**: User-friendly menu-driven interface.
-- **Initialization**: Quickly scaffold i18n folders and starter JSON files in fresh projects.
+- **Nested Key Support**: Handles deeply nested translation structures with dot-notation flattening.
+- **Language Mapping**: Use full language names in Excel headers (e.g., "German" instead of "de").
+- **Placeholder Validation**: Detect inconsistent placeholders (e.g., `{{value}}`) across languages.
+- **Duplicate Detection**: Identify and handle duplicate translation keys.
+
+### Codebase Analysis
+
+- **Missing Key Detection**: Find translation keys used in code but missing from JSON files.
+- **Unused Key Detection**: Identify translation keys defined in JSON but never used in code.
+- **Flexible Patterns**: Scan any file types using customizable glob patterns.
+- **Multi-file Reports**: Get analysis reports for each language file separately.
+
+### AI-Powered Translation
+
+- **Gemini Integration**: Auto-translate missing values using Google's Gemini AI.
+- **Placeholder Preservation**: AI preserves `{{placeholders}}`, HTML tags, and formatting.
+- **Multiple Models**: Choose from `gemini-2.5-flash`, `gemini-1.5-flash`, or `gemini-1.5-pro`.
+- **Batch Processing**: Efficiently translates multiple strings in a single API call.
+
+### Developer Experience
+
+- **Interactive CLI**: User-friendly menu-driven interface for all operations.
 - **Dry-Run Mode**: Preview changes without writing files.
-- **Placeholder Validation**: Detect inconsistent placeholders across languages.
-- **Language Mapping**: Use full language names in Excel headers.
-- **Duplicate Detection**: Identify and handle duplicate keys.
-- **Path Safety**: Prevent directory traversal attacks.
-- **Modern CLI**: Short and long flags, comprehensive help.
-- **Node.js API**: Programmatic access for integrations.
+- **Initialization**: Quickly scaffold i18n folders and starter JSON files.
+- **Path Safety**: Prevent directory traversal attacks with path validation.
+- **Node.js API**: Programmatic access for CI/CD integrations.
 
 ---
 
-## Table of Contents
+## 📑 Table of Contents
 
 - [Installation](#-installation)
 - [Quick Start](#-quick-start)
 - [Usage](#-usage)
-  - [CLI](#cli)
-  - [API](#api)
+  - [Interactive Mode](#interactive-mode)
+  - [Initialize i18n Files](#initialize-i18n-files)
+  - [Convert JSON to Excel](#convert-json-to-excel)
+  - [Convert Excel to JSON](#convert-excel-to-json)
+  - [Analyze Codebase](#analyze-codebase)
+  - [AI Auto-Translation](#ai-auto-translation)
+- [API](#-api)
 - [Angular Integration](#-angular-integration)
 - [Configuration](#-configuration)
-- [Options](#-options)
+- [CLI Options Reference](#-cli-options-reference)
 - [Migration Guide](#-migration-guide)
 - [Error Handling](#-error-handling)
 - [Architecture](#-architecture)
+- [Known Issues](#-known-issues)
 - [Development](#-development)
 - [Contributing](#-contributing)
 - [License](#-license)
@@ -72,27 +97,51 @@ npm install --save-dev i18n-excel-manager
 
 ## 🚀 Quick Start
 
-1. Install globally: `npm install -g i18n-excel-manager`
-2. Initialize a new project (creates `public/assets/i18n` with starter files):
+1. **Install globally:**
 
-```bash
-i18n-excel-manager init --output ./public/assets/i18n --languages en,de,fr
-```
+   ```bash
+   npm install -g i18n-excel-manager
+   ```
 
-3. Convert JSON to Excel: `i18n-excel-manager i18n-to-excel --input ./public/assets/i18n --output translations.xlsx`
-4. Edit the Excel file with your translations.
-5. Convert back to JSON: `i18n-excel-manager excel-to-i18n --input translations.xlsx --output ./public/assets/i18n`
+2. **Initialize a new project** (creates `public/assets/i18n` with starter files):
 
-Tip: Running `i18n-excel-manager` without arguments opens an interactive menu. If no i18n files are detected in the
-default directory, you'll be prompted to initialize them.
+   ```bash
+   i18n-excel-manager init --output ./public/assets/i18n --languages en,de,fr
+   ```
+
+3. **Convert JSON to Excel:**
+
+   ```bash
+   i18n-excel-manager i18n-to-excel --input ./public/assets/i18n --output translations.xlsx
+   ```
+
+4. **Edit the Excel file** with your translations.
+
+5. **Convert back to JSON:**
+
+   ```bash
+   i18n-excel-manager excel-to-i18n --input translations.xlsx --output ./public/assets/i18n
+   ```
+
+6. **Analyze your codebase** for missing/unused keys:
+
+   ```bash
+   i18n-excel-manager analyze --input ./public/assets/i18n --pattern "src/**/*.{ts,html}"
+   ```
+
+7. **Auto-translate missing values** with AI:
+
+   ```bash
+   i18n-excel-manager analyze --translate --input translations.xlsx --api-key YOUR_GEMINI_KEY
+   ```
+
+> **Tip:** Running `i18n-excel-manager` without arguments opens an interactive menu with all options.
 
 ---
 
 ## 🛠️ Usage
 
-### CLI
-
-#### Interactive Mode
+### Interactive Mode
 
 Run without arguments for a guided experience:
 
@@ -100,11 +149,19 @@ Run without arguments for a guided experience:
 i18n-excel-manager
 ```
 
-If the default i18n folder (from `config.json` defaults) is missing or empty, the CLI will offer to run initialization.
+The interactive menu provides access to all features:
 
-#### Initialize i18n Files (New Projects)
+- Convert i18n files to Excel
+- Convert Excel to i18n files
+- Analyze Codebase (Missing/Unused keys)
+- AI Auto-Translate (Fill missing translations)
+- Initialize i18n files
 
-Create the default i18n directory and language files with minimal content. Existing files are never overwritten.
+If the default i18n folder is missing or empty, the CLI will offer to initialize it.
+
+### Initialize i18n Files
+
+Create the i18n directory and language files with minimal starter content. Existing files are never overwritten.
 
 ```bash
 i18n-excel-manager init \
@@ -112,54 +169,253 @@ i18n-excel-manager init \
   --languages en,de,fr
 ```
 
+**Options:**
+
 - Use `--dry-run` to preview which files would be created.
 - Omit `--languages` to choose interactively from configured languages.
 
-#### Convert JSON to Excel
+**Example output:**
 
-```bash
-i18n-excel-manager i18n-to-excel --input ./public/assets/i18n --output translations.xlsx
+```
+✔ Created: public/assets/i18n/en.json
+✔ Created: public/assets/i18n/de.json
+✔ Created: public/assets/i18n/fr.json
 ```
 
-#### Convert Excel to JSON
+### Convert JSON to Excel
+
+Convert your i18n JSON files into an Excel workbook for easy editing and collaboration:
 
 ```bash
-i18n-excel-manager excel-to-i18n --input translations.xlsx --output ./public/assets/i18n
+i18n-excel-manager i18n-to-excel \
+  --input ./public/assets/i18n \
+  --output translations.xlsx \
+  --sheet-name "Translations"
 ```
 
-#### Dry Run
+The Excel file will have:
 
-Preview changes without writing files:
+- Column A: Translation keys (dot-notation)
+- Subsequent columns: One per language (en, de, fr, etc.)
+
+### Convert Excel to JSON
+
+Convert an Excel workbook back to individual JSON files per language:
 
 ```bash
-i18n-excel-manager i18n-to-excel --dry-run --input ./public/assets/i18n
+i18n-excel-manager excel-to-i18n \
+  --input translations.xlsx \
+  --output ./public/assets/i18n \
+  --fail-on-duplicates
 ```
 
-### API
+**Options:**
+
+- `--fail-on-duplicates`: Exit with error if duplicate keys are detected.
+- `--dry-run`: Preview changes without writing files.
+
+### Analyze Codebase
+
+Scan your source code to find translation keys that are missing from your JSON files or defined but never used:
+
+```bash
+i18n-excel-manager analyze \
+  --input ./public/assets/i18n \
+  --pattern "src/**/*.{ts,html}"
+```
+
+**What it detects:**
+
+- **Missing keys**: Keys used in code (e.g., `{{ 'app.title' | translate }}`) but not defined in JSON.
+- **Unused keys**: Keys defined in JSON but never referenced in your codebase.
+
+**Supported patterns in code:**
+
+```typescript
+// Angular pipe syntax
+{
+    {
+        'KEY.NAME' | translate
+    }
+}
+
+// TranslateService methods
+this.translate.get('KEY.NAME');
+this.translate.instant('KEY.NAME');
+this.translate.stream('KEY.NAME');
+
+// Directive syntax
+<div translate = "KEY.NAME" > </div>
+< div [translate] = "'KEY.NAME'" > </div>
+```
+
+**Example output:**
+
+```
+Analysis Report:
+Total Code Keys Found: 42
+
+en.json
+  Missing in JSON:
+    - app.newFeature
+    - errors.timeout
+  Unused in Code:
+    - legacy.oldButton
+
+de.json
+  All good!
+```
+
+### AI Auto-Translation
+
+Automatically translate missing values in your Excel file using Google's Gemini AI:
+
+```bash
+i18n-excel-manager analyze \
+  --translate \
+  --input translations.xlsx \
+  --api-key YOUR_GEMINI_API_KEY \
+  --source-lang en \
+  --model gemini-2.5-flash
+```
+
+**API Key Configuration:**
+
+The API key can be provided in three ways (in order of precedence):
+
+1. CLI flag: `--api-key YOUR_KEY`
+2. Environment variable: `GEMINI_API_KEY`
+3. Fallback environment variable: `I18N_MANAGER_API_KEY`
+
+**Available Models:**
+
+| Model              | Description                  |
+| ------------------ | ---------------------------- |
+| `gemini-2.5-flash` | Fast and efficient (default) |
+| `gemini-1.5-flash` | Balanced speed and quality   |
+| `gemini-1.5-pro`   | Highest quality, slower      |
+
+**Features:**
+
+- Preserves placeholders like `{{value}}`, `{0}`, etc.
+- Maintains HTML tags and formatting
+- Processes translations in efficient batches
+- Uses low temperature (0.2) for consistent results
+
+**Interactive Mode:**
+
+When using interactive mode, you'll be prompted for:
+
+- Path to Excel file
+- Source language code
+- API key (can be masked input)
+- Model selection
+
+---
+
+## 📚 API
+
+Use the library programmatically in your Node.js applications:
 
 ```javascript
-import { convertToExcel, convertToJson } from 'i18n-excel-manager';
+import {
+  convertToExcel,
+  convertToJson,
+  analyze,
+  translate,
+} from 'i18n-excel-manager';
+```
 
-// Convert JSON to Excel
+### convertToExcel(sourcePath, targetFile, options?)
+
+Convert JSON localization files to an Excel workbook.
+
+```javascript
 await convertToExcel('./public/assets/i18n', 'translations.xlsx', {
   sheetName: 'Translations',
   dryRun: false,
   languageMap: { en: 'English', de: 'Deutsch' },
 });
+```
 
-// Convert Excel to JSON
+### convertToJson(sourceFile, targetPath, options?)
+
+Convert an Excel workbook to JSON localization files.
+
+```javascript
 await convertToJson('translations.xlsx', './public/assets/i18n', {
   sheetName: 'Translations',
-  failOnDuplicates: false,
+  failOnDuplicates: true,
 });
 ```
+
+### analyze(options)
+
+Analyze the codebase for missing and unused translation keys.
+
+```javascript
+const report = await analyze({
+  sourcePath: './public/assets/i18n',
+  codePattern: 'src/**/*.{ts,html}',
+});
+
+console.log(`Total keys in code: ${report.totalCodeKeys}`);
+
+for (const [file, result] of Object.entries(report.fileReports)) {
+  console.log(`${file}:`);
+  console.log(`  Missing: ${result.missing.join(', ')}`);
+  console.log(`  Unused: ${result.unused.join(', ')}`);
+}
+```
+
+**Return type:**
+
+```typescript
+{
+    totalCodeKeys: number;
+    fileReports: {
+        [ filename
+    :
+        string
+    ]:
+        {
+            missing: string[];  // Keys in code but not in JSON
+            unused: string[];   // Keys in JSON but not in code
+        }
+    }
+}
+```
+
+### translate(options)
+
+Auto-translate missing values in an Excel workbook using Gemini AI.
+
+```javascript
+await translate({
+  input: './translations.xlsx',
+  apiKey: process.env.GEMINI_API_KEY,
+  sourceLang: 'en',
+  model: 'gemini-2.5-flash',
+  languageMap: { en: 'English', de: 'German', fr: 'French' },
+});
+```
+
+**Options:**
+
+| Option        | Type   | Required | Default              | Description                           |
+| ------------- | ------ | -------- | -------------------- | ------------------------------------- |
+| `input`       | string | Yes      | -                    | Path to the Excel file                |
+| `apiKey`      | string | Yes      | -                    | Gemini API key                        |
+| `sourceLang`  | string | No       | `'en'`               | Source language code                  |
+| `model`       | string | No       | `'gemini-2.5-flash'` | Gemini model to use                   |
+| `languageMap` | object | No       | `{}`                 | Language code to display name mapping |
 
 ---
 
 ## 🔧 Angular Integration
 
-This tool is designed to work seamlessly with Angular's i18n workflow. Angular typically stores translation files in
-`public/assets/i18n/` with filenames matching language codes (e.g., `en.json`, `de.json`).
+This tool is designed to work seamlessly with Angular's i18n workflow. It's compatible with **Angular 17+** and \*
+\*ngx-translate v17+\*\*.
 
 ### Project Structure
 
@@ -174,12 +430,120 @@ my-angular-app/
 │           ├── de.json
 │           └── fr.json
 ├── src/
-│   ├── app/
-│   │   ├── app.component.ts
-│   │   └── app.config.ts
-│   └── locales/
-│       └── messages.xlf  // For Angular i18n extraction
+│   └── app/
+│       ├── app.component.ts
+│       └── app.config.ts
 └── angular.json
+```
+
+### Installation
+
+Install ngx-translate packages:
+
+```bash
+npm install @ngx-translate/core @ngx-translate/http-loader
+```
+
+### App Configuration (Angular 20+ / ngx-translate v17+)
+
+Configure the translation service in `src/app/app.config.ts`:
+
+```typescript
+import { ApplicationConfig } from '@angular/core';
+import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideHttpClient(withFetch()),
+    provideTranslateService({
+      loader: provideTranslateHttpLoader({
+        prefix: './assets/i18n/',
+        suffix: '.json',
+      }),
+      fallbackLang: 'en',
+      lang: 'en',
+    }),
+  ],
+};
+```
+
+### Using Translations in Components
+
+Use the `TranslatePipe` and `TranslateService` in your standalone components:
+
+```typescript
+import { Component, inject, signal } from '@angular/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+
+@Component({
+  selector: 'app-root',
+  imports: [TranslatePipe],
+  template: `
+    <h1>{{ 'app.title' | translate }}</h1>
+    <p>{{ 'app.welcome' | translate: { name: userName() } }}</p>
+
+    <button (click)="switchLanguage('en')">English</button>
+    <button (click)="switchLanguage('de')">Deutsch</button>
+  `,
+})
+export class AppComponent {
+  private translate = inject(TranslateService);
+
+  userName = signal('User');
+
+  switchLanguage(lang: string) {
+    this.translate.use(lang);
+  }
+}
+```
+
+### Using the Translate Directive
+
+For translating element content directly:
+
+```typescript
+import { Component, inject } from '@angular/core';
+import { TranslateService, TranslateDirective } from '@ngx-translate/core';
+
+@Component({
+  selector: 'app-header',
+  imports: [TranslateDirective],
+  template: `
+    <h1 [translate]="'header.title'"></h1>
+    <p
+      [translate]="'header.subtitle'"
+      [translateParams]="{ version: '2.0' }"
+    ></p>
+  `,
+})
+export class HeaderComponent {
+  private translate = inject(TranslateService);
+}
+```
+
+### Translation File Format
+
+Your JSON translation files should use nested or flat structures:
+
+**Nested format (`en.json`):**
+
+```json
+{
+  "app": {
+    "title": "My Application",
+    "welcome": "Welcome, {{name}}!"
+  },
+  "header": {
+    "title": "Dashboard",
+    "subtitle": "Version {{version}}"
+  },
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel"
+  }
+}
 ```
 
 ### Generating Translation Files
@@ -194,61 +558,9 @@ i18n-excel-manager excel-to-i18n \
   --fail-on-duplicates
 ```
 
-This creates `en.json`, `de.json`, etc. in `public/assets/i18n/`.
+### Angular Configuration
 
-### Loading Translations in Angular
-
-Configure Angular to load translations from the assets directory. In `src/app/app.config.ts`:
-
-```typescript
-import { ApplicationConfig } from '@angular/core';
-import { provideHttpClient } from '@angular/common/http';
-import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-
-export function HttpLoaderFactory(http: HttpClient) {
-  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
-}
-
-export const appConfig: ApplicationConfig = {
-  providers: [
-    provideHttpClient(),
-    provideTranslateService({
-      loader: {
-        provide: TranslateLoader,
-        useFactory: HttpLoaderFactory,
-        deps: [HttpClient],
-      },
-      defaultLanguage: 'en',
-    }),
-  ],
-};
-```
-
-In components, use translations:
-
-```typescript
-import { Component } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-
-@Component({
-  selector: 'app-root',
-  template: `
-    <h1>{{ 'app.title' | translate }}</h1>
-    <p>{{ 'app.welcome' | translate }}</p>
-  `,
-})
-export class AppComponent {
-  constructor(private translate: TranslateService) {
-    this.translate.setDefaultLang('en');
-    this.translate.use('en'); // or detect from user preference
-  }
-}
-```
-
-### Configuration
-
-Ensure `public/assets/i18n/` is included in `angular.json`:
+Ensure `public/` is included in your `angular.json` assets:
 
 ```json
 {
@@ -257,7 +569,7 @@ Ensure `public/assets/i18n/` is included in `angular.json`:
       "architect": {
         "build": {
           "options": {
-            "assets": ["public", "public/assets/i18n"]
+            "assets": ["public"]
           }
         }
       }
@@ -269,33 +581,26 @@ Ensure `public/assets/i18n/` is included in `angular.json`:
 ### Best Practices
 
 - **Version Control**: Commit translation files to git for version history.
-- **CI/CD Integration**: Automate translation updates in your build pipeline.
-- **Language Detection**: Use browser language or user preferences to set the default language.
-- **Lazy Loading**: Load translations on-demand for better performance.
-- **Fallbacks**: Configure fallback languages for missing translations.
+- **CI/CD Integration**: Run `analyze` in your pipeline to catch missing translations.
+- **Language Detection**: Use browser language or user preferences for initial language.
+- **Lazy Loading**: Consider splitting translations per feature for large applications.
 - **Validation**: Use `--dry-run` to validate translations before deployment.
-
-For Angular's built-in i18n, extract messages first:
-
-```bash
-ng extract-i18n --output-path src/locales
-```
-
-Then use this tool to convert the XLIFF files to Excel for translators, and back to JSON for Angular consumption.
+- **Placeholder Consistency**: Use consistent placeholder names across all languages.
 
 ---
 
 ## ⚙️ Configuration
 
-Create a `config.json` file for custom settings. The CLI will automatically load `./config.json` from your current
-working directory (CWD) when present. You can also pass a custom path with `--config path/to/config.json`.
+Create a `config.json` file for custom settings. The CLI automatically loads `./config.json` from your current working
+directory when present.
 
 ```json
 {
   "languages": {
     "en": "English",
     "de": "Deutsch",
-    "fr": "Français"
+    "fr": "Français",
+    "es": "Spanish"
   },
   "defaults": {
     "sourcePath": "./public/assets/i18n",
@@ -306,24 +611,40 @@ working directory (CWD) when present. You can also pass a custom path with `--co
 }
 ```
 
-Precedence:
+### Configuration Precedence
 
-- CLI flags > config.defaults > built-in defaults.
-- languageMap precedence: CLI > config.languages > runtime config.
+CLI options take precedence over config file settings:
 
-Examples:
+```
+CLI flags > config.defaults > built-in defaults
+```
 
-- Autoload from CWD: `i18n-excel-manager i18n-to-excel --dry-run`
-- Custom path: `i18n-excel-manager i18n-to-excel --config ./my-config.json --dry-run`
-- Flags override: `i18n-excel-manager i18n-to-excel -i ./custom -o out.xlsx --dry-run`
+Language map precedence:
 
-Note: For safety, `--config` must point within the current working directory.
+```
+CLI > config.languages > runtime config
+```
+
+### Usage Examples
+
+```bash
+# Autoload from CWD
+i18n-excel-manager i18n-to-excel --dry-run
+
+# Custom config path
+i18n-excel-manager i18n-to-excel --config ./my-config.json --dry-run
+
+# CLI flags override config
+i18n-excel-manager i18n-to-excel -i ./custom -o out.xlsx --dry-run
+```
+
+> **Note:** For safety, `--config` must point within the current working directory.
 
 ---
 
-## 📋 Options
+## 📋 CLI Options Reference
 
-### init Command
+### `init` Command
 
 | Option               | Short | Description                                  | Default               |
 | -------------------- | ----- | -------------------------------------------- | --------------------- |
@@ -331,15 +652,8 @@ Note: For safety, `--config` must point within the current working directory.
 | `--languages <list>` | `-l`  | Comma-separated language codes to initialize | prompts interactively |
 | `--dry-run`          | `-d`  | Simulate only, do not write files            | `false`               |
 | `--config <file>`    |       | Path to config file                          | `./config.json`       |
-| `--help`             | `-h`  | Show help                                    |                       |
-| `--version`          | `-V`  | Show version                                 |                       |
 
-Notes:
-
-- Existing files are never overwritten; they are reported as "Skipped".
-- When `--languages` is omitted, a checkbox prompt is shown with languages from your `config.json`.
-
-### i18n-to-excel Command
+### `i18n-to-excel` Command
 
 | Option                | Short | Description                                  | Default                  |
 | --------------------- | ----- | -------------------------------------------- | ------------------------ |
@@ -349,10 +663,8 @@ Notes:
 | `--dry-run`           | `-d`  | Simulate only, do not write files            | `false`                  |
 | `--no-report`         |       | Skip generating translation report           | `false`                  |
 | `--config <file>`     |       | Path to config file                          | `./config.json`          |
-| `--help`              | `-h`  | Show help                                    |                          |
-| `--version`           | `-V`  | Show version                                 |                          |
 
-### excel-to-i18n Command
+### `excel-to-i18n` Command
 
 | Option                 | Short | Description                          | Default                  |
 | ---------------------- | ----- | ------------------------------------ | ------------------------ |
@@ -362,33 +674,18 @@ Notes:
 | `--dry-run`            | `-d`  | Simulate only, do not write files    | `false`                  |
 | `--fail-on-duplicates` |       | Exit with error on duplicate keys    | `false`                  |
 | `--config <file>`      |       | Path to config file                  | `./config.json`          |
-| `--help`               | `-h`  | Show help                            |                          |
-| `--version`            | `-V`  | Show version                         |                          |
 
-### Config File Precedence
+### `analyze` Command
 
-CLI options take precedence over config file settings. The config file is merged with defaults, then CLI options
-override any conflicting values.
-
-Example config file (`my-config.json`):
-
-```json
-{
-  "languages": {
-    "en": "English",
-    "de": "Deutsch",
-    "fr": "Français"
-  },
-  "defaults": {
-    "sourcePath": "./src/assets/i18n",
-    "targetFile": "./translations.xlsx",
-    "targetPath": "./src/assets/i18n",
-    "sheetName": "Translations"
-  }
-}
-```
-
-Usage: `i18n-excel-manager i18n-to-excel --config my-config.json --input ./custom/path`
+| Option                 | Short | Description                                  | Default             |
+| ---------------------- | ----- | -------------------------------------------- | ------------------- |
+| `--input <path>`       | `-i`  | Path to directory containing i18n JSON files | -                   |
+| `--pattern <glob>`     | `-p`  | Glob pattern for source code files           | `**/*.{html,ts,js}` |
+| `--translate`          |       | Enable AI auto-translation mode              | `false`             |
+| `--api-key <key>`      |       | Gemini API key (or use env vars)             | -                   |
+| `--source-lang <code>` |       | Source language code for translation         | `en`                |
+| `--model <model>`      |       | Gemini model to use                          | `gemini-2.5-flash`  |
+| `--config <file>`      |       | Path to config file                          | `./config.json`     |
 
 ---
 
@@ -419,35 +716,151 @@ If you encounter issues, use `i18n-excel-manager --help` to see available comman
 
 The tool provides clear error messages for common issues:
 
-- **Missing files**: "File does not exist: path"
-- **Invalid JSON**: "Invalid JSON in file: error message"
-- **Duplicate keys**: "Duplicate keys detected in Excel: key1, key2"
-- **Invalid language codes**: "Invalid language code: xyz"
-- **Unsafe paths**: "Unsafe output path: path"
+| Error Type             | Message Example                                            |
+| ---------------------- | ---------------------------------------------------------- |
+| Missing files          | `File does not exist: path`                                |
+| Invalid JSON           | `Invalid JSON in file: error message`                      |
+| Duplicate keys         | `Duplicate keys detected in Excel: key1, key2`             |
+| Invalid language codes | `Invalid language code: xyz`                               |
+| Unsafe paths           | `Unsafe output path: path`                                 |
+| Missing API key        | `API Key is missing. Pass --api-key or set GEMINI_API_KEY` |
 
 Use `--dry-run` to validate before actual conversion.
 
 ### Troubleshooting
 
-- **Permission errors**: Ensure you have write access to the output directory.
-- **Invalid language codes**: Use standard ISO language codes (e.g., `en`, `de`, `fr`).
-- **Missing placeholders**: Check for consistent placeholder usage across languages.
-- **Large files**: For very large translation files, consider splitting into multiple sheets.
+| Issue                  | Solution                                                 |
+| ---------------------- | -------------------------------------------------------- |
+| Permission errors      | Ensure you have write access to the output directory     |
+| Invalid language codes | Use standard ISO language codes (e.g., `en`, `de`, `fr`) |
+| Missing placeholders   | Check for consistent placeholder usage across languages  |
+| Large files            | Consider splitting into multiple sheets                  |
+| API rate limits        | Use batch processing or add delays between requests      |
 
 ---
 
 ## 🏗️ Architecture
 
+The project follows a modular architecture with clear separation of concerns:
+
+```
+src/
+├── app/           # Application orchestration layer
+│   ├── analyze.js     # Codebase analysis orchestrator
+│   ├── convert.js     # Conversion orchestrator
+│   └── translate.js   # AI translation orchestrator
+├── core/          # Business logic (pure functions)
+│   ├── analyzer.js    # Key extraction and comparison
+│   ├── translator.js  # Gemini API integration
+│   ├── excel/         # Excel data processing
+│   ├── json/          # JSON structure handling
+│   └── languages/     # Language mapping utilities
+├── io/            # I/O operations
+│   ├── excel.js       # Excel file read/write
+│   ├── fs.js          # File system operations
+│   └── config.js      # Configuration loading
+├── cli/           # CLI interface
+│   ├── commands.js    # Command handlers
+│   ├── interactive.js # Interactive menu
+│   └── init.js        # Initialization logic
+└── reporters/     # Output formatting
+    ├── console.js     # Console reporter
+    └── json.js        # JSON reporter
+```
+
+### Design Principles
+
 - **Modular Design**: Separate concerns for I/O, core logic, and reporting.
 - **Pure Functions**: Core business logic is testable and side-effect free.
+- **Dependency Injection**: I/O adapters are injectable for testing.
 - **Validation**: Input validation at all boundaries.
 - **Extensibility**: Pluggable reporters and configurable I/O layers.
 
-Project structure:
+---
 
-- `src/app/`: Application logic
-- `src/core/`: Business rules and data processing
-- `src/io/`: File system and Excel operations
-- `src/reporters/`: Output formatting
+## ⚠️ Known Issues
+
+### Language Mapping After AI Auto-Translation
+
+There is a known issue when exporting back from Excel to JSON after using the AI auto-translator where the language
+mapping may not work properly.
+
+**Workaround:** Restart `i18n-excel-manager` and try the export again.
+
+This issue is being tracked and will be fixed in a future release.
 
 ---
+
+## 🧑‍💻 Development
+
+### Prerequisites
+
+- Node.js >= 20
+- npm or yarn
+
+### Setup
+
+```bash
+git clone https://github.com/mariokreitz/i18n-excel-manager.git
+cd i18n-excel-manager
+npm install
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+### Linting
+
+```bash
+# Check for lint errors
+npm run lint
+
+# Fix lint errors
+npm run lint:fix
+```
+
+### Formatting
+
+```bash
+# Check formatting
+npm run format:check
+
+# Fix formatting
+npm run format
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read the [Contributing Guide](CONTRIBUTING.md)
+and [Code of Conduct](CODE_OF_CONDUCT.md) before submitting a pull request.
+
+### Quick Contribution Steps
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes
+4. Run tests: `npm test`
+5. Commit your changes: `git commit -m 'Add amazing feature'`
+6. Push to the branch: `git push origin feature/amazing-feature`
+7. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<p align="center">
+  Made with ❤️ by <a href="https://github.com/mariokreitz">Mario Kreitz</a>
+</p>

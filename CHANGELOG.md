@@ -2,7 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2.2.0] - 2026-01-20
+
+### Added
+
+- **Analyze command**: Scan codebase for missing or unused translation keys in i18n JSON files.
+  - Compares translation keys defined in JSON files against keys actually used in the codebase.
+  - Supports custom glob patterns for source code file scanning (default: `**/*.{html,ts,js}`).
+  - Generates detailed reports of missing and unused translation keys per language file.
+- **AI-powered auto-translation**: Integrated Gemini API for automatic translation of missing values in Excel files.
+  - Automatically detects missing translations and generates translations using Gemini AI.
+  - Supports configurable source language and language mapping.
+  - Includes `--translate` flag for analyze command to enable auto-translation.
+  - Accepts Gemini API key via `--api-key` flag or `GEMINI_API_KEY`/`I18N_MANAGER_API_KEY` environment variables.
+  - Configurable Gemini model selection (default: `gemini-2.5-flash`).
+- **Comprehensive README overhaul**:
+  - Updated Angular integration examples to Angular 20+ with ngx-translate v17+.
+  - Uses modern standalone components and `inject()` function pattern.
+  - Integrated signals for reactive state management.
+  - Added detailed documentation for new analyze and AI translation features.
+  - Reorganized structure for better feature discoverability.
+  - Added "Known Issues" section documenting language mapping workaround.
+  - Improved CLI options reference and API documentation.
 
 ## [2.1.2] - 2025-11-22
 

@@ -15,18 +15,12 @@ import { extractPlaceholders } from '../json/placeholders.js';
  * @param {Object<string,string>} langValues - Map of language->value for a key.
  * @returns {string[]} Language codes missing values.
  */
-function computeMissingLangs(languages, langValues) {
-  const res = [];
-  for (const lang of languages) {
-    if (
+const computeMissingLangs = (languages, langValues) =>
+  languages.filter(
+    (lang) =>
       !Object.prototype.hasOwnProperty.call(langValues, lang) ||
-      langValues[lang] === ''
-    ) {
-      res.push(lang);
-    }
-  }
-  return res;
-}
+      langValues[lang] === '',
+  );
 
 /**
  * Builds a map of placeholders for each language's translation value.
@@ -35,14 +29,13 @@ function computeMissingLangs(languages, langValues) {
  * @param {Object<string,string>} langValues - Map of language->string value.
  * @returns {Object<string,Set<string>>} Placeholder sets per language.
  */
-function buildPlaceholderMap(languages, langValues) {
-  const map = {};
-  for (const lang of languages) {
-    const val = langValues[lang] || '';
-    map[lang] = extractPlaceholders(val);
-  }
-  return map;
-}
+const buildPlaceholderMap = (languages, langValues) =>
+  Object.fromEntries(
+    languages.map((lang) => [
+      lang,
+      extractPlaceholders(langValues[lang] || ''),
+    ]),
+  );
 
 /**
  * Collects all unique placeholders across all languages.
@@ -50,13 +43,13 @@ function buildPlaceholderMap(languages, langValues) {
  * @param {Object<string,Set<string>>} placeholderMap - Map of language->Set.
  * @returns {Set<string>} Unified placeholder set.
  */
-function collectAllPlaceholders(placeholderMap) {
+const collectAllPlaceholders = (placeholderMap) => {
   const all = new Set();
-  for (const s of Object.values(placeholderMap)) {
-    s.forEach((ph) => all.add(ph));
+  for (const set of Object.values(placeholderMap)) {
+    for (const ph of set) all.add(ph);
   }
   return all;
-}
+};
 
 /**
  * Checks if there are placeholder inconsistencies across languages.
@@ -66,19 +59,14 @@ function collectAllPlaceholders(placeholderMap) {
  * @param {string[]} languages - Language codes.
  * @returns {boolean} True if any language omits a placeholder.
  */
-function hasPlaceholderInconsistency(
+const hasPlaceholderInconsistency = (
   placeholderMap,
   allPlaceholders,
   languages,
-) {
-  for (const lang of languages) {
-    const placeholders = placeholderMap[lang];
-    for (const ph of allPlaceholders) {
-      if (!placeholders.has(ph)) return true;
-    }
-  }
-  return false;
-}
+) =>
+  languages.some((lang) =>
+    [...allPlaceholders].some((ph) => !placeholderMap[lang].has(ph)),
+  );
 
 /**
  * Generates a comprehensive report on translation data.

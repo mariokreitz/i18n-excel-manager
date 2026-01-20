@@ -10,6 +10,7 @@
  */
 
 import { readTranslationsFromWorksheet } from '../core/excel/sheetRead.js';
+import { generateDefaultLanguageMap } from '../core/languages/mapping.js';
 import { consoleReporter as defaultConsoleReporter } from '../reporters/console.js';
 
 import {
@@ -23,17 +24,13 @@ import {
 
 /**
  * Converts JSON localization files to an Excel workbook.
- * Performs validation (structure & presence) and optionally writes the workbook unless dryRun is set.
  *
  * @param {IoAdapter} io Abstraction layer for filesystem & Excel I/O.
  * @param {string} sourcePath Directory containing one or more language JSON files.
  * @param {string} targetFile Output Excel file path.
  * @param {ConvertToExcelOptions} [opts] Conversion options.
  * @param {Reporter} [reporter] Reporter used for optional dry-run report output.
- * @returns {Promise<void>} Resolves on success.
- * @throws {Error} If no JSON files found or IO operations fail.
- * @example
- * await convertToExcelApp(io, 'locales', 'translations.xlsx', { sheetName: 'Translations' }, reporter);
+ * @returns {Promise<void>}
  */
 export async function convertToExcelApp(
   io,
@@ -55,6 +52,12 @@ export async function convertToExcelApp(
     throw new Error(`No JSON files found in directory: ${sourcePath}`);
   }
   const { translations, languages } = collectTranslations(files);
+
+  const effectiveLanguageMap =
+    Object.keys(languageMap).length > 0
+      ? languageMap
+      : generateDefaultLanguageMap(languages);
+
   if (dryRun) {
     maybeReport(translations, languages, reporter, report);
     return;
@@ -63,23 +66,19 @@ export async function convertToExcelApp(
     sheetName,
     translations,
     languages,
-    languageMap,
+    languageMap: effectiveLanguageMap,
   });
 }
 
 /**
  * Converts an Excel workbook to JSON localization files.
- * Reads a worksheet, validates duplicates (optionally failing), and writes per-language JSON unless dryRun.
  *
  * @param {IoAdapter} io Abstraction layer for filesystem & Excel I/O.
  * @param {string} sourceFile Path to Excel workbook.
  * @param {string} targetPath Output directory for JSON files.
  * @param {ConvertToJsonOptions} [opts] Conversion options.
  * @param {Reporter} [reporter] Reporter used for warning messages (duplicates when not failing).
- * @returns {Promise<void>} Resolves on success.
- * @throws {Error} If worksheet missing or duplicate keys present with failOnDuplicates.
- * @example
- * await convertToJsonApp(io, 'translations.xlsx', 'locales', { failOnDuplicates: true });
+ * @returns {Promise<void>}
  */
 export async function convertToJsonApp(
   io,
