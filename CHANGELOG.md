@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2.2.0] - 2026-01-20
 
 ### Added
 
@@ -16,6 +16,14 @@ All notable changes to this project will be documented in this file.
   - Includes `--translate` flag for analyze command to enable auto-translation.
   - Accepts Gemini API key via `--api-key` flag or `GEMINI_API_KEY`/`I18N_MANAGER_API_KEY` environment variables.
   - Configurable Gemini model selection (default: `gemini-2.5-flash`).
+- **Comprehensive README overhaul**:
+  - Updated Angular integration examples to Angular 20+ with ngx-translate v17+.
+  - Uses modern standalone components and `inject()` function pattern.
+  - Integrated signals for reactive state management.
+  - Added detailed documentation for new analyze and AI translation features.
+  - Reorganized structure for better feature discoverability.
+  - Added "Known Issues" section documenting language mapping workaround.
+  - Improved CLI options reference and API documentation.
 
 ## [2.1.2] - 2025-11-22
 
