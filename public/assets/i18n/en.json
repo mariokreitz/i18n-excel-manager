@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "",
-    "welcome": ""
+    "title": "My App",
+    "welcome": "Welcome to your localized app"
   }
 }
