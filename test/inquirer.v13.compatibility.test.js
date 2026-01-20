@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import inquirer from 'inquirer';
+import inquirer, { createPromptModule } from 'inquirer';
 
 describe('Inquirer v13 Compatibility Tests', () => {
   it('should have inquirer loaded', () => {
@@ -10,7 +10,7 @@ describe('Inquirer v13 Compatibility Tests', () => {
   });
 
   it('should expose expected prompt types in v13', () => {
-    const promptModule = inquirer.createPromptModule();
+    const promptModule = createPromptModule();
     assert.ok(promptModule.prompts, 'prompts should be available');
 
     const expectedPrompts = [
@@ -35,7 +35,7 @@ describe('Inquirer v13 Compatibility Tests', () => {
   });
 
   it('should NOT have legacy list prompt type in v13', () => {
-    const promptModule = inquirer.createPromptModule();
+    const promptModule = createPromptModule();
     assert.equal(
       promptModule.prompts.list,
       undefined,
@@ -44,7 +44,7 @@ describe('Inquirer v13 Compatibility Tests', () => {
   });
 
   it('should have select prompt type as replacement for list', () => {
-    const promptModule = inquirer.createPromptModule();
+    const promptModule = createPromptModule();
     assert.ok(
       promptModule.prompts.select,
       'select prompt type should exist as replacement for list',
@@ -69,7 +69,7 @@ describe('Inquirer v13 Compatibility Tests', () => {
       ],
     };
 
-    const promptModule = inquirer.createPromptModule();
+    const promptModule = createPromptModule();
     assert.ok(
       promptModule.prompts[mainMenuPrompt.type],
       `Prompt type ${mainMenuPrompt.type} should exist`,
@@ -92,7 +92,7 @@ describe('Inquirer v13 Compatibility Tests', () => {
         arr.length > 0 ? true : 'Select at least one language',
     };
 
-    const promptModule = inquirer.createPromptModule();
+    const promptModule = createPromptModule();
     assert.ok(
       promptModule.prompts[checkboxPrompt.type],
       'checkbox prompt type should exist',
@@ -111,7 +111,7 @@ describe('Inquirer v13 Compatibility Tests', () => {
       default: true,
     };
 
-    const promptModule = inquirer.createPromptModule();
+    const promptModule = createPromptModule();
     assert.ok(
       promptModule.prompts[confirmPrompt.type],
       'confirm prompt type should exist',
@@ -128,7 +128,7 @@ describe('Inquirer v13 Compatibility Tests', () => {
       default: './public/assets/i18n',
     };
 
-    const promptModule = inquirer.createPromptModule();
+    const promptModule = createPromptModule();
     assert.ok(
       promptModule.prompts[inputPrompt.type],
       'input prompt type should exist',

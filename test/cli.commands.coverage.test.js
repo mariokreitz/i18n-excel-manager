@@ -5,7 +5,11 @@ import { afterEach, beforeEach, describe, it } from 'node:test';
 
 import ExcelJS from 'exceljs';
 
-import { processCliOptions } from '../src/cli/commands.js';
+import {
+  processCliOptions,
+  runAnalyze,
+  runTranslate,
+} from '../src/cli/commands.js';
 
 function captureConsole() {
   const origLog = console.log;
@@ -168,6 +172,59 @@ describe('CLI commands additional coverage', () => {
     } finally {
       cap.restore();
       process.exit = origExit;
+    }
+  });
+
+  it('runAnalyze throws when input is missing', async () => {
+    await assert.rejects(
+      () => runAnalyze({}),
+      /Please provide a source path using --input/,
+    );
+  });
+
+  it('runAnalyze prints JSON report when report=json', async () => {
+    const srcDir = path.join(tmpDir, 'src');
+    await fs.mkdir(srcDir, { recursive: true });
+    await fs.writeFile(
+      path.join(srcDir, 'test.ts'),
+      "'app.title' | translate",
+      'utf8',
+    );
+
+    const cap = captureConsole();
+    try {
+      await runAnalyze({
+        input: 'test/fixtures',
+        pattern: path.join(srcDir, '**/*.ts'),
+        report: 'json',
+      });
+      const output = cap.out;
+      assert.ok(output.includes('"totalCodeKeys"'));
+      assert.ok(output.includes('"fileReports"'));
+    } finally {
+      cap.restore();
+    }
+  });
+
+  it('runTranslate throws when input is missing', async () => {
+    await assert.rejects(
+      () => runTranslate({}),
+      /Please provide the Excel file path using --input/,
+    );
+  });
+
+  it('runTranslate throws when API key is missing', async () => {
+    const origEnv = process.env.I18N_MANAGER_API_KEY;
+    delete process.env.I18N_MANAGER_API_KEY;
+    try {
+      await assert.rejects(
+        () => runTranslate({ input: 'test.xlsx' }),
+        /API Key is missing/,
+      );
+    } finally {
+      if (origEnv !== undefined) {
+        process.env.I18N_MANAGER_API_KEY = origEnv;
+      }
     }
   });
 });

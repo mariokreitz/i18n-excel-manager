@@ -8,7 +8,8 @@ import inquirer from 'inquirer';
 
 import {
   askForAnotherAction,
-  performConversion,
+  handleToExcel,
+  handleToJson,
 } from '../src/cli/interactive.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -65,31 +66,47 @@ describe('CLI interactive helpers', () => {
     }
   });
 
-  it('performConversion toExcel dry-run prints messages and invokes follow-up prompt', async () => {
+  it('handleToExcel dry-run prints messages and invokes follow-up prompt', async () => {
     const origPrompt = inquirer.prompt;
     const origExit = process.exit;
     let exited = false;
-    inquirer.prompt = () => {
-      return Promise.resolve({ again: false });
+
+    // Mock prompt to return answers sequentially
+    // 1. handleToExcel questions
+    // 2. askForAnotherAction question (false -> exit)
+    inquirer.prompt = async (questions) => {
+      if (Array.isArray(questions) && questions[0].name === 'sourcePath') {
+        return {
+          sourcePath: path.join(__dirname, 'fixtures'),
+          targetFile: path.join(__dirname, 'tmp.xlsx'),
+          sheetName: 'Translations',
+          dryRun: true,
+        };
+      }
+      if (Array.isArray(questions) && questions[0].name === 'again') {
+        return { again: false };
+      }
+      return {};
     };
+
     process.exit = (code) => {
       exited = true;
       throw new Error(`exit:${code}`);
     };
+
     const cap = captureConsole();
     try {
-      await performConversion('toExcel', {
-        sourcePath: path.join(__dirname, 'fixtures'),
-        targetFile: path.join(__dirname, 'tmp.xlsx'),
-        sheetName: 'Translations',
-        dryRun: true,
-      });
+      await handleToExcel(
+        { sourcePath: 'd', targetFile: 'd', sheetName: 'd' },
+        {},
+      );
       assert.fail('expected exit');
     } catch (e) {
       assert.match(String(e), /exit:0/);
       assert.ok(exited);
+      // runI18nToExcel output
       assert.match(cap.out, /Converting i18n files from/);
-      assert.match(cap.out, /Dry-run: No files were written|Dry-run/);
+      assert.match(cap.out, /Dry-run: No file was written/); // Note: runI18nToExcel uses logDryRunSingle
     } finally {
       cap.restore();
       inquirer.prompt = origPrompt;
@@ -97,39 +114,52 @@ describe('CLI interactive helpers', () => {
     }
   });
 
-  it('performConversion toJson dry-run prints messages and invokes follow-up prompt', async () => {
+  it('handleToJson dry-run prints messages and invokes follow-up prompt', async () => {
     const origPrompt = inquirer.prompt;
     const origExit = process.exit;
     let exited = false;
-    inquirer.prompt = () => {
-      return Promise.resolve({ again: false });
+
+    // create a minimal workbook to satisfy existence checks
+    const tmpXlsx = path.join(__dirname, 'tmp-interactive.xlsx');
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Translations');
+    ws.addRow(['Key', 'en']);
+    ws.addRow(['k', 'v']);
+    await wb.xlsx.writeFile(tmpXlsx);
+
+    inquirer.prompt = async (questions) => {
+      if (Array.isArray(questions) && questions[0].name === 'sourceFile') {
+        return {
+          sourceFile: tmpXlsx,
+          targetPath: path.join(__dirname, 'tmpdir'),
+          sheetName: 'Translations',
+          dryRun: true,
+        };
+      }
+      if (Array.isArray(questions) && questions[0].name === 'again') {
+        return { again: false };
+      }
+      return {};
     };
+
     process.exit = (code) => {
       exited = true;
       throw new Error(`exit:${code}`);
     };
+
     const cap = captureConsole();
     try {
-      // create a minimal workbook to satisfy existence checks
-      const tmpXlsx = path.join(__dirname, 'tmp-interactive.xlsx');
-      const wb = new ExcelJS.Workbook();
-      const ws = wb.addWorksheet('Translations');
-      ws.addRow(['Key', 'en']);
-      ws.addRow(['k', 'v']);
-      await wb.xlsx.writeFile(tmpXlsx);
-
-      await performConversion('toJson', {
-        sourceFile: tmpXlsx,
-        targetPath: path.join(__dirname, 'tmpdir'),
-        sheetName: 'Translations',
-        dryRun: true,
-      });
+      await handleToJson(
+        { targetFile: 'd', targetPath: 'd', sheetName: 'd' },
+        {},
+      );
       assert.fail('expected exit');
     } catch (e) {
       assert.match(String(e), /exit:0/);
       assert.ok(exited);
+      // runExcelToI18n output
       assert.match(cap.out, /Converting Excel from/);
-      assert.match(cap.out, /Dry-run: No files were written|Dry-run/);
+      assert.match(cap.out, /Dry-run: No files were written/); // logDryRunPlural
     } finally {
       cap.restore();
       inquirer.prompt = origPrompt;

@@ -1,63 +1,11 @@
 /**
  * @module cli/params
- * Thin wrappers delegating to `configResolution` helpers.
+ * Re-exports from configResolution for path and option resolution.
  */
 
-import {
-  buildCommonOptions as bCommon,
-  resolveExcelToI18nPaths as rE2I,
-  resolveFailOnDuplicates as rFailDup,
-  resolveI18nToExcelPaths as rI2E,
+export {
+  buildCommonOptions,
+  resolveExcelToI18nPaths,
+  resolveFailOnDuplicates,
+  resolveI18nToExcelPaths,
 } from './configResolution.js';
-
-/**
- * Resolve source and target paths for i18n->Excel conversion.
- * @param {object} options - CLI options.
- * @param {object} defaultConfig - Default configuration.
- * @returns {{sourcePath: string, targetFile: string}}
- * @see configResolution.resolveI18nToExcelPaths
- */
-export function resolveI18nToExcelPaths(options, defaultConfig) {
-  return rI2E(options, defaultConfig);
-}
-
-/**
- * Resolve source and target paths for Excel->i18n conversion.
- * @param {object} options - CLI options.
- * @param {object} defaultConfig - Default configuration.
- * @returns {{sourceFile: string, targetPath: string}}
- * @see configResolution.resolveExcelToI18nPaths
- */
-export function resolveExcelToI18nPaths(options, defaultConfig) {
-  return rE2I(options, defaultConfig);
-}
-
-/**
- * Build shared conversion options (sheetName, dryRun, languageMap) for both directions.
- * @param {object} options - CLI options.
- * @param {object} defaultConfig - Default configuration.
- * @param {object} runtimeConfig - Runtime validated config (may include languages).
- * @param {boolean} isDryRun - Dry run flag.
- * @returns {{sheetName: string, dryRun: boolean, languageMap?: object, report?: boolean}}
- * @see configResolution.buildCommonOptions
- */
-export function buildCommonOptions(
-  options,
-  defaultConfig,
-  runtimeConfig,
-  isDryRun,
-) {
-  return bCommon(options, defaultConfig, runtimeConfig, isDryRun);
-}
-
-/**
- * Resolve fail-on-duplicates flag combining CLI option and argv flag.
- * @param {object} options - CLI options.
- * @param {string[]} argv - Process argv array.
- * @param {string} flagLiteral - The long flag literal to check in argv.
- * @returns {boolean}
- * @see configResolution.resolveFailOnDuplicates
- */
-export function resolveFailOnDuplicates(options, argv, flagLiteral) {
-  return rFailDup(options, argv, flagLiteral);
-}
