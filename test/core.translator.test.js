@@ -68,4 +68,57 @@ describe('GeminiProvider translateBatch', () => {
       /Invalid response format/,
     );
   });
+
+  it('throws error when API returns empty response', async () => {
+    const provider = makeProviderWithResponder(async () => ({
+      text: null,
+    }));
+
+    await assert.rejects(
+      () => provider.translateBatch(['hello'], 'en', 'de'),
+      /Empty response from Gemini/,
+    );
+  });
+
+  it('throws error when API returns undefined text', async () => {
+    const provider = makeProviderWithResponder(async () => ({}));
+
+    await assert.rejects(
+      () => provider.translateBatch(['hello'], 'en', 'de'),
+      /Empty response from Gemini/,
+    );
+  });
+
+  it('wraps API errors with descriptive message', async () => {
+    const provider = makeProviderWithResponder(async () => {
+      throw new Error('Network timeout');
+    });
+
+    await assert.rejects(
+      () => provider.translateBatch(['hello'], 'en', 'de'),
+      /Gemini API Error: Network timeout/,
+    );
+  });
+
+  it('handles JSON parse errors gracefully', async () => {
+    const provider = makeProviderWithResponder(async () => ({
+      text: 'not valid json{',
+    }));
+
+    await assert.rejects(
+      () => provider.translateBatch(['hello'], 'en', 'de'),
+      /Gemini API Error/,
+    );
+  });
+
+  it('validates that translations is an array', async () => {
+    const provider = makeProviderWithResponder(async () => ({
+      text: JSON.stringify({ translations: 'not-an-array' }),
+    }));
+
+    await assert.rejects(
+      () => provider.translateBatch(['hello'], 'en', 'de'),
+      /Invalid response format.*expected "translations" array/,
+    );
+  });
 });

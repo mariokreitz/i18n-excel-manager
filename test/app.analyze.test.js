@@ -74,4 +74,37 @@ describe('app/analyze', () => {
     assert.deepEqual(deReport.missing, ['D']);
     assert.deepEqual(deReport.unused, ['C']);
   });
+
+  it('analyzeApp: throws descriptive error when readDirJsonFiles fails', async () => {
+    const io = {
+      readDirJsonFiles: async () => {
+        throw new Error('Permission denied');
+      },
+    };
+    const mockExtractKeys = makeMockExtractKeys(null, new Set());
+
+    await assert.rejects(async () => {
+      await analyzeApp(
+        io,
+        { sourcePath: '/restricted', codePattern: '*' },
+        { extractKeys: mockExtractKeys },
+      );
+    }, /Could not read i18n files from \/restricted: Permission denied/);
+  });
+
+  it('analyzeApp: handles empty codebase (no keys found)', async () => {
+    const io = makeFakeIo([{ name: 'en.json', data: { KEY: 'val' } }]);
+    const mockExtractKeys = makeMockExtractKeys(null, new Set());
+
+    const report = await analyzeApp(
+      io,
+      { sourcePath: '/i18n', codePattern: '*' },
+      { extractKeys: mockExtractKeys },
+    );
+
+    assert.equal(report.totalCodeKeys, 0);
+    const enReport = report.fileReports['en.json'];
+    assert.deepEqual(enReport.missing, []);
+    assert.deepEqual(enReport.unused, ['KEY']);
+  });
 });
