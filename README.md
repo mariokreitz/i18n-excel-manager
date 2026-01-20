@@ -51,6 +51,12 @@
 
 ## 📦 Installation
 
+### Known Issues
+
+- there is a known issue when exporting back from excel to json after using the ai auto translator that the language
+  mapping is not working properly.
+- workaround: restart i18n-excel-manager and try again.
+
 ### Requirements
 
 - Node.js >= 20
