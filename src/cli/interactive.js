@@ -8,18 +8,61 @@ import path from 'node:path';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 
-import { convertToExcel, convertToJson } from '../index.js';
-
 import {
-  MSG_CONVERSION_COMPLETED_PREFIX,
-  MSG_CONVERTING_EXCEL_PREFIX,
-  MSG_CONVERTING_I18N_PREFIX,
-  MSG_DRY_RUN_PLURAL,
-  MSG_INIT_DETECTED_NONE,
-} from './constants.js';
+  runAnalyze,
+  runExcelToI18n,
+  runI18nToExcel,
+  runTranslate,
+} from './commands.js';
+import { MSG_INIT_DETECTED_NONE } from './constants.js';
 import { detectI18nPresence } from './helpers.js';
 import { runInitCommand } from './init.js';
 import { logError } from './logging.js';
+
+/**
+ * Validator for required string input.
+ * @param {string} input User input.
+ * @returns {boolean|string} True if valid, or error message.
+ */
+const validateNonEmpty = (input) =>
+  typeof input === 'string' && input.trim().length > 0
+    ? true
+    : 'Value cannot be empty.';
+
+/**
+ * Check if initialization is needed and run it if confirmed.
+ * @returns {Promise<boolean>} True if init was run (caller should return).
+ */
+async function checkAndRunInit(config, defaultConfig) {
+  const detection = await detectI18nPresence(defaultConfig.sourcePath);
+  if (detection.exists && detection.jsonCount > 0) {
+    return false;
+  }
+
+  const full = path.resolve(defaultConfig.sourcePath);
+  console.log(chalk.yellow(`${MSG_INIT_DETECTED_NONE}${full}`));
+  const { doInit } = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'doInit',
+      message: `Initialize i18n directory now at ${full}?`,
+      default: true,
+    },
+  ]);
+
+  if (doInit) {
+    await runInitCommand(
+      {
+        output: defaultConfig.sourcePath,
+        languages: 'en,de',
+      },
+      config,
+      defaultConfig,
+    );
+    return true;
+  }
+  return false;
+}
 
 /**
  * Display main interactive menu and dispatch chosen action.
@@ -29,29 +72,8 @@ import { logError } from './logging.js';
  */
 export async function showMainMenu(config, defaultConfig) {
   // Auto-detect and offer initialization if needed
-  const detection = await detectI18nPresence(defaultConfig.sourcePath);
-  if (!detection.exists || detection.jsonCount === 0) {
-    const full = path.resolve(defaultConfig.sourcePath);
-    console.log(chalk.yellow(`${MSG_INIT_DETECTED_NONE}${full}`));
-    const { doInit } = await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'doInit',
-        message: `Initialize i18n directory now at ${full}?`,
-        default: true,
-      },
-    ]);
-    if (doInit) {
-      await runInitCommand(
-        {
-          output: defaultConfig.sourcePath,
-          languages: 'en,de',
-        },
-        config,
-        defaultConfig,
-      );
-      return; // After init, return to menu on next run
-    }
+  if (await checkAndRunInit(config, defaultConfig)) {
+    return; // After init, return to menu on next run
   }
   const { action } = await inquirer.prompt([
     {
@@ -61,42 +83,129 @@ export async function showMainMenu(config, defaultConfig) {
       choices: [
         { name: 'Convert i18n files to Excel', value: 'toExcel' },
         { name: 'Convert Excel to i18n files', value: 'toJson' },
+        { name: 'Analyze Codebase (Missing/Unused)', value: 'analyze' },
+        { name: 'AI Auto-Translate (Fill missing)', value: 'translate' },
         { name: 'Initialize i18n files', value: 'init' },
         { name: 'Exit', value: 'exit' },
       ],
     },
   ]);
 
-  switch (action) {
-    case 'toExcel': {
-      await handleToExcel(defaultConfig, config);
-      break;
+  try {
+    switch (action) {
+      case 'toExcel': {
+        await handleToExcel(defaultConfig, config);
+        break;
+      }
+      case 'toJson': {
+        await handleToJson(defaultConfig, config);
+        break;
+      }
+      case 'analyze': {
+        await handleAnalyze(defaultConfig);
+        break;
+      }
+      case 'translate': {
+        await handleTranslate(defaultConfig, config);
+        break;
+      }
+      case 'init': {
+        await runInitCommand(
+          { output: defaultConfig.sourcePath },
+          config,
+          defaultConfig,
+        );
+        break;
+      }
+      case 'exit': {
+        console.log(chalk.green('Goodbye!'));
+        process.exit(0); // eslint-disable-line n/no-process-exit, unicorn/no-process-exit
+      }
     }
-    case 'toJson': {
-      await handleToJson(defaultConfig, config);
-      break;
-    }
-    case 'init': {
-      await runInitCommand(
-        { output: defaultConfig.sourcePath },
-        config,
-        defaultConfig,
-      );
-      break;
-    }
-    case 'exit': {
-      console.log(chalk.green('Goodbye!'));
-      process.exit(0); // eslint-disable-line n/no-process-exit, unicorn/no-process-exit
-      break;
-    }
+  } catch (error) {
+    logError(error);
   }
 }
 
 /**
+ * Prompt for Analysis parameters.
+ */
+async function handleAnalyze(defaultConfig) {
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'input',
+      message: 'Path to source code folder (to analyze):',
+      default: './src',
+      validate: validateNonEmpty,
+    },
+    {
+      type: 'input',
+      name: 'pattern',
+      message: 'File pattern to scan:',
+      default: '**/*.{ts,js,html}',
+      validate: validateNonEmpty,
+    },
+  ]);
+
+  try {
+    await runAnalyze(answers);
+  } catch (error) {
+    logError(error);
+  }
+  await askForAnotherAction({}, defaultConfig);
+}
+
+/**
+ * Prompt for AI Translation parameters.
+ */
+async function handleTranslate(defaultConfig, config) {
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'input',
+      message: 'Path to Excel file:',
+      default: defaultConfig.targetFile || 'translations.xlsx',
+      validate: validateNonEmpty,
+    },
+    {
+      type: 'input',
+      name: 'sourceLang',
+      message: 'Source Language Code:',
+      default: 'en',
+      validate: validateNonEmpty,
+    },
+    {
+      type: 'password',
+      name: 'apiKey',
+      message: 'OpenAI API Key (leave empty if I18N_MANAGER_API_KEY is set):',
+      mask: '*',
+    },
+    {
+      type: 'select',
+      name: 'model',
+      message: 'OpenAI Model:',
+      choices: ['gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo'],
+      default: 'gpt-4o-mini',
+    },
+  ]);
+
+  try {
+    await runTranslate({
+      input: answers.input,
+      sourceLang: answers.sourceLang,
+      apiKey: answers.apiKey || undefined,
+      model: answers.model,
+      languageMap: (config && config.languages) || {},
+    });
+  } catch (error) {
+    logError(error);
+  }
+  await askForAnotherAction({}, defaultConfig);
+}
+
+/**
  * Prompt user for i18n->Excel parameters and invoke conversion.
- * @param {Object} defaultConfig Default config values.
- * @param {Object} config Runtime config.
- * @returns {Promise<void>}
  */
 export async function handleToExcel(defaultConfig, config) {
   const answers = await inquirer.prompt([
@@ -105,18 +214,21 @@ export async function handleToExcel(defaultConfig, config) {
       name: 'sourcePath',
       message: 'Path to i18n files:',
       default: defaultConfig.sourcePath,
+      validate: validateNonEmpty,
     },
     {
       type: 'input',
       name: 'targetFile',
       message: 'Target Excel file:',
       default: defaultConfig.targetFile,
+      validate: validateNonEmpty,
     },
     {
       type: 'input',
       name: 'sheetName',
       message: 'Excel sheet name:',
       default: defaultConfig.sheetName,
+      validate: validateNonEmpty,
     },
     {
       type: 'confirm',
@@ -126,33 +238,18 @@ export async function handleToExcel(defaultConfig, config) {
     },
   ]);
 
-  if (
-    typeof answers.sourcePath !== 'string' ||
-    answers.sourcePath.trim() === ''
-  ) {
-    throw new Error('Source path must be a non-empty string');
+  try {
+    // Adapt answers to options expected by runI18nToExcel
+    // resolveI18nToExcelPaths checks options.sourcePath/targetFile too due to params.js mapping or standard check
+    await runI18nToExcel(answers, answers.dryRun, defaultConfig, config);
+  } catch (error) {
+    logError(error);
   }
-  if (
-    typeof answers.targetFile !== 'string' ||
-    answers.targetFile.trim() === ''
-  ) {
-    throw new Error('Target file must be a non-empty string');
-  }
-  if (
-    typeof answers.sheetName !== 'string' ||
-    answers.sheetName.trim() === ''
-  ) {
-    throw new Error('Sheet name must be a non-empty string');
-  }
-
-  await performConversion('toExcel', answers, defaultConfig, config);
+  await askForAnotherAction(config, defaultConfig);
 }
 
 /**
  * Prompt user for Excel->i18n parameters and invoke conversion.
- * @param {Object} defaultConfig Default config values.
- * @param {Object} config Runtime config.
- * @returns {Promise<void>}
  */
 export async function handleToJson(defaultConfig, config) {
   const answers = await inquirer.prompt([
@@ -161,18 +258,21 @@ export async function handleToJson(defaultConfig, config) {
       name: 'sourceFile',
       message: 'Path to Excel file:',
       default: defaultConfig.targetFile,
+      validate: validateNonEmpty,
     },
     {
       type: 'input',
       name: 'targetPath',
       message: 'Target folder for i18n files:',
       default: defaultConfig.targetPath,
+      validate: validateNonEmpty,
     },
     {
       type: 'input',
       name: 'sheetName',
       message: 'Excel sheet name:',
       default: defaultConfig.sheetName,
+      validate: validateNonEmpty,
     },
     {
       type: 'confirm',
@@ -182,88 +282,23 @@ export async function handleToJson(defaultConfig, config) {
     },
   ]);
 
-  // Validate user inputs
-  if (
-    typeof answers.sourceFile !== 'string' ||
-    answers.sourceFile.trim() === ''
-  ) {
-    throw new Error('Source file must be a non-empty string');
-  }
-  if (
-    typeof answers.targetPath !== 'string' ||
-    answers.targetPath.trim() === ''
-  ) {
-    throw new Error('Target path must be a non-empty string');
-  }
-  if (
-    typeof answers.sheetName !== 'string' ||
-    answers.sheetName.trim() === ''
-  ) {
-    throw new Error('Sheet name must be a non-empty string');
-  }
-
-  await performConversion('toJson', answers, defaultConfig, config);
-}
-
-/**
- * Perform a conversion given user answers (direction-specific).
- * @param {'toExcel'|'toJson'} conversionType Direction indicator.
- * @param {Object} answers Inquirer answers object.
- * @param {Object} defaultConfig Default config.
- * @param {Object} config Runtime config.
- * @returns {Promise<void>}
- */
-export async function performConversion(
-  conversionType,
-  answers,
-  defaultConfig,
-  config,
-) {
   try {
-    // Guard against undefined config in tests or direct calls
-    const languageMap = (config && config.languages) || {};
-    const options = {
-      sheetName: answers.sheetName,
-      dryRun: Boolean(answers.dryRun),
-      languageMap,
-    };
-
-    if (conversionType === 'toExcel') {
-      console.log(
-        chalk.blue(
-          `${MSG_CONVERTING_I18N_PREFIX}${answers.sourcePath} to ${answers.targetFile}...`,
-        ),
-      );
-      await convertToExcel(answers.sourcePath, answers.targetFile, options);
-    } else {
-      console.log(
-        chalk.blue(
-          `${MSG_CONVERTING_EXCEL_PREFIX}${answers.sourceFile} to ${answers.targetPath}...`,
-        ),
-      );
-      await convertToJson(answers.sourceFile, answers.targetPath, options);
-    }
-
-    if (answers.dryRun) {
-      console.log(chalk.yellow(MSG_DRY_RUN_PLURAL));
-    } else {
-      const target =
-        conversionType === 'toExcel' ? answers.targetFile : answers.targetPath;
-      console.log(chalk.green(`${MSG_CONVERSION_COMPLETED_PREFIX}${target}`));
-    }
+    // Adapt answers to options expected by runExcelToI18n
+    // resolveExcelToI18nPaths expects 'input' or 'targetFile', but prompt uses 'sourceFile'
+    await runExcelToI18n(
+      { ...answers, input: answers.sourceFile },
+      answers.dryRun,
+      defaultConfig,
+      config,
+    );
   } catch (error) {
     logError(error);
-    process.exit(1); // eslint-disable-line n/no-process-exit, unicorn/no-process-exit
   }
-
   await askForAnotherAction(config, defaultConfig);
 }
 
 /**
  * Ask user whether to perform another action after conversion.
- * @param {Object} config Runtime config.
- * @param {Object} defaultConfig Default config.
- * @returns {Promise<void>}
  */
 export async function askForAnotherAction(config, defaultConfig) {
   const { again } = await inquirer.prompt([

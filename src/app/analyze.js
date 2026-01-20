@@ -35,8 +35,6 @@ export async function analyzeApp(io, options, deps = {}) {
   }
 
   // 2. Extract keys from codebase
-  // If codePattern is relative, resolve it relative to CWD, assuming caller passed it that way
-  // or rely on glob to handle it.
   const codeKeys = await extractKeys(codePattern);
 
   // 3. Analyze each file

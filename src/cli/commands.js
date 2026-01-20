@@ -7,12 +7,10 @@
  * @typedef {import('../types.js').ConvertToJsonOptions} ConvertToJsonOptions
  */
 
-// Parent-level internal modules
 import chalk from 'chalk';
 
-import { convertToExcel, convertToJson, analyze } from '../index.js';
+import { analyze, convertToExcel, convertToJson, translate } from '../index.js';
 
-// Same-directory utilities and constants
 import { loadConfigOptions } from './configLoader.js';
 import { FLAG_FAIL_ON_DUP } from './constants.js';
 import { computeIsDryRun } from './helpers.js';
@@ -88,42 +86,122 @@ export async function runExcelToI18n(options, isDryRun, defaultConfig, config) {
 }
 
 /**
+ * Format and print a file's analysis results.
+ * @param {string} file Filename.
+ * @param {{missing: string[], unused: string[]}} res Analysis result.
+ */
+function printFileAnalysis(file, res) {
+  console.log(chalk.underline(`\n${file}`));
+  if (res.missing.length > 0) {
+    console.log(chalk.red('  Missing in JSON:'));
+    for (const k of res.missing) console.log(`    - ${k}`);
+  }
+  if (res.unused.length > 0) {
+    console.log(chalk.yellow('  Unused in Code:'));
+    for (const k of res.unused) console.log(`    - ${k}`);
+  }
+  if (res.missing.length === 0 && res.unused.length === 0) {
+    console.log(chalk.green('  All good!'));
+  }
+}
+
+/**
  * Run Analysis.
  * @param {Object} options CLI options.
- * @param {Object} defaultConfig Default config.
  */
-export async function runAnalyze(options, defaultConfig) {
-  const sourcePath = options.input || defaultConfig.sourcePath;
-  const codePattern = options.pattern || '**/*.{ts,html,js}';
-
-  console.log(chalk.cyan(`Scanning for i18n keys in: ${codePattern}`));
-  console.log(chalk.cyan(`Comparing with JSONs in: ${sourcePath}`));
-
-  const report = await analyze({ sourcePath, codePattern });
-
-  console.log(
-    chalk.green(`\nFound ${report.totalCodeKeys} unique keys in code.`),
-  );
-
-  let hasIssues = false;
-  for (const [file, result] of Object.entries(report.fileReports)) {
-    if (result.missing.length > 0 || result.unused.length > 0) {
-      console.log(chalk.yellow(`\n[${file}]`));
-      if (result.missing.length > 0) {
-        hasIssues = true;
-        console.log(chalk.red('  Missing keys (in code but not in JSON):'));
-        result.missing.forEach((k) => console.log(`    - ${k}`));
-      }
-      if (result.unused.length > 0) {
-        hasIssues = true;
-        console.log(chalk.gray('  Unused keys (in JSON but not in code):'));
-        result.unused.forEach((k) => console.log(`    - ${k}`));
-      }
-    }
+export async function runAnalyze(options) {
+  if (!options.input) {
+    throw new Error('Please provide a source path using --input');
   }
 
-  if (!hasIssues) {
-    console.log(chalk.green('\nBuild successful! All keys are consistent.'));
+  const report = await analyze({
+    sourcePath: options.input,
+    codePattern: options.pattern ?? '**/*.{ts,js,html}',
+  });
+
+  if (options.report === 'json') {
+    console.log(JSON.stringify(report, null, 2));
+    return;
+  }
+
+  console.log(chalk.bold('\nAnalysis Report:'));
+  console.log(`Total Code Keys Found: ${report.totalCodeKeys}`);
+
+  for (const [file, res] of Object.entries(report.fileReports)) {
+    printFileAnalysis(file, res);
+  }
+}
+
+/**
+ * Run AI Translation.
+ * @param {Object} options CLI options.
+ */
+export async function runTranslate(options) {
+  if (!options.input) {
+    throw new Error('Please provide the Excel file path using --input');
+  }
+
+  // Check for API Key in flag or ENV
+  const apiKey = options.apiKey || process.env.I18N_MANAGER_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      'API Key is missing. Pass --api-key or set I18N_MANAGER_API_KEY.',
+    );
+  }
+
+  console.log(chalk.blue('Use --source-lang to specify source (default: en).'));
+  console.log(
+    chalk.blue('Use --model to specify OpenAI model (default: gpt-4o-mini).\n'),
+  );
+
+  const languageMap =
+    options.languageMap || (options.config && options.config.languages) || {};
+
+  await translate({
+    input: options.input,
+    sourceLang: options.sourceLang || 'en',
+    apiKey,
+    model: options.model,
+    languageMap,
+  });
+}
+
+/**
+ * Dispatch a command based on merged options.
+ * @param {Object} mergedOptions Merged CLI options.
+ * @param {Object} options Raw CLI options.
+ * @param {boolean} isDryRun Dry-run flag.
+ * @param {Object} defaultConfig Entry default config.
+ * @param {Object} config Runtime validated config.
+ * @returns {Promise<void>}
+ */
+async function dispatchCommand(
+  mergedOptions,
+  options,
+  isDryRun,
+  defaultConfig,
+  config,
+) {
+  if (mergedOptions.i18nToExcel) {
+    return runI18nToExcel(mergedOptions, isDryRun, defaultConfig, config);
+  }
+  if (mergedOptions.excelToI18n) {
+    return runExcelToI18n(mergedOptions, isDryRun, defaultConfig, config);
+  }
+  if (mergedOptions.init) {
+    return runInitCommand(mergedOptions, config, defaultConfig);
+  }
+  if (options.extract) {
+    return runExcelToI18n(options);
+  }
+  if (options.analyze) {
+    return runAnalyze(options);
+  }
+  if (options.translate) {
+    return runTranslate({
+      ...options,
+      languageMap: config?.languages ?? {},
+    });
   }
 }
 
@@ -142,28 +220,22 @@ export async function processCliOptions(
   validateConfigObject,
 ) {
   try {
-    // Load and validate config options from file (if provided)
     const configOptions = loadConfigOptions(options, validateConfigObject);
-
-    // Merge precedence: CLI > file defaults > entry defaults
     const mergedOptions = mergeCliOptions(
-      options || {},
+      options ?? {},
       configOptions,
       defaultConfig,
       config,
     );
-
     const isDryRun = computeIsDryRun(mergedOptions);
 
-    if (mergedOptions.i18nToExcel) {
-      await runI18nToExcel(mergedOptions, isDryRun, defaultConfig, config);
-    } else if (mergedOptions.excelToI18n) {
-      await runExcelToI18n(mergedOptions, isDryRun, defaultConfig, config);
-    } else if (mergedOptions.init) {
-      await runInitCommand(mergedOptions, config, defaultConfig);
-    } else if (mergedOptions.analyze) {
-      await runAnalyze(mergedOptions, defaultConfig);
-    }
+    await dispatchCommand(
+      mergedOptions,
+      options,
+      isDryRun,
+      defaultConfig,
+      config,
+    );
   } catch (error) {
     logError(error);
     process.exit(1); // eslint-disable-line n/no-process-exit, unicorn/no-process-exit

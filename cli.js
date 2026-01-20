@@ -180,6 +180,13 @@ program
     'Glob pattern for source code files',
     '**/*.{html,ts,js}',
   )
+  .option('--translate', 'Auto-translate missing values in Excel using OpenAI')
+  .option(
+    '--api-key <key>',
+    'OpenAI API Key for translation (or set I18N_MANAGER_API_KEY)',
+  )
+  .option('--source-lang <code>', 'Source language code for translation', 'en')
+  .option('--model <model>', 'OpenAI model to use', 'gpt-4o-mini')
   .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
   .action((options) => {
     displayHeader();
