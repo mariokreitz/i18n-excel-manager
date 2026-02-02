@@ -9,6 +9,7 @@ import inquirer from 'inquirer';
 
 import {
   askForAnotherAction,
+  handleAnalyze,
   handleToExcel,
   handleToJson,
   showMainMenu,
@@ -584,5 +585,71 @@ describe('CLI interactive - showMainMenu comprehensive coverage', () => {
     } finally {
       cap.restore();
     }
+  });
+
+  it('handleAnalyze uses correct defaults for i18n path and pattern', async () => {
+    const origPrompt = inquirer.prompt;
+    const origExit = process.exit;
+    let promptedQuestions = null;
+
+    // Mock prompt to capture question defaults
+    inquirer.prompt = async (questions) => {
+      if (Array.isArray(questions) && questions[0].name === 'input') {
+        promptedQuestions = questions;
+        // Return valid paths to test the flow
+        return {
+          input: path.join(__dirname, 'fixtures'),
+          pattern: 'src/**/*.{ts,js,html}',
+        };
+      }
+      if (Array.isArray(questions) && questions[0].name === 'again') {
+        return { again: false };
+      }
+      return {};
+    };
+
+    process.exit = () => {
+      throw new Error('exit');
+    };
+
+    const cap = captureConsole();
+    const testDefaultConfig = { sourcePath: 'public/assets/i18n' };
+
+    try {
+      await handleAnalyze(testDefaultConfig);
+    } catch (e) {
+      // Expected to exit
+    } finally {
+      cap.restore();
+      inquirer.prompt = origPrompt;
+      process.exit = origExit;
+    }
+
+    // Verify the input question has correct message and default
+    assert.ok(promptedQuestions, 'Should have prompted for questions');
+    const inputQ = promptedQuestions.find((q) => q.name === 'input');
+    const patternQ = promptedQuestions.find((q) => q.name === 'pattern');
+
+    assert.ok(inputQ, 'Should have input question');
+    assert.ok(patternQ, 'Should have pattern question');
+
+    // Verify the input question asks for i18n JSON directory, not source code folder
+    assert.match(
+      inputQ.message,
+      /i18n.*JSON/i,
+      'Input message should mention i18n JSON directory',
+    );
+    assert.equal(
+      inputQ.default,
+      'public/assets/i18n',
+      'Input default should be defaultConfig.sourcePath (public/assets/i18n)',
+    );
+
+    // Verify the pattern includes src/ prefix for Angular projects
+    assert.match(
+      patternQ.default,
+      /^src\//,
+      'Pattern default should start with src/ for Angular projects',
+    );
   });
 });

@@ -1,7 +1,7 @@
 {
   "name": "i18n-excel-manager",
-  "version": "2.2.0",
-  "description": "CLI tool for converting and validating i18n JSON and Excel files with placeholder validation.",
+  "version": "2.2.1",
+  "description": "All-in-one CLI tool for Angular i18n workflow: convert JSON ↔ Excel, analyze codebase for missing/unused translation keys, auto-translate with AI (Gemini). Supports ngx-translate, Angular v17+, and placeholder validation.",
   "type": "module",
   "main": "src/index.js",
   "exports": {
@@ -22,16 +22,13 @@
     "test:coverage": "c8 --reporter=json-summary --reporter=lcov --reporter=text-summary --check-coverage --branches=85 --functions=85 --lines=85 --statements=85 node --test"
   },
   "keywords": [
+    "angular",
     "i18n",
-    "excel",
-    "localization",
+    "translate",
     "translation",
-    "json",
-    "converter",
-    "cli",
-    "internationalization",
-    "l10n",
-    "language"
+    "excel",
+    "xlsx",
+    "converter"
   ],
   "author": "Mario Kreitz <mario.kreitz@web.de>",
   "license": "MIT",

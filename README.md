@@ -36,7 +36,8 @@
 
 - **Gemini Integration**: Auto-translate missing values using Google's Gemini AI.
 - **Placeholder Preservation**: AI preserves `{{placeholders}}`, HTML tags, and formatting.
-- **Multiple Models**: Choose from `gemini-2.5-flash`, `gemini-1.5-flash`, or `gemini-1.5-pro`.
+- **Multiple Models**: Choose from `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-2.5-pro`, or preview models like
+  `gemini-3-flash-preview`.
 - **Batch Processing**: Efficiently translates multiple strings in a single API call.
 
 ### Developer Experience
@@ -53,7 +54,7 @@
 
 - [Installation](#-installation)
 - [Quick Start](#-quick-start)
-- [Usage](#-usage)
+- [Usage](#️-usage)
   - [Interactive Mode](#interactive-mode)
   - [Initialize i18n Files](#initialize-i18n-files)
   - [Convert JSON to Excel](#convert-json-to-excel)
@@ -62,12 +63,12 @@
   - [AI Auto-Translation](#ai-auto-translation)
 - [API](#-api)
 - [Angular Integration](#-angular-integration)
-- [Configuration](#-configuration)
+- [Configuration](#️-configuration)
 - [CLI Options Reference](#-cli-options-reference)
 - [Migration Guide](#-migration-guide)
 - [Error Handling](#-error-handling)
-- [Architecture](#-architecture)
-- [Known Issues](#-known-issues)
+- [Architecture](#️-architecture)
+- [Known Issues](#️-known-issues)
 - [Development](#-development)
 - [Contributing](#-contributing)
 - [License](#-license)
@@ -97,45 +98,58 @@ npm install --save-dev i18n-excel-manager
 
 ## 🚀 Quick Start
 
-1. **Install globally:**
+### The Easiest Way: Interactive Mode
 
-   ```bash
-   npm install -g i18n-excel-manager
-   ```
+Just run the CLI without any arguments and let the interactive menu guide you:
 
-2. **Initialize a new project** (creates `public/assets/i18n` with starter files):
+```bash
+npm install -g i18n-excel-manager
+i18n-excel-manager
+```
+
+The interactive menu will walk you through all available features with sensible defaults - no need to memorize commands
+or flags!
+
+> 💡 **New to i18n-excel-manager?** Start with the interactive mode. It detects your project structure and offers to
+> initialize i18n files if needed.
+
+---
+
+### CLI Commands (for automation & scripts)
+
+For CI/CD pipelines or scripting, use the CLI commands directly:
+
+1. **Initialize a new project** (creates `public/assets/i18n` with starter files):
 
    ```bash
    i18n-excel-manager init --output ./public/assets/i18n --languages en,de,fr
    ```
 
-3. **Convert JSON to Excel:**
+2. **Convert JSON to Excel:**
 
    ```bash
    i18n-excel-manager i18n-to-excel --input ./public/assets/i18n --output translations.xlsx
    ```
 
-4. **Edit the Excel file** with your translations.
+3. **Edit the Excel file** with your translations.
 
-5. **Convert back to JSON:**
+4. **Convert back to JSON:**
 
    ```bash
    i18n-excel-manager excel-to-i18n --input translations.xlsx --output ./public/assets/i18n
    ```
 
-6. **Analyze your codebase** for missing/unused keys:
+5. **Analyze your codebase** for missing/unused keys:
 
    ```bash
    i18n-excel-manager analyze --input ./public/assets/i18n --pattern "src/**/*.{ts,html}"
    ```
 
-7. **Auto-translate missing values** with AI:
+6. **Auto-translate missing values** with AI:
 
    ```bash
    i18n-excel-manager analyze --translate --input translations.xlsx --api-key YOUR_GEMINI_KEY
    ```
-
-> **Tip:** Running `i18n-excel-manager` without arguments opens an interactive menu with all options.
 
 ---
 
@@ -289,11 +303,13 @@ The API key can be provided in three ways (in order of precedence):
 
 **Available Models:**
 
-| Model              | Description                  |
-| ------------------ | ---------------------------- |
-| `gemini-2.5-flash` | Fast and efficient (default) |
-| `gemini-1.5-flash` | Balanced speed and quality   |
-| `gemini-1.5-pro`   | Highest quality, slower      |
+| Model                    | Description                                          |
+| ------------------------ | ---------------------------------------------------- |
+| `gemini-2.5-flash`       | Best price-performance, fast and efficient (default) |
+| `gemini-2.5-flash-lite`  | Ultra fast, optimized for cost-efficiency            |
+| `gemini-2.5-pro`         | Advanced thinking model for complex tasks            |
+| `gemini-3-flash-preview` | Next-gen balanced model (preview)                    |
+| `gemini-3-pro-preview`   | Most intelligent multimodal model (preview)          |
 
 **Features:**
 
