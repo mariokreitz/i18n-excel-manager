@@ -130,20 +130,20 @@ export async function showMainMenu(config, defaultConfig) {
 /**
  * Prompt for Analysis parameters.
  */
-async function handleAnalyze(defaultConfig) {
+export async function handleAnalyze(defaultConfig) {
   const answers = await inquirer.prompt([
     {
       type: 'input',
       name: 'input',
-      message: 'Path to source code folder (to analyze):',
-      default: './src',
+      message: 'Path to i18n JSON files directory:',
+      default: defaultConfig.sourcePath,
       validate: validateNonEmpty,
     },
     {
       type: 'input',
       name: 'pattern',
-      message: 'File pattern to scan:',
-      default: '**/*.{ts,js,html}',
+      message: 'File pattern to scan (source code):',
+      default: 'src/**/*.{ts,js,html}',
       validate: validateNonEmpty,
     },
   ]);
@@ -186,7 +186,13 @@ async function handleTranslate(defaultConfig, config) {
       type: 'select',
       name: 'model',
       message: 'Gemini Model:',
-      choices: ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'],
+      choices: [
+        'gemini-2.5-flash',
+        'gemini-2.5-flash-lite',
+        'gemini-2.5-pro',
+        'gemini-3-flash-preview',
+        'gemini-3-pro-preview',
+      ],
       default: 'gemini-2.5-flash',
     },
   ]);
