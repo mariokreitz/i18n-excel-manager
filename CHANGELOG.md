@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.1] - 2026-02-02
+
+### Fixed
+
+- **Analyze Codebase default path**: Fixed incorrect default path in interactive mode for "Analyze Codebase" command.
+  - The input prompt now correctly asks for the i18n JSON directory path instead of source code folder.
+  - Default path changed from `./src` to `public/assets/i18n` (matching Angular v17+/ngx-translate v17+ conventions).
+  - Code pattern default updated to `src/**/*.{ts,js,html}` to properly scope to Angular source directory.
+
+### Changed
+
+- **Updated Gemini models**: Refreshed available AI models to include latest Gemini offerings.
+  - Added `gemini-2.5-flash-lite` (ultra fast, cost-efficient).
+  - Added `gemini-2.5-pro` (advanced thinking model).
+  - Added `gemini-3-flash-preview` (next-gen balanced model).
+  - Added `gemini-3-pro-preview` (most intelligent multimodal model).
+  - Removed deprecated `gemini-1.5-flash` and `gemini-1.5-pro` models.
+- **Improved npm discoverability**: Enhanced package.json with better description and expanded keywords.
+- **README improvements**: Updated Quick Start to emphasize interactive CLI mode for easier onboarding.
+
 ## [2.2.0] - 2026-01-20
 
 ### Added
