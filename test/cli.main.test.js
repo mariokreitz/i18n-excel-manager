@@ -53,7 +53,7 @@ describe('CLI main entry point', () => {
     try {
       cliModule.displayHeader();
       // Strip ANSI codes for easier matching
-      // eslint-disable-next-line no-control-regex, sonarjs/no-control-regex
+      // eslint-disable-next-line no-control-regex
       const output = cap.out.replaceAll(/\u001B\[\d+m/g, '');
       assert.match(output, /v\d+\.\d+\.\d+/);
       assert.match(output, /Convert i18n files/);
