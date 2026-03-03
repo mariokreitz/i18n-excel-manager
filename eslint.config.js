@@ -4,7 +4,6 @@ import importPlugin from 'eslint-plugin-import';
 import nPlugin from 'eslint-plugin-n';
 import promisePlugin from 'eslint-plugin-promise';
 import securityPlugin from 'eslint-plugin-security';
-import sonarjsPlugin from 'eslint-plugin-sonarjs';
 import unicornPlugin from 'eslint-plugin-unicorn';
 
 function pluginRules(plugin, path) {
@@ -47,7 +46,6 @@ export default [
       import: importPlugin,
       promise: promisePlugin,
       security: securityPlugin,
-      sonarjs: sonarjsPlugin,
       n: nPlugin,
       unicorn: unicornPlugin,
       'eslint-comments': eslintCommentsPlugin,
@@ -59,7 +57,6 @@ export default [
       ...pluginRules(importPlugin, 'configs.recommended'),
       ...pluginRules(promisePlugin, 'configs.recommended'),
       ...pluginRules(securityPlugin, 'configs.recommended'),
-      ...pluginRules(sonarjsPlugin, 'configs.recommended'),
       ...pluginRules(nPlugin, 'configs.recommended'),
       ...pluginRules(unicornPlugin, 'configs.recommended'),
       ...pluginRules(eslintCommentsPlugin, 'configs.recommended'),
@@ -119,7 +116,6 @@ export default [
       'security/detect-non-literal-fs-filename': 'off',
       'security/detect-object-injection': 'off',
       'security/detect-non-literal-regexp': 'off',
-      'sonarjs/cognitive-complexity': ['warn', 15],
       'unicorn/prefer-module': 'off',
       'unicorn/prevent-abbreviations': 'off',
       'unicorn/prefer-node-protocol': 'warn',
@@ -133,7 +129,6 @@ export default [
       'unicorn/filename-case': 'off',
       'unicorn/no-null': 'off',
       'unicorn/expiring-todo-comments': 'off',
-      'sonarjs/slow-regex': 'off',
     },
   },
   {
@@ -147,17 +142,12 @@ export default [
       'unicorn/prefer-array-index-of': 'off',
       'unicorn/prefer-spread': 'off',
       'no-shadow': 'off',
-      'sonarjs/no-duplicate-string': 'off',
       'unicorn/catch-error-name': 'off',
       'unicorn/prefer-optional-catch-binding': 'off',
       'max-lines-per-function': 'off',
       'security/detect-non-literal-fs-filename': 'off',
       'unicorn/no-empty-file': 'off',
       'import/no-unresolved': 'off',
-      'sonarjs/void-use': 'off',
-      'sonarjs/no-nested-functions': 'off',
-      'sonarjs/publicly-writable-directories': 'off',
-      'sonarjs/no-ignored-exceptions': 'off',
       'no-unused-vars': 'off',
     },
   },
