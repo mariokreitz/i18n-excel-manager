@@ -419,6 +419,7 @@ describe('app/translate', () => {
       },
       readWorkbook: async () => {},
       writeWorkbook: async () => {},
+      copyFile: async () => {},
     };
 
     const provider = new MockProvider();
@@ -432,5 +433,141 @@ describe('app/translate', () => {
       },
       { provider },
     );
+  });
+
+  it('translateApp: creates a .bak.xlsx backup before writing when io.copyFile is provided', async () => {
+    let copySrc = null;
+    let copyDest = null;
+    let writeCalledAfterCopy = false;
+    let copyCalled = false;
+
+    const workbookMock = {
+      worksheets: [
+        {
+          getRow: (n) => ({
+            eachCell: (cb) => {
+              if (n === 1) {
+                cb({ value: 'key' }, 1);
+                cb({ value: 'en' }, 2);
+                cb({ value: 'de' }, 3);
+              }
+            },
+            getCell: () => ({ value: null }),
+          }),
+          eachRow: (cb) => {
+            const row2 = {
+              getCell: (c) => {
+                if (c === 2) return { value: 'Hello' };
+                if (c === 3) return { value: '' };
+                return { value: 'k' };
+              },
+            };
+            cb(row2, 2);
+          },
+        },
+      ],
+    };
+
+    const io = {
+      Excel: {
+        Workbook: class {
+          constructor() {
+            return workbookMock;
+          }
+        },
+      },
+      readWorkbook: async () => {},
+      writeWorkbook: async () => {
+        writeCalledAfterCopy = copyCalled;
+      },
+      copyFile: async (src, dest) => {
+        copyCalled = true;
+        copySrc = src;
+        copyDest = dest;
+      },
+    };
+
+    const provider = new MockProvider();
+    const cap = captureConsole();
+
+    try {
+      await translateApp(
+        io,
+        { input: 'dummy.xlsx', apiKey: 'sk-test' },
+        { provider },
+      );
+      assert.equal(copySrc, 'dummy.xlsx');
+      assert.equal(copyDest, 'dummy.bak.xlsx');
+      assert.ok(
+        writeCalledAfterCopy,
+        'writeWorkbook should be called after copyFile',
+      );
+      assert.match(cap.out, /Backup created: dummy\.bak\.xlsx/);
+    } finally {
+      cap.restore();
+    }
+  });
+
+  it('translateApp: skips backup gracefully when io.copyFile is not provided', async () => {
+    const workbookMock = {
+      worksheets: [
+        {
+          getRow: (n) => ({
+            eachCell: (cb) => {
+              if (n === 1) {
+                cb({ value: 'key' }, 1);
+                cb({ value: 'en' }, 2);
+                cb({ value: 'de' }, 3);
+              }
+            },
+            getCell: () => ({ value: null }),
+          }),
+          eachRow: (cb) => {
+            const row2 = {
+              getCell: (c) => {
+                if (c === 2) return { value: 'Hello' };
+                if (c === 3) return { value: '' };
+                return { value: 'k' };
+              },
+            };
+            cb(row2, 2);
+          },
+        },
+      ],
+    };
+
+    let writeCalled = false;
+    const io = {
+      Excel: {
+        Workbook: class {
+          constructor() {
+            return workbookMock;
+          }
+        },
+      },
+      readWorkbook: async () => {},
+      writeWorkbook: async () => {
+        writeCalled = true;
+      },
+      // No copyFile provided
+    };
+
+    const provider = new MockProvider();
+    const cap = captureConsole();
+
+    try {
+      await translateApp(
+        io,
+        { input: 'dummy.xlsx', apiKey: 'sk-test' },
+        { provider },
+      );
+      assert.ok(writeCalled, 'writeWorkbook should still be called');
+      assert.ok(
+        !cap.out.includes('Backup created'),
+        'No backup message expected',
+      );
+    } finally {
+      cap.restore();
+    }
   });
 });
