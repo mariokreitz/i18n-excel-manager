@@ -17,6 +17,7 @@ import {
   collectTranslations,
   handleDuplicates,
   maybeReport,
+  readAllWorksheets,
   readWorksheet,
   writeExcel,
   writeLanguages,
@@ -71,6 +72,54 @@ export async function convertToExcelApp(
 }
 
 /**
+ * Read and merge translations from every worksheet in a workbook.
+ * @param {IoAdapter} io IO abstraction.
+ * @param {string} sourceFile Path to Excel workbook.
+ * @param {Object} languageMap Language code → display name map.
+ * @returns {Promise<{languages: string[], translationsByLanguage: Object, duplicates: string[]}>}
+ */
+async function mergeAllSheets(io, sourceFile, languageMap) {
+  const sheets = await readAllWorksheets(io, sourceFile);
+  const mergedByLanguage = {};
+  const allLanguages = new Set();
+  const allDuplicates = [];
+
+  for (const ws of sheets) {
+    const { languages, translationsByLanguage, duplicates } =
+      readTranslationsFromWorksheet(ws, languageMap);
+    for (const lang of languages) {
+      allLanguages.add(lang);
+      mergedByLanguage[lang] = {
+        ...mergedByLanguage[lang],
+        ...translationsByLanguage[lang],
+      };
+    }
+    allDuplicates.push(...duplicates);
+  }
+
+  return {
+    languages: [...allLanguages],
+    translationsByLanguage: mergedByLanguage,
+    duplicates: allDuplicates,
+  };
+}
+
+/**
+ * Normalize options for convertToJsonApp with defaults applied.
+ * @param {ConvertToJsonOptions} opts Raw options.
+ * @returns {{sheetName:string,dryRun:boolean,languageMap:Object,failOnDuplicates:boolean,allSheets:boolean}}
+ */
+function normalizeJsonOpts(opts = {}) {
+  return {
+    sheetName: opts.sheetName ?? 'Translations',
+    dryRun: opts.dryRun ?? false,
+    languageMap: opts.languageMap ?? {},
+    failOnDuplicates: opts.failOnDuplicates ?? false,
+    allSheets: opts.allSheets ?? false,
+  };
+}
+
+/**
  * Converts an Excel workbook to JSON localization files.
  *
  * @param {IoAdapter} io Abstraction layer for filesystem & Excel I/O.
@@ -84,23 +133,26 @@ export async function convertToJsonApp(
   io,
   sourceFile,
   targetPath,
-  opts = {},
-  reporter = defaultConsoleReporter,
+  opts,
+  reporter,
 ) {
-  const {
-    sheetName = 'Translations',
-    dryRun = false,
-    languageMap = {},
-    failOnDuplicates = false,
-  } = opts;
+  const { sheetName, dryRun, languageMap, failOnDuplicates, allSheets } =
+    normalizeJsonOpts(opts);
+  const effectiveReporter = reporter ?? defaultConsoleReporter;
 
   await io.checkFileExists(sourceFile);
-  if (!dryRun) await io.ensureDirectoryExists(targetPath);
 
-  const ws = await readWorksheet(io, sourceFile, sheetName);
-  const { languages, translationsByLanguage, duplicates } =
-    readTranslationsFromWorksheet(ws, languageMap);
-  handleDuplicates(duplicates, failOnDuplicates, reporter);
-  if (dryRun) return;
-  await writeLanguages(io, targetPath, languages, translationsByLanguage);
+  const { languages, translationsByLanguage, duplicates } = allSheets
+    ? await mergeAllSheets(io, sourceFile, languageMap)
+    : readTranslationsFromWorksheet(
+        await readWorksheet(io, sourceFile, sheetName),
+        languageMap,
+      );
+
+  handleDuplicates(duplicates, failOnDuplicates, effectiveReporter);
+
+  if (!dryRun) {
+    await io.ensureDirectoryExists(targetPath);
+    await writeLanguages(io, targetPath, languages, translationsByLanguage);
+  }
 }
