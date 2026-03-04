@@ -56,4 +56,30 @@ describe('io/config', () => {
     await write(cfgPath, '{ bad json');
     await assert.rejects(() => loadValidatedConfig(cfgPath), /Invalid JSON/);
   });
+
+  it('validateConfigObject: accepts config without languages key', () => {
+    const valid = {
+      defaults: {
+        sourcePath: 'in',
+        targetFile: 'out.xlsx',
+        targetPath: 'out',
+        sheetName: 'Translations',
+      },
+    };
+    const result = validateConfigObject(valid);
+    assert.equal(result.defaults.sheetName, 'Translations');
+    assert.deepEqual(result.languages, {});
+  });
+
+  it('validateConfigObject: config without languages defaults to empty object', () => {
+    const valid = {
+      defaults: {
+        sourcePath: 'in',
+        targetFile: 'out.xlsx',
+        targetPath: 'out',
+      },
+    };
+    const result = validateConfigObject(valid);
+    assert.deepEqual(result.languages, {});
+  });
 });
