@@ -221,7 +221,30 @@ const translateTarget = async (
 };
 
 /**
- * Orchestrates the AI auto-translation process for an Excel workbook.
+ * Write the updated workbook to disk, creating a backup first if possible.
+ * @param {import('../types.js').IoAdapter} io IO adapter.
+ * @param {string} input Original Excel file path.
+ * @param {Object} workbook ExcelJS Workbook instance.
+ * @param {number} changesCount Number of cells updated.
+ * @returns {Promise<void>}
+ */
+async function writeTranslatedWorkbook(io, input, workbook, changesCount) {
+  if (changesCount === 0) {
+    console.log('No missing translations found.');
+    return;
+  }
+  // Create a backup before overwriting the original file.
+  const backupPath = input.replace(/\.xlsx$/i, '') + '.bak.xlsx';
+  if (io.copyFile) {
+    await io.copyFile(input, backupPath);
+    console.log(`Backup created: ${backupPath}`);
+  }
+  await io.writeWorkbook(input, workbook);
+  console.log(`Updated ${changesCount} cells in ${input}`);
+}
+
+/**
+ * Orchestrates the translation of missing values in an Excel workbook.
  *
  * Reads an Excel file, identifies missing translations, uses Gemini API
  * to translate missing values, and writes the updated workbook.
@@ -288,10 +311,5 @@ export async function translateApp(io, options, deps = {}) {
     });
   }
 
-  if (changesCount > 0) {
-    await io.writeWorkbook(input, workbook);
-    console.log(`Updated ${changesCount} cells in ${input}`);
-  } else {
-    console.log('No missing translations found.');
-  }
+  await writeTranslatedWorkbook(io, input, workbook, changesCount);
 }
