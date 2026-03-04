@@ -52,33 +52,95 @@ export function parseLanguagesArg(langs) {
 }
 
 /**
+ * Known starter translations for common languages.
+ * Keys not listed here receive a generic placeholder structure.
+ * @private
+ */
+const STARTER_TRANSLATIONS = {
+  en: { app: { title: 'My App', welcome: 'Welcome to your localized app' } },
+  de: {
+    app: {
+      title: 'Meine App',
+      welcome: 'Willkommen in Ihrer lokalisierten App',
+    },
+  },
+  fr: {
+    app: {
+      title: 'Mon application',
+      welcome: 'Bienvenue dans votre application localisée',
+    },
+  },
+  es: {
+    app: {
+      title: 'Mi aplicación',
+      welcome: 'Bienvenido a tu aplicación localizada',
+    },
+  },
+  it: {
+    app: {
+      title: 'La mia app',
+      welcome: 'Benvenuto nella tua app localizzata',
+    },
+  },
+  pt: {
+    app: {
+      title: 'Meu aplicativo',
+      welcome: 'Bem-vindo ao seu aplicativo localizado',
+    },
+  },
+  ru: {
+    app: {
+      title: 'Моё приложение',
+      welcome: 'Добро пожаловать в ваше локализованное приложение',
+    },
+  },
+  ar: { app: { title: 'تطبيقي', welcome: 'مرحبًا بك في تطبيقك المترجَم' } },
+  zh: { app: { title: '我的应用', welcome: '欢迎使用您的本地化应用' } },
+  ja: {
+    app: { title: '私のアプリ', welcome: 'ローカライズされたアプリへようこそ' },
+  },
+  ko: {
+    app: { title: '내 앱', welcome: '현지화된 앱에 오신 것을 환영합니다' },
+  },
+  tr: {
+    app: {
+      title: 'Uygulamam',
+      welcome: 'Yerelleştirilmiş uygulamanıza hoş geldiniz',
+    },
+  },
+  uk: {
+    app: {
+      title: 'Мій застосунок',
+      welcome: 'Ласкаво просимо до вашого локалізованого застосунку',
+    },
+  },
+  pl: {
+    app: {
+      title: 'Moja aplikacja',
+      welcome: 'Witaj w swojej zlokalizowanej aplikacji',
+    },
+  },
+  nl: {
+    app: { title: 'Mijn app', welcome: 'Welkom bij uw gelokaliseerde app' },
+  },
+};
+
+/**
  * Build starter content for a language.
+ * Returns known translations for common languages; for all others returns a
+ * generic placeholder object rather than silently falling back to English.
  * @param {string} lang Language code.
  * @returns {Object} Starter translation object.
  */
 export function buildStarterContentFor(lang) {
-  // Minimal example translations; fallback to English for unknown languages
-  const samples = {
-    en: {
+  return (
+    STARTER_TRANSLATIONS[lang] ?? {
       app: {
-        title: 'My App',
-        welcome: 'Welcome to your localized app',
+        title: `[${lang}] My App`,
+        welcome: `[${lang}] Welcome to your localized app`,
       },
-    },
-    de: {
-      app: {
-        title: 'Meine App',
-        welcome: 'Willkommen in Ihrer lokalisierten App',
-      },
-    },
-    fr: {
-      app: {
-        title: 'Mon application',
-        welcome: 'Bienvenue dans votre application localisée',
-      },
-    },
-  };
-  return samples[lang] || samples.en;
+    }
+  );
 }
 
 /**
@@ -86,9 +148,15 @@ export function buildStarterContentFor(lang) {
  * @param {string} targetDir Target directory path.
  * @param {string[]} languages Language codes.
  * @param {boolean} dryRun Dry-run mode.
+ * @param {Object} [templateData] Optional custom template data to use instead of built-in starter content.
  * @returns {Promise<{created:string[],skipped:string[],dir:string}>} Result of the operation.
  */
-export async function writeInitFiles(targetDir, languages, dryRun) {
+export async function writeInitFiles(
+  targetDir,
+  languages,
+  dryRun,
+  templateData,
+) {
   const created = [];
   const skipped = [];
   const resolvedDir = path.resolve(targetDir);
@@ -109,7 +177,7 @@ export async function writeInitFiles(targetDir, languages, dryRun) {
       console.log(chalk.yellow(`${MSG_INIT_SKIPPED_PREFIX}${file}`));
       continue;
     }
-    const content = buildStarterContentFor(lang);
+    const content = templateData ?? buildStarterContentFor(lang);
     if (dryRun) {
       console.log(chalk.blue(`${MSG_INIT_WILL_CREATE}${file}`));
     } else {
