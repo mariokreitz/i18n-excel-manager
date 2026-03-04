@@ -2,10 +2,13 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import ExcelJS from 'exceljs';
+
+import { runAnalyze } from '../src/cli/commands.js';
+import { writeInitFiles } from '../src/cli/helpers.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -80,5 +83,205 @@ describe('CLI flags and commands', () => {
     const res = await runCli(['--to-excel']);
     assert.notEqual(res.code, 0);
     assert.match(res.err + res.out, /unknown option '--to-excel'/);
+  });
+});
+
+function captureConsole() {
+  const origLog = console.log;
+  const origErr = console.error;
+  let out = '';
+  let err = '';
+  console.log = (msg = '', ...rest) => {
+    out += String(msg) + (rest.length > 0 ? ' ' + rest.join(' ') : '') + '\n';
+  };
+  console.error = (msg = '', ...rest) => {
+    err += String(msg) + (rest.length > 0 ? ' ' + rest.join(' ') : '') + '\n';
+  };
+  return {
+    get out() {
+      return out;
+    },
+    get err() {
+      return err;
+    },
+    restore() {
+      console.log = origLog;
+      console.error = origErr;
+    },
+  };
+}
+
+describe('analyze --json-report', () => {
+  let tmpDir;
+
+  beforeEach(async () => {
+    tmpDir = path.join(__dirname, 'tmp-flags-f2');
+    await fs.rm(tmpDir, { recursive: true, force: true });
+    await fs.mkdir(tmpDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it('outputs parseable JSON when jsonReport is true', async () => {
+    const srcDir = path.join(tmpDir, 'src');
+    await fs.mkdir(srcDir, { recursive: true });
+    await fs.writeFile(
+      path.join(srcDir, 'test.ts'),
+      "'app.title' | translate",
+      'utf8',
+    );
+
+    const cap = captureConsole();
+    try {
+      await runAnalyze({
+        input: 'test/fixtures',
+        pattern: path.join(srcDir, '**/*.ts'),
+        jsonReport: true,
+      });
+      const parsed = JSON.parse(cap.out.trim());
+      assert.ok('totalCodeKeys' in parsed);
+      assert.ok('fileReports' in parsed);
+    } finally {
+      cap.restore();
+    }
+  });
+});
+
+describe('analyze --fail-on-missing / --fail-on-unused', () => {
+  let tmpDir;
+
+  beforeEach(async () => {
+    tmpDir = path.join(__dirname, 'tmp-flags-f5');
+    await fs.rm(tmpDir, { recursive: true, force: true });
+    await fs.mkdir(tmpDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it('throws when --fail-on-missing and missing keys exist', async () => {
+    const srcDir = path.join(tmpDir, 'src');
+    await fs.mkdir(srcDir, { recursive: true });
+    await fs.writeFile(
+      path.join(srcDir, 'test.ts'),
+      "'NONEXISTENT.KEY' | translate",
+      'utf8',
+    );
+
+    const cap = captureConsole();
+    try {
+      await assert.rejects(
+        () =>
+          runAnalyze({
+            input: 'test/fixtures',
+            pattern: path.join(srcDir, '**/*.ts'),
+            failOnMissing: true,
+          }),
+        /Analysis failed: missing translation keys detected/,
+      );
+    } finally {
+      cap.restore();
+    }
+  });
+
+  it('throws when --fail-on-unused and unused keys exist', async () => {
+    const srcDir = path.join(tmpDir, 'src');
+    await fs.mkdir(srcDir, { recursive: true });
+    await fs.writeFile(path.join(srcDir, 'test.ts'), 'const x = 1;', 'utf8');
+
+    const cap = captureConsole();
+    try {
+      await assert.rejects(
+        () =>
+          runAnalyze({
+            input: 'test/fixtures',
+            pattern: path.join(srcDir, '**/*.ts'),
+            failOnUnused: true,
+          }),
+        /Analysis failed: unused translation keys detected/,
+      );
+    } finally {
+      cap.restore();
+    }
+  });
+
+  it('does NOT throw when --fail-on-missing and no missing keys', async () => {
+    const srcDir = path.join(tmpDir, 'src');
+    const i18nDir = path.join(tmpDir, 'i18n');
+    await fs.mkdir(srcDir, { recursive: true });
+    await fs.mkdir(i18nDir, { recursive: true });
+    await fs.writeFile(
+      path.join(i18nDir, 'en.json'),
+      JSON.stringify({ key: 'value' }),
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(srcDir, 'test.ts'),
+      "'key' | translate",
+      'utf8',
+    );
+
+    const cap = captureConsole();
+    try {
+      // Should NOT throw
+      await runAnalyze({
+        input: i18nDir,
+        pattern: path.join(srcDir, '**/*.ts'),
+        failOnMissing: true,
+      });
+    } finally {
+      cap.restore();
+    }
+  });
+});
+
+describe('writeInitFiles with templateData', () => {
+  let tmpDir;
+
+  beforeEach(async () => {
+    tmpDir = path.join(__dirname, 'tmp-template');
+    await fs.rm(tmpDir, { recursive: true, force: true });
+    await fs.mkdir(tmpDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it('uses provided templateData instead of built-in starter', async () => {
+    const templateData = { custom: { greeting: 'Hello from template' } };
+    const cap = captureConsole();
+    try {
+      const result = await writeInitFiles(
+        tmpDir,
+        ['en', 'de'],
+        false,
+        templateData,
+      );
+      assert.equal(result.created.length, 2);
+      const enContent = JSON.parse(
+        await fs.readFile(path.join(tmpDir, 'en.json'), 'utf8'),
+      );
+      assert.deepEqual(enContent, templateData);
+    } finally {
+      cap.restore();
+    }
+  });
+
+  it('falls back to buildStarterContentFor when no template', async () => {
+    const cap = captureConsole();
+    try {
+      const result = await writeInitFiles(tmpDir, ['en'], false);
+      assert.equal(result.created.length, 1);
+      const enContent = JSON.parse(
+        await fs.readFile(path.join(tmpDir, 'en.json'), 'utf8'),
+      );
+      assert.equal(enContent.app.title, 'My App');
+    } finally {
+      cap.restore();
+    }
   });
 });
