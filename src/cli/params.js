@@ -1,6 +1,8 @@
 /**
  * @module cli/params
- * Re-exports from configResolution for path and option resolution.
+ * Public-API stability shim. Re-exports from configResolution.js.
+ * External consumers should import from this module, not from configResolution
+ * directly, so that internal reorganisations do not break their imports.
  */
 
 export {
