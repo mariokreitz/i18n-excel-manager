@@ -1,11 +1,18 @@
 import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { afterEach, beforeEach, describe, it } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import {
+  analyzeKeys,
+  extractKeysFromCodebase,
   extractKeysFromContent,
   flattenKeys,
-  analyzeKeys,
 } from '../src/core/analyzer.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 describe('core/analyzer', () => {
   describe('extractKeysFromContent', () => {
@@ -45,6 +52,28 @@ describe('core/analyzer', () => {
         'TITLE.SUB',
       ]);
     });
+
+    it('extracts keys from [translate]="KEY" bare form', () => {
+      const content = `
+        <div [translate]="TITLE.BARE"></div>
+      `;
+      const keys = extractKeysFromContent(content);
+      assert.ok(
+        keys.has('TITLE.BARE'),
+        '[translate]="KEY" bare form should match',
+      );
+    });
+
+    it('extracts keys from *translate="KEY" bare form', () => {
+      const content = `
+        <span *translate="TITLE.BARE2"></span>
+      `;
+      const keys = extractKeysFromContent(content);
+      assert.ok(
+        keys.has('TITLE.BARE2'),
+        '*translate="KEY" bare form should match',
+      );
+    });
   });
 
   describe('flattenKeys', () => {
@@ -82,6 +111,49 @@ describe('core/analyzer', () => {
 
       assert.deepEqual(result.missing, []);
       assert.deepEqual(result.unused, []);
+    });
+  });
+
+  describe('extractKeysFromCodebase', () => {
+    let tmpDir;
+
+    beforeEach(async () => {
+      tmpDir = path.join(__dirname, 'tmp-analyzer');
+      await fs.rm(tmpDir, { recursive: true, force: true });
+      await fs.mkdir(tmpDir, { recursive: true });
+    });
+
+    afterEach(async () => {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    });
+
+    it('warns on unreadable files and returns keys from readable files', async () => {
+      // Create one valid file and one unreadable file
+      const validFile = path.join(tmpDir, 'valid.ts');
+      await fs.writeFile(validFile, "'FOUND.KEY' | translate", 'utf8');
+
+      const unreadableFile = path.join(tmpDir, 'unreadable.ts');
+      await fs.writeFile(unreadableFile, 'content', 'utf8');
+      await fs.chmod(unreadableFile, 0o000);
+
+      const origWarn = console.warn;
+      let warnOutput = '';
+      console.warn = (msg = '', ...rest) => {
+        warnOutput +=
+          String(msg) + (rest.length > 0 ? ' ' + rest.join(' ') : '') + '\n';
+      };
+
+      try {
+        const keys = await extractKeysFromCodebase(
+          path.join(tmpDir, '**/*.ts'),
+        );
+        assert.ok(keys.has('FOUND.KEY'), 'Should have keys from readable file');
+        assert.match(warnOutput, /\[analyzer\] Warning:.*unreadable\.ts/);
+      } finally {
+        console.warn = origWarn;
+        // Restore permissions so cleanup can delete the file
+        await fs.chmod(unreadableFile, 0o644);
+      }
     });
   });
 });
