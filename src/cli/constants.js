@@ -148,3 +148,57 @@ export const TOOL_NAME = 'i18n-excel-manager';
  */
 export const TOOL_DESCRIPTION =
   'Tool for converting i18n files to Excel and back';
+
+/**
+ * Description for JSON report option on analyze command.
+ * @constant {string}
+ */
+export const DESC_JSON_REPORT = 'output analysis report as JSON to stdout';
+
+/**
+ * Description for fail-on-missing option on analyze command.
+ * @constant {string}
+ */
+export const DESC_FAIL_ON_MISSING =
+  'exit with code 1 if any missing keys are found';
+
+/**
+ * Description for fail-on-unused option on analyze command.
+ * @constant {string}
+ */
+export const DESC_FAIL_ON_UNUSED =
+  'exit with code 1 if any unused keys are found';
+
+/**
+ * Description for init template option.
+ * @constant {string}
+ */
+export const DESC_INIT_TEMPLATE =
+  'path to a JSON file to use as the starter translation skeleton';
+
+/**
+ * Description for custom translation provider option.
+ * @constant {string}
+ */
+export const DESC_PROVIDER =
+  'path to a custom TranslationProvider module (must export a default class)';
+
+/**
+ * Description for all-sheets option on excel-to-i18n.
+ * @constant {string}
+ */
+export const DESC_ALL_SHEETS =
+  'process all worksheets instead of only the named one';
+
+/**
+ * Description for watch option on analyze.
+ * @constant {string}
+ */
+export const DESC_WATCH = 'watch files and re-run analysis on change';
+
+/**
+ * Description for format option on analyze.
+ * @constant {string}
+ */
+export const DESC_FORMAT =
+  'output format for analysis report (text, json, sarif)';
