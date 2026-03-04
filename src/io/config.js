@@ -15,11 +15,10 @@ import Joi from 'joi';
 export const configSchema = Joi.object({
   languages: Joi.object()
     .pattern(/^[\w.-]+$/, Joi.string().min(1))
-    .min(1)
-    .required()
+    .optional()
+    .default({})
     .messages({
       'object.base': 'languages must be an object of code:name',
-      'any.required': 'languages is required',
     }),
   defaults: Joi.object({
     sourcePath: Joi.string().min(1).required(),
