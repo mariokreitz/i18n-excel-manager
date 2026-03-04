@@ -1,6 +1,11 @@
 /**
  * @module cli/interactive
  * Interactive menu & prompt-driven conversion flows.
+ *
+ * NOTE: Error handling in interactive mode is intentionally different from
+ * CLI mode. In CLI mode, errors in processCliOptions call process.exit(1).
+ * In interactive mode, errors are caught, logged via logError, and the user is
+ * returned to the menu to try again. This is the expected UX for an interactive tool.
  */
 
 import path from 'node:path';
@@ -31,7 +36,9 @@ const validateNonEmpty = (input) =>
 
 /**
  * Check if initialization is needed and run it if confirmed.
- * @returns {Promise<boolean>} True if init was run (caller should return).
+ * @param {Object} config Runtime config.
+ * @param {Object} defaultConfig Default config values.
+ * @returns {Promise<boolean>} True if init was run (caller should continue loop).
  */
 async function checkAndRunInit(config, defaultConfig) {
   const detection = await detectI18nPresence(defaultConfig.sourcePath);
@@ -65,70 +72,97 @@ async function checkAndRunInit(config, defaultConfig) {
 }
 
 /**
+ * Dispatch the chosen menu action to the appropriate handler.
+ * @param {string} action Selected menu action.
+ * @param {Object} config Runtime config.
+ * @param {Object} defaultConfig Default config values.
+ * @returns {Promise<void>}
+ */
+async function dispatchMenuAction(action, config, defaultConfig) {
+  switch (action) {
+    case 'toExcel': {
+      await handleToExcel(defaultConfig, config);
+      break;
+    }
+    case 'toJson': {
+      await handleToJson(defaultConfig, config);
+      break;
+    }
+    case 'analyze': {
+      await handleAnalyze(defaultConfig);
+      break;
+    }
+    case 'translate': {
+      await handleTranslate(defaultConfig, config);
+      break;
+    }
+    case 'init': {
+      await runInitCommand(
+        { output: defaultConfig.sourcePath },
+        config,
+        defaultConfig,
+      );
+      break;
+    }
+  }
+}
+
+/**
  * Display main interactive menu and dispatch chosen action.
+ * Uses an iterative while loop to avoid unbounded call-stack growth.
  * @param {Object} config Runtime config.
  * @param {Object} defaultConfig Default config values.
  * @returns {Promise<void>}
  */
 export async function showMainMenu(config, defaultConfig) {
-  // Auto-detect and offer initialization if needed
-  if (await checkAndRunInit(config, defaultConfig)) {
-    return; // After init, return to menu on next run
-  }
-  const { action } = await inquirer.prompt([
-    {
-      type: 'select',
-      name: 'action',
-      message: 'Choose an action:',
-      choices: [
-        { name: 'Convert i18n files to Excel', value: 'toExcel' },
-        { name: 'Convert Excel to i18n files', value: 'toJson' },
-        { name: 'Analyze Codebase (Missing/Unused)', value: 'analyze' },
-        { name: 'AI Auto-Translate (Fill missing)', value: 'translate' },
-        { name: 'Initialize i18n files', value: 'init' },
-        { name: 'Exit', value: 'exit' },
-      ],
-    },
-  ]);
-
-  try {
-    switch (action) {
-      case 'toExcel': {
-        await handleToExcel(defaultConfig, config);
-        break;
-      }
-      case 'toJson': {
-        await handleToJson(defaultConfig, config);
-        break;
-      }
-      case 'analyze': {
-        await handleAnalyze(defaultConfig);
-        break;
-      }
-      case 'translate': {
-        await handleTranslate(defaultConfig, config);
-        break;
-      }
-      case 'init': {
-        await runInitCommand(
-          { output: defaultConfig.sourcePath },
-          config,
-          defaultConfig,
-        );
-        break;
-      }
-      case 'exit': {
-        console.log(chalk.green('Goodbye!'));
-        process.exit(0); // eslint-disable-line n/no-process-exit, unicorn/no-process-exit
-      }
+  while (true) {
+    // Auto-detect and offer initialization if needed
+    if (await checkAndRunInit(config, defaultConfig)) {
+      continue;
     }
-  } catch (error) {
-    logError(error);
+
+    const { action } = await inquirer.prompt([
+      {
+        type: 'select',
+        name: 'action',
+        message: 'Choose an action:',
+        choices: [
+          { name: 'Convert i18n files to Excel', value: 'toExcel' },
+          { name: 'Convert Excel to i18n files', value: 'toJson' },
+          { name: 'Analyze Codebase (Missing/Unused)', value: 'analyze' },
+          { name: 'AI Auto-Translate (Fill missing)', value: 'translate' },
+          { name: 'Initialize i18n files', value: 'init' },
+          { name: 'Exit', value: 'exit' },
+        ],
+      },
+    ]);
+
+    if (action === 'exit') {
+      console.log(chalk.green('Goodbye!'));
+      process.exit(0); // eslint-disable-line n/no-process-exit, unicorn/no-process-exit
+    }
+
+    try {
+      await dispatchMenuAction(action, config, defaultConfig);
+    } catch (error) {
+      // Interactive mode: log the error and ask the user if they want to continue.
+      // This is intentionally different from CLI mode, which calls process.exit(1).
+      logError(error);
+    }
+
+    const shouldContinue = await askForAnotherAction();
+    if (!shouldContinue) {
+      console.log(chalk.green('Goodbye!'));
+      process.exit(0); // eslint-disable-line n/no-process-exit, unicorn/no-process-exit
+    }
+    // loop continues — no recursion
   }
 }
 
 /**
  * Prompt for Analysis parameters.
+ * @param {Object} defaultConfig Default config values.
+ * @returns {Promise<void>}
  */
 export async function handleAnalyze(defaultConfig) {
   const answers = await inquirer.prompt([
@@ -148,16 +182,14 @@ export async function handleAnalyze(defaultConfig) {
     },
   ]);
 
-  try {
-    await runAnalyze(answers);
-  } catch (error) {
-    logError(error);
-  }
-  await askForAnotherAction({}, defaultConfig);
+  await runAnalyze(answers);
 }
 
 /**
  * Prompt for AI Translation parameters.
+ * @param {Object} defaultConfig Default config values.
+ * @param {Object} config Runtime config.
+ * @returns {Promise<void>}
  */
 async function handleTranslate(defaultConfig, config) {
   const answers = await inquirer.prompt([
@@ -197,22 +229,20 @@ async function handleTranslate(defaultConfig, config) {
     },
   ]);
 
-  try {
-    await runTranslate({
-      input: answers.input,
-      sourceLang: answers.sourceLang,
-      apiKey: answers.apiKey || undefined,
-      model: answers.model,
-      languageMap: (config && config.languages) || {},
-    });
-  } catch (error) {
-    logError(error);
-  }
-  await askForAnotherAction({}, defaultConfig);
+  await runTranslate({
+    input: answers.input,
+    sourceLang: answers.sourceLang,
+    apiKey: answers.apiKey || undefined,
+    model: answers.model,
+    languageMap: (config && config.languages) || {},
+  });
 }
 
 /**
  * Prompt user for i18n->Excel parameters and invoke conversion.
+ * @param {Object} defaultConfig Default config values.
+ * @param {Object} config Runtime config.
+ * @returns {Promise<void>}
  */
 export async function handleToExcel(defaultConfig, config) {
   const answers = await inquirer.prompt([
@@ -245,18 +275,16 @@ export async function handleToExcel(defaultConfig, config) {
     },
   ]);
 
-  try {
-    // Adapt answers to options expected by runI18nToExcel
-    // resolveI18nToExcelPaths checks options.sourcePath/targetFile too due to params.js mapping or standard check
-    await runI18nToExcel(answers, answers.dryRun, defaultConfig, config);
-  } catch (error) {
-    logError(error);
-  }
-  await askForAnotherAction(config, defaultConfig);
+  // Adapt answers to options expected by runI18nToExcel
+  // resolveI18nToExcelPaths checks options.sourcePath/targetFile too due to params.js mapping or standard check
+  await runI18nToExcel(answers, answers.dryRun, defaultConfig, config);
 }
 
 /**
  * Prompt user for Excel->i18n parameters and invoke conversion.
+ * @param {Object} defaultConfig Default config values.
+ * @param {Object} config Runtime config.
+ * @returns {Promise<void>}
  */
 export async function handleToJson(defaultConfig, config) {
   const answers = await inquirer.prompt([
@@ -289,25 +317,23 @@ export async function handleToJson(defaultConfig, config) {
     },
   ]);
 
-  try {
-    // Adapt answers to options expected by runExcelToI18n
-    // resolveExcelToI18nPaths expects 'input' or 'targetFile', but prompt uses 'sourceFile'
-    await runExcelToI18n(
-      { ...answers, input: answers.sourceFile },
-      answers.dryRun,
-      defaultConfig,
-      config,
-    );
-  } catch (error) {
-    logError(error);
-  }
-  await askForAnotherAction(config, defaultConfig);
+  // Adapt answers to options expected by runExcelToI18n
+  // resolveExcelToI18nPaths expects 'input' or 'targetFile', but prompt uses 'sourceFile'
+  await runExcelToI18n(
+    { ...answers, input: answers.sourceFile },
+    answers.dryRun,
+    defaultConfig,
+    config,
+  );
 }
 
 /**
  * Ask user whether to perform another action after conversion.
+ * Returns true if the user wants to continue, false otherwise.
+ * NOTE: This function no longer recurses into showMainMenu.
+ * @returns {Promise<boolean>} True if user wants to continue.
  */
-export async function askForAnotherAction(config, defaultConfig) {
+export async function askForAnotherAction() {
   const { again } = await inquirer.prompt([
     {
       type: 'confirm',
@@ -317,10 +343,5 @@ export async function askForAnotherAction(config, defaultConfig) {
     },
   ]);
 
-  if (again) {
-    await showMainMenu(config, defaultConfig);
-  } else {
-    console.log(chalk.green('Goodbye!'));
-    process.exit(0); // eslint-disable-line n/no-process-exit, unicorn/no-process-exit
-  }
+  return again;
 }
