@@ -2,6 +2,57 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.3.0] - 2026-03-04
+
+### Fixed
+
+- **Critical: Config values ignored for analyze/translate**: `dispatchCommand` now passes `mergedOptions` (with
+  config.json values resolved) to `runAnalyze` and `runTranslate` instead of raw CLI options.
+- **Critical: Recursive call-stack overflow**: Replaced recursive `showMainMenu` / `askForAnotherAction` pattern with an
+  iterative `while` loop. The interactive menu can now run indefinitely without stack growth.
+- **Languages no longer required in config.json**: The `languages` field in the Joi config schema is now optional,
+  defaulting to `{}`. Users can bootstrap a project with only `defaults`.
+- **Broken Angular directive regex patterns**: Fixed `[translate]` and `*translate` regex patterns that had an extra
+  literal quote preventing matches. Added bare-key variants (`[translate]="KEY"`, `*translate="KEY"`).
+- **Silent discard of unreadable files**: `extractKeysFromCodebase` now logs a `console.warn` for each file that fails
+  to read, instead of silently skipping it.
+- **Language mapping mismatch**: `kk` now maps to `'Kurdish (Kurmanji)'` and `ks` to `'Kurdish (Sorani)'` in the default
+  language map.
+- **Dead extract branch**: Removed unreachable `options.extract` code path from `dispatchCommand`.
+
+### Added
+
+- **`--json-report` flag**: `analyze --json-report` outputs the analysis report as parseable JSON to stdout.
+- **`--fail-on-missing` / `--fail-on-unused` flags**: CI gate flags that make `analyze` exit with code 1 when issues are
+  detected.
+- **`--template` flag for init**: `init --template <file>` uses a custom JSON file as the starter translation skeleton
+  instead of built-in samples.
+- **`--format sarif` output**: `analyze --format sarif` produces a SARIF 2.1.0 report compatible with GitHub Code
+  Scanning.
+- **`--watch` mode for analyze**: `analyze --watch` re-runs analysis on file changes using chokidar.
+- **`--provider` flag for custom TranslationProvider**: `analyze --provider ./my-provider.js` loads a custom translation
+  provider module.
+- **`--all-sheets` flag**: `excel-to-i18n --all-sheets` processes all worksheets in a workbook, merging translations.
+- **Incremental cached analysis**: Analysis results are cached in `.i18n-cache.json` keyed by content hash. Use
+  `--no-cache` to disable.
+- **`ora` progress spinners**: Long-running operations (conversion, translation) now show progress spinners in TTY
+  environments.
+- **Conventional Commits tooling**: Added `commitlint`, `release-it`, and commit-msg hook for enforced commit
+  conventions.
+- **Backup before in-place Excel write**: `translateApp` now creates a `.bak.xlsx` backup before overwriting the
+  workbook.
+
+### Changed
+
+- **Expanded starter translations**: `buildStarterContentFor` now covers 15 languages with a language-tagged generic
+  fallback (e.g. `[xx] My App`) instead of silently returning English.
+- **Extracted `entryHelpers.js`**: `tryLoadLocalConfig` and `isExecutedDirectly` are now in a testable
+  `src/cli/entryHelpers.js` module.
+- **Stability shim docs**: `params.js` and `options.js` now have JSDoc comments explaining their role as public-API
+  stability shims.
+- **Interactive error handling docs**: Added inline documentation explaining the intentional difference between
+  interactive and CLI error handling.
+
 ## [2.2.1] - 2026-02-02
 
 ### Fixed
