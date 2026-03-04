@@ -90,6 +90,23 @@ export async function readWorksheet(io, sourceFile, sheetName) {
 }
 
 /**
+ * Read all worksheets from an Excel file.
+ * @param {IoAdapter} io IO abstraction.
+ * @param {string} sourceFile Excel source path.
+ * @returns {Promise<Object[]>} Array of ExcelJS Worksheet objects.
+ * @throws {Error} If workbook has no worksheets.
+ */
+export async function readAllWorksheets(io, sourceFile) {
+  const workbook = new ExcelJS.Workbook();
+  await io.readWorkbook(sourceFile, workbook);
+  const sheets = workbook.worksheets;
+  if (!sheets || sheets.length === 0) {
+    throw new Error('Workbook contains no worksheets');
+  }
+  return sheets;
+}
+
+/**
  * Handle duplicate keys discovered during Excel -> JSON conversion flow.
  * @param {string[]} duplicates Duplicate key names.
  * @param {boolean} failOnDuplicates Whether to throw instead of warn.
