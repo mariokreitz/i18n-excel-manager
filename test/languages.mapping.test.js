@@ -50,4 +50,14 @@ describe('core/languages/mapping', () => {
     const map = generateDefaultLanguageMap(null);
     assert.deepEqual(map, {});
   });
+
+  it('generates default language map mapping kk to Kurdish (Kurmanji)', () => {
+    const map = generateDefaultLanguageMap(['kk']);
+    assert.equal(map.kk, 'Kurdish (Kurmanji)');
+  });
+
+  it('generates default language map mapping ks to Kurdish (Sorani)', () => {
+    const map = generateDefaultLanguageMap(['ks']);
+    assert.equal(map.ks, 'Kurdish (Sorani)');
+  });
 });
