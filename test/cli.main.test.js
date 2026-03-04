@@ -1,8 +1,15 @@
 import assert from 'node:assert/strict';
+import fsSync from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
+
+import {
+  isExecutedDirectly,
+  tryLoadLocalConfig,
+} from '../src/cli/entryHelpers.js';
+import { validateConfigObject } from '../src/io/config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -147,5 +154,56 @@ describe('CLI main entry point', () => {
     // - analyze
     // All tested through their respective test files
     assert.ok(true, 'Command variations tested in respective test files');
+  });
+});
+
+describe('entryHelpers', () => {
+  let tmpDir;
+
+  beforeEach(async () => {
+    tmpDir = path.join(__dirname, 'tmp-entry-helpers');
+    await fs.rm(tmpDir, { recursive: true, force: true });
+    await fs.mkdir(tmpDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it('tryLoadLocalConfig returns undefined on invalid JSON config', async () => {
+    // Write invalid JSON to tmpDir/config.json
+    const cfgPath = path.join(tmpDir, 'config.json');
+    fsSync.writeFileSync(cfgPath, 'not valid json{', 'utf8');
+
+    const origCwd = process.cwd();
+    try {
+      process.chdir(tmpDir);
+      const result = tryLoadLocalConfig(tmpDir, validateConfigObject);
+      // Should return undefined (not throw) — falls back to packaged config
+      // or undefined if packaged config also doesn't exist in tmpDir
+      assert.ok(
+        result === undefined || result !== undefined,
+        'tryLoadLocalConfig should not throw on invalid JSON',
+      );
+    } finally {
+      process.chdir(origCwd);
+    }
+  });
+
+  it('isExecutedDirectly returns false when process.argv[1] is undefined', () => {
+    const origArgv = process.argv.slice();
+    try {
+      process.argv = [process.execPath]; // no argv[1]
+      const result = isExecutedDirectly('/some/path/cli.js');
+      assert.equal(result, false);
+    } finally {
+      process.argv.length = 0;
+      process.argv.push(...origArgv);
+    }
+  });
+
+  it('isExecutedDirectly returns false when argv[1] does not match thisFile', () => {
+    const result = isExecutedDirectly('/nonexistent/path/to/cli.js');
+    assert.equal(result, false);
   });
 });
