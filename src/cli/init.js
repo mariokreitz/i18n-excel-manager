@@ -3,6 +3,7 @@
  * Interactive i18n directory initialization workflow.
  */
 
+import fsp from 'node:fs/promises';
 import path from 'node:path';
 
 import chalk from 'chalk';
@@ -77,12 +78,25 @@ export async function runInitCommand(options, config, defaultConfig) {
       languages = await promptForLanguages(config);
     }
     const dryRun = computeIsDryRun(options);
+
+    // Load custom template if provided
+    let templateData;
+    if (options.template) {
+      const raw = await fsp.readFile(path.resolve(options.template), 'utf8');
+      templateData = JSON.parse(raw);
+    }
+
     console.log(
       chalk.blue(
         `Initializing i18n directory at ${path.resolve(targetDir)} for languages: ${languages.join(', ')}`,
       ),
     );
-    const res = await writeInitFiles(targetDir, languages, dryRun);
+    const res = await writeInitFiles(
+      targetDir,
+      languages,
+      dryRun,
+      templateData,
+    );
     if (dryRun) {
       console.log(chalk.yellow(MSG_DRY_RUN_PLURAL));
     }
