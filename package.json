@@ -1,6 +1,6 @@
 {
   "name": "i18n-excel-manager",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "All-in-one CLI tool for Angular i18n workflow: convert JSON ↔ Excel, analyze codebase for missing/unused translation keys, auto-translate with AI (Gemini). Supports ngx-translate, Angular v17+, and placeholder validation.",
   "type": "module",
   "main": "src/index.js",
@@ -19,6 +19,8 @@
     "prepare": "husky",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "lint:commits": "commitlint --from HEAD~10 --to HEAD",
+    "release": "release-it",
     "test:coverage": "c8 --reporter=json-summary --reporter=lcov --reporter=text-summary --check-coverage --branches=85 --functions=85 --lines=85 --statements=85 node --test"
   },
   "keywords": [
@@ -39,20 +41,25 @@
   "bugs": {
     "url": "https://github.com/mariokreitz/i18n-excel-manager/issues"
   },
-  "homepage": "https://github.com/mariokreitz/i18n-excel-manager#readme",
+  "homepage": "https://mariokreitz.github.io/i18n-ui/",
   "dependencies": {
     "@google/genai": "^1.37.0",
     "chalk": "^5.3.0",
+    "chokidar": "^4.0.3",
     "commander": "^14.0.2",
     "exceljs": "^4.3.0",
     "figlet": "^1.6.0",
     "glob": "^13.0.0",
     "inquirer": "^13.0.1",
-    "joi": "^18.0.1"
+    "joi": "^18.0.1",
+    "ora": "^8.2.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.39.2",
+    "@release-it/conventional-changelog": "^8.0.1",
     "c8": "^11.0.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
@@ -66,6 +73,7 @@
     "husky": "^9.0.11",
     "lint-staged": "^16.2.6",
     "prettier": "^3.3.3",
+    "release-it": "^17.1.1",
     "ts-api-utils": "^2.4.0"
   },
   "engines": {
