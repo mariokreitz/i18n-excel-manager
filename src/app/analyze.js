@@ -1,7 +1,7 @@
 import {
+  analyzeKeys,
   extractKeysFromCodebase,
   flattenKeys,
-  analyzeKeys,
 } from '../core/analyzer.js';
 
 /**
@@ -18,7 +18,7 @@ export async function analyzeApp(io, options, deps = {}) {
   // Default dependencies
   const extractKeys = deps.extractKeys || extractKeysFromCodebase;
 
-  const { sourcePath, codePattern } = options;
+  const { sourcePath, codePattern, useCache } = options;
 
   // 1. Load all i18n JSON files
   let jsonFiles;
@@ -35,7 +35,7 @@ export async function analyzeApp(io, options, deps = {}) {
   }
 
   // 2. Extract keys from codebase
-  const codeKeys = await extractKeys(codePattern);
+  const codeKeys = await extractKeys(codePattern, { useCache });
 
   // 3. Analyze each file
   const report = {};
