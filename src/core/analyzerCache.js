@@ -1,0 +1,78 @@
+/**
+ * @fileoverview Incremental cache for codebase analysis.
+ * Caches per-file translation key extractions keyed by content hash (SHA-256).
+ * Falls back to a full scan when cache misses occur.
+ * @module core/analyzerCache
+ */
+
+import { createHash } from 'node:crypto';
+import fs from 'node:fs';
+
+/** @constant {string} Default cache file path. */
+const DEFAULT_CACHE_PATH = '.i18n-cache.json';
+
+/**
+ * Compute a SHA-256 hash of a string.
+ * @param {string} content File content.
+ * @returns {string} Hex-encoded SHA-256 hash.
+ */
+export function hashContent(content) {
+  return createHash('sha256').update(content, 'utf8').digest('hex');
+}
+
+/**
+ * Load the cache file from disk. Returns an empty object on any error.
+ * @param {string} [cachePath] Path to cache file.
+ * @returns {Object<string, {hash: string, keys: string[]}>} Cache entries keyed by file path.
+ */
+export function loadCache(cachePath = DEFAULT_CACHE_PATH) {
+  try {
+    const raw = fs.readFileSync(cachePath, 'utf8');
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Write the cache object to disk.
+ * @param {Object<string, {hash: string, keys: string[]}>} cache Cache entries.
+ * @param {string} [cachePath] Path to cache file.
+ */
+export function saveCache(cache, cachePath = DEFAULT_CACHE_PATH) {
+  fs.writeFileSync(cachePath, JSON.stringify(cache, null, 2), 'utf8');
+}
+
+/**
+ * Determine whether a file's cache entry is still valid.
+ * @param {Object<string, {hash: string, keys: string[]}>} cache Cache entries.
+ * @param {string} filePath Absolute or relative file path.
+ * @param {string} contentHash SHA-256 of the current file content.
+ * @returns {boolean} True if cache is hit.
+ */
+export function isCacheHit(cache, filePath, contentHash) {
+  const entry = cache[filePath];
+  return Boolean(entry && entry.hash === contentHash);
+}
+
+/**
+ * Get cached keys for a file.
+ * @param {Object<string, {hash: string, keys: string[]}>} cache
+ * @param {string} filePath
+ * @returns {string[]} Cached key list.
+ */
+export function getCachedKeys(cache, filePath) {
+  return cache[filePath]?.keys ?? [];
+}
+
+/**
+ * Update a cache entry for a file.
+ * @param {Object<string, {hash: string, keys: string[]}>} cache
+ * @param {string} filePath
+ * @param {string} hash Content hash.
+ * @param {string[]} keys Extracted translation keys.
+ */
+export function updateCacheEntry(cache, filePath, hash, keys) {
+  // eslint-disable-next-line no-param-reassign
+  cache[filePath] = { hash, keys };
+}
