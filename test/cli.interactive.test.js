@@ -44,39 +44,33 @@ function captureConsole() {
 }
 
 describe('CLI interactive helpers', () => {
-  it('askForAnotherAction false path prints Goodbye and exits', async () => {
+  it('askForAnotherAction returns false when user declines', async () => {
     const origPrompt = inquirer.prompt;
-    const origExit = process.exit;
-    const cap = captureConsole();
-    let exited = false;
     // stub
     inquirer.prompt = () => Promise.resolve({ again: false });
-    process.exit = (code) => {
-      exited = true;
-      throw new Error(`exit:${code}`);
-    };
     try {
-      await askForAnotherAction();
-      assert.fail('expected exit');
-    } catch (e) {
-      assert.match(String(e), /exit:0/);
-      assert.ok(exited);
-      assert.match(cap.out, /Goodbye!/);
+      const result = await askForAnotherAction();
+      assert.equal(result, false);
     } finally {
-      cap.restore();
       inquirer.prompt = origPrompt;
-      process.exit = origExit;
     }
   });
 
-  it('handleToExcel dry-run prints messages and invokes follow-up prompt', async () => {
+  it('askForAnotherAction returns true when user confirms', async () => {
     const origPrompt = inquirer.prompt;
-    const origExit = process.exit;
-    let exited = false;
+    inquirer.prompt = () => Promise.resolve({ again: true });
+    try {
+      const result = await askForAnotherAction();
+      assert.equal(result, true);
+    } finally {
+      inquirer.prompt = origPrompt;
+    }
+  });
 
-    // Mock prompt to return answers sequentially
-    // 1. handleToExcel questions
-    // 2. askForAnotherAction question (false -> exit)
+  it('handleToExcel dry-run prints messages', async () => {
+    const origPrompt = inquirer.prompt;
+
+    // Mock prompt to return answers for handleToExcel questions only
     inquirer.prompt = async (questions) => {
       if (Array.isArray(questions) && questions[0].name === 'sourcePath') {
         return {
@@ -86,15 +80,7 @@ describe('CLI interactive helpers', () => {
           dryRun: true,
         };
       }
-      if (Array.isArray(questions) && questions[0].name === 'again') {
-        return { again: false };
-      }
       return {};
-    };
-
-    process.exit = (code) => {
-      exited = true;
-      throw new Error(`exit:${code}`);
     };
 
     const cap = captureConsole();
@@ -103,24 +89,17 @@ describe('CLI interactive helpers', () => {
         { sourcePath: 'd', targetFile: 'd', sheetName: 'd' },
         {},
       );
-      assert.fail('expected exit');
-    } catch (e) {
-      assert.match(String(e), /exit:0/);
-      assert.ok(exited);
       // runI18nToExcel output
       assert.match(cap.out, /Converting i18n files from/);
-      assert.match(cap.out, /Dry-run: No file was written/); // Note: runI18nToExcel uses logDryRunSingle
+      assert.match(cap.out, /Dry-run: No file was written/);
     } finally {
       cap.restore();
       inquirer.prompt = origPrompt;
-      process.exit = origExit;
     }
   });
 
-  it('handleToJson dry-run prints messages and invokes follow-up prompt', async () => {
+  it('handleToJson dry-run prints messages', async () => {
     const origPrompt = inquirer.prompt;
-    const origExit = process.exit;
-    let exited = false;
 
     // create a minimal workbook to satisfy existence checks
     const tmpXlsx = path.join(__dirname, 'tmp-interactive.xlsx');
@@ -139,15 +118,7 @@ describe('CLI interactive helpers', () => {
           dryRun: true,
         };
       }
-      if (Array.isArray(questions) && questions[0].name === 'again') {
-        return { again: false };
-      }
       return {};
-    };
-
-    process.exit = (code) => {
-      exited = true;
-      throw new Error(`exit:${code}`);
     };
 
     const cap = captureConsole();
@@ -156,17 +127,12 @@ describe('CLI interactive helpers', () => {
         { targetFile: 'd', targetPath: 'd', sheetName: 'd' },
         {},
       );
-      assert.fail('expected exit');
-    } catch (e) {
-      assert.match(String(e), /exit:0/);
-      assert.ok(exited);
       // runExcelToI18n output
       assert.match(cap.out, /Converting Excel from/);
-      assert.match(cap.out, /Dry-run: No files were written/); // logDryRunPlural
+      assert.match(cap.out, /Dry-run: No files were written/);
     } finally {
       cap.restore();
       inquirer.prompt = origPrompt;
-      process.exit = origExit;
     }
   });
 });
@@ -246,7 +212,7 @@ describe('CLI interactive - showMainMenu comprehensive coverage', () => {
         };
       }
       if (promptCalls === 3) {
-        // askForAnotherAction
+        // askForAnotherAction (now called by the loop)
         return { again: false };
       }
       return {};
@@ -311,6 +277,7 @@ describe('CLI interactive - showMainMenu comprehensive coverage', () => {
         };
       }
       if (promptCalls === 3) {
+        // askForAnotherAction (now called by the loop)
         return { again: false };
       }
       return {};
@@ -373,6 +340,7 @@ describe('CLI interactive - showMainMenu comprehensive coverage', () => {
         };
       }
       if (promptCalls === 3) {
+        // askForAnotherAction (now called by the loop)
         return { again: false };
       }
       return {};
@@ -428,6 +396,7 @@ describe('CLI interactive - showMainMenu comprehensive coverage', () => {
         };
       }
       if (promptCalls === 3) {
+        // askForAnotherAction (now called by the loop)
         return { again: false };
       }
       return {};
@@ -473,6 +442,7 @@ describe('CLI interactive - showMainMenu comprehensive coverage', () => {
         return { languages: ['en', 'de'], confirm: true };
       }
       if (promptCalls === 3) {
+        // askForAnotherAction (now called by the loop)
         return { again: false };
       }
       return {};
@@ -539,20 +509,37 @@ describe('CLI interactive - showMainMenu comprehensive coverage', () => {
     );
 
     const cap = captureConsole();
+    let promptCalls = 0;
+    let exited = false;
 
     inquirer.prompt = async (questions) => {
-      if (questions[0]?.name === 'action') {
+      promptCalls++;
+      if (promptCalls === 1) {
         return { action: 'toExcel' };
       }
-      // Cause an error by providing invalid paths
-      throw new Error('Test prompt error');
+      if (promptCalls === 2) {
+        // Cause an error by providing invalid paths
+        throw new Error('Test prompt error');
+      }
+      if (promptCalls === 3) {
+        // askForAnotherAction — break the loop
+        return { again: false };
+      }
+      return {};
+    };
+
+    process.exit = (code) => {
+      exited = true;
+      throw new Error(`exit:${code}`);
     };
 
     try {
       await showMainMenu({}, { sourcePath: i18nDir });
-      // Should handle error gracefully
     } catch (e) {
-      // Error should be logged, not thrown
+      // Error should be caught by the loop, logged, then exit on again=false
+      if (exited) {
+        assert.match(String(e), /exit:0/);
+      }
     } finally {
       cap.restore();
     }
@@ -589,7 +576,6 @@ describe('CLI interactive - showMainMenu comprehensive coverage', () => {
 
   it('handleAnalyze uses correct defaults for i18n path and pattern', async () => {
     const origPrompt = inquirer.prompt;
-    const origExit = process.exit;
     let promptedQuestions = null;
 
     // Mock prompt to capture question defaults
@@ -602,14 +588,7 @@ describe('CLI interactive - showMainMenu comprehensive coverage', () => {
           pattern: 'src/**/*.{ts,js,html}',
         };
       }
-      if (Array.isArray(questions) && questions[0].name === 'again') {
-        return { again: false };
-      }
       return {};
-    };
-
-    process.exit = () => {
-      throw new Error('exit');
     };
 
     const cap = captureConsole();
@@ -618,11 +597,10 @@ describe('CLI interactive - showMainMenu comprehensive coverage', () => {
     try {
       await handleAnalyze(testDefaultConfig);
     } catch (e) {
-      // Expected to exit
+      // Expected if analysis fails on missing files
     } finally {
       cap.restore();
       inquirer.prompt = origPrompt;
-      process.exit = origExit;
     }
 
     // Verify the input question has correct message and default
@@ -650,6 +628,104 @@ describe('CLI interactive - showMainMenu comprehensive coverage', () => {
       patternQ.default,
       /^src\//,
       'Pattern default should start with src/ for Angular projects',
+    );
+  });
+
+  it('showMainMenu loops without stack overflow after 3 iterations', async () => {
+    const i18nDir = path.join(tmpDir, 'i18n');
+    await fs.mkdir(i18nDir, { recursive: true });
+    await fs.writeFile(
+      path.join(i18nDir, 'en.json'),
+      JSON.stringify({ key: 'value' }),
+      'utf8',
+    );
+
+    const cap = captureConsole();
+    let exited = false;
+    let iteration = 0;
+
+    const actionAnswers = {
+      action: () => {
+        iteration++;
+        return iteration <= 2 ? { action: 'toExcel' } : { action: 'exit' };
+      },
+      sourcePath: () => ({
+        sourcePath: i18nDir,
+        targetFile: path.join(tmpDir, `out${iteration}.xlsx`),
+        sheetName: 'Translations',
+        dryRun: true,
+      }),
+      again: () => ({ again: true }),
+    };
+
+    inquirer.prompt = async (questions) => {
+      const name = Array.isArray(questions) ? questions[0]?.name : undefined;
+      return (actionAnswers[name] ?? (() => ({})))();
+    };
+
+    process.exit = (code) => {
+      exited = true;
+      throw new Error(`exit:${code}`);
+    };
+
+    try {
+      await showMainMenu(
+        {},
+        {
+          sourcePath: i18nDir,
+          targetFile: 'test.xlsx',
+          sheetName: 'Translations',
+        },
+      );
+    } catch (e) {
+      assert.match(String(e), /exit:0/);
+    } finally {
+      cap.restore();
+    }
+
+    assert.ok(exited, 'process.exit should have been called');
+    assert.equal(iteration, 3, 'should have iterated 3 times');
+    assert.match(cap.out, /Goodbye!/);
+  });
+
+  it('checkAndRunInit returns false when i18n files are present', async () => {
+    const i18nDir = path.join(tmpDir, 'i18n-present');
+    await fs.mkdir(i18nDir, { recursive: true });
+    await fs.writeFile(
+      path.join(i18nDir, 'en.json'),
+      JSON.stringify({ key: 'value' }),
+      'utf8',
+    );
+
+    const cap = captureConsole();
+    let exited = false;
+    let menuShown = false;
+
+    // If checkAndRunInit returns false, showMainMenu proceeds to the menu prompt
+    inquirer.prompt = async (questions) => {
+      if (Array.isArray(questions) && questions[0]?.name === 'action') {
+        menuShown = true;
+        return { action: 'exit' };
+      }
+      return {};
+    };
+
+    process.exit = (code) => {
+      exited = true;
+      throw new Error(`exit:${code}`);
+    };
+
+    try {
+      await showMainMenu({}, { sourcePath: i18nDir });
+    } catch (e) {
+      // expected exit
+    } finally {
+      cap.restore();
+    }
+
+    assert.ok(
+      menuShown,
+      'Menu should have been shown (checkAndRunInit returned false)',
     );
   });
 });
