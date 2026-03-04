@@ -14,6 +14,7 @@
  * @typedef {import('./types.js').ConvertToJsonOptions} ConvertToJsonOptions
  */
 
+import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { analyzeApp } from './app/analyze.js';
@@ -32,6 +33,7 @@ const defaultIo = {
   writeWorkbook: ioExcel.writeWorkbook,
   Excel: ioExcel.Excel, // Expose low-level Excel object for custom operations
   dirname: path.dirname,
+  copyFile: (src, dest) => fs.copyFile(src, dest),
 };
 
 /**
@@ -99,9 +101,11 @@ export async function analyze(options = {}) {
  * @param {string} options.apiKey - Gemini API key.
  * @param {string} [options.sourceLang='en'] - Source language code.
  * @param {string} [options.model='gemini-2.5-flash'] - Gemini model to use.
+ * @param {Object} [deps] - Optional dependencies for testing/custom providers.
+ * @param {Object} [deps.provider] - Custom translation provider instance.
  */
-export async function translate(options) {
-  return translateApp(defaultIo, options);
+export async function translate(options, deps) {
+  return translateApp(defaultIo, options, deps);
 }
 
 export { convertToExcelApp, convertToJsonApp } from './app/convert.js';
