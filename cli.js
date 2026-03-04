@@ -17,18 +17,29 @@ import figlet from 'figlet';
 
 import { processCliOptions } from './src/cli/commands.js';
 import {
-  DEFAULT_CONFIG_FILE,
+  DESC_ALL_SHEETS,
   DESC_CONFIG_FILE,
   DESC_DRY_RUN,
   DESC_FAIL_ON_DUP,
+  DESC_FAIL_ON_MISSING,
+  DESC_FAIL_ON_UNUSED,
+  DESC_FORMAT,
   DESC_INIT_LANGS,
+  DESC_INIT_TEMPLATE,
+  DESC_JSON_REPORT,
   DESC_NO_REPORT,
   DESC_OUTPUT_I18N_DIR,
+  DESC_PROVIDER,
   DESC_SHEET_NAME,
+  DESC_WATCH,
   OPT_CONFIG_FLAG,
   TOOL_DESCRIPTION,
   TOOL_NAME,
 } from './src/cli/constants.js';
+import {
+  isExecutedDirectly,
+  tryLoadLocalConfig,
+} from './src/cli/entryHelpers.js';
 import { showMainMenu } from './src/cli/interactive.js';
 import { validateConfigObject } from './src/io/config.js';
 
@@ -39,46 +50,9 @@ const packageJson = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'),
 );
 
-/**
- * Read and validate a config JSON file at an absolute path.
- * @param {string} absPath
- * @returns {object}
- */
-function loadAndValidateConfig(absPath) {
-  const raw = fs.readFileSync(absPath, 'utf8');
-  const parsed = JSON.parse(raw);
-  return validateConfigObject(parsed);
-}
-
-function tryLoadLocalConfig(configRelPath = DEFAULT_CONFIG_FILE) {
-  // Contract: return validated config object, or undefined if none found/valid anywhere
-  // Precedence: CWD config.json > packaged config.json > undefined
-  try {
-    const absCwd = path.resolve(process.cwd(), configRelPath);
-    if (fs.existsSync(absCwd)) {
-      return loadAndValidateConfig(absCwd);
-    }
-  } catch {
-    // ignore and continue to packaged fallback
-  }
-
-  // Fallback: packaged default config shipped with the tool
-  try {
-    const packaged = path.resolve(__dirname, 'config.json');
-    if (fs.existsSync(packaged)) {
-      return loadAndValidateConfig(packaged);
-    }
-  } catch {
-    // ignore and surface as undefined below
-  }
-
-  // Swallow and treat as no config; actual loading with --config will surface errors
-  // Intentionally return nothing (undefined) when no config could be loaded
-}
-
 // Establish runtime defaults for CLI declarations (used only for UI prompts)
 // Prefer local config if present; otherwise fall back to conservative built-ins
-const LOCAL_CONFIG = tryLoadLocalConfig();
+const LOCAL_CONFIG = tryLoadLocalConfig(__dirname, validateConfigObject);
 const defaultConfig = (LOCAL_CONFIG && LOCAL_CONFIG.defaults) || {
   sourcePath: 'public/assets/i18n',
   targetFile: 'dist/translations.xlsx',
@@ -139,6 +113,7 @@ program
   .option('-s, --sheet-name <name>', DESC_SHEET_NAME)
   .option('-d, --dry-run', DESC_DRY_RUN)
   .option('--fail-on-duplicates', DESC_FAIL_ON_DUP)
+  .option('--all-sheets', DESC_ALL_SHEETS)
   .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
   .action((options) => {
     displayHeader();
@@ -157,6 +132,7 @@ program
   .description('Initialize i18n directory and create starter JSON files')
   .option('-o, --output <path>', DESC_OUTPUT_I18N_DIR)
   .option('-l, --languages <list>', DESC_INIT_LANGS)
+  .option('-t, --template <file>', DESC_INIT_TEMPLATE)
   .option('-d, --dry-run', DESC_DRY_RUN)
   .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
   .action((options) => {
@@ -187,6 +163,13 @@ program
   )
   .option('--source-lang <code>', 'Source language code for translation', 'en')
   .option('--model <model>', 'Gemini model to use', 'gemini-2.5-flash')
+  .option('--json-report', DESC_JSON_REPORT)
+  .option('--fail-on-missing', DESC_FAIL_ON_MISSING)
+  .option('--fail-on-unused', DESC_FAIL_ON_UNUSED)
+  .option('--format <type>', DESC_FORMAT)
+  .option('--watch', DESC_WATCH)
+  .option('--no-cache', 'disable incremental analysis cache')
+  .option('--provider <path>', DESC_PROVIDER)
   .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
   .action((options) => {
     displayHeader();
@@ -226,21 +209,7 @@ process.on('uncaughtException', (error) => {
 // Only run main when this file is executed directly (supports npm/yarn/pnpm bin symlinks)
 const thisFile = fileURLToPath(import.meta.url);
 
-function isExecutedDirectly() {
-  try {
-    const argv1 = process.argv[1];
-    if (!argv1) return false;
-    // Resolve symlinks for robust comparison when invoked via npm bin shims
-    const argvReal = fs.realpathSync(argv1);
-    const selfReal = fs.realpathSync(thisFile);
-    return argvReal === selfReal;
-  } catch {
-    // If realpath fails, fall back to a conservative comparison
-    return path.resolve(process.argv[1] || '') === thisFile;
-  }
-}
-
-if (isExecutedDirectly()) {
+if (isExecutedDirectly(thisFile)) {
   main().catch((error) => {
     console.error(chalk.red(`Error during execution: ${error.message}`));
     process.exit(1);
