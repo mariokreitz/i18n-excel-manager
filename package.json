@@ -52,7 +52,7 @@
     "glob": "^13.0.0",
     "inquirer": "^13.0.1",
     "joi": "^18.0.1",
-    "ora": "^8.2.0"
+    "ora": "^9.3.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
