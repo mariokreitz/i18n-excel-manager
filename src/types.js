@@ -18,6 +18,7 @@
  * @property {(filePath: string, workbook: Object) => Promise<void>} writeWorkbook - Writes an Excel workbook to disk.
  * @property {(filePath: string, data: unknown) => Promise<void>} writeJsonFile - Serializes and writes JSON data to a file.
  * @property {(p: string) => string} dirname - Derives directory name from a path (path.dirname).
+ * @property {() => Object} createWorkbook - Creates a new ExcelJS Workbook instance. Used by app/ to avoid direct exceljs dependency.
  * @property {(src: string, dest: string) => Promise<void>} [copyFile] - Optional: copies a file. Used by translateApp for backup before in-place write.
  */
 

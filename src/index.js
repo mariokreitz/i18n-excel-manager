@@ -31,6 +31,7 @@ const defaultIo = {
   writeJsonFile: ioFs.writeJsonFile,
   readWorkbook: ioExcel.readWorkbook,
   writeWorkbook: ioExcel.writeWorkbook,
+  createWorkbook: ioExcel.createWorkbook,
   Excel: ioExcel.Excel, // Expose low-level Excel object for custom operations
   dirname: path.dirname,
   copyFile: (src, dest) => fs.copyFile(src, dest),

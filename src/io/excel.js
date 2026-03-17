@@ -3,10 +3,16 @@
  * Excel workbook read/write helpers wrapping ExcelJS.
  */
 
+import ExcelJS from 'exceljs';
+
 /**
- * Excel file input/output utilities.
- * Handles reading and writing Excel workbooks using ExcelJS.
+ * Creates a new ExcelJS Workbook instance.
+ * Exposed via IoAdapter so app/ layer never imports exceljs directly.
+ * @returns {import('exceljs').Workbook} New workbook instance.
  */
+export function createWorkbook() {
+  return new ExcelJS.Workbook();
+}
 
 /**
  * Reads an Excel file into the provided workbook object.
@@ -28,4 +34,5 @@ export async function readWorkbook(filePath, workbook) {
 export async function writeWorkbook(filePath, workbook) {
   await workbook.xlsx.writeFile(filePath);
 }
+
 export { default as Excel } from 'exceljs';

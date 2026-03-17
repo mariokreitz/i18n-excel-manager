@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
+import ExcelJS from 'exceljs';
+
 import { convertToJsonApp } from '../src/index.js';
 
 function makeFakeIoFromWorkbook(build) {
   return {
     checkFileExists: async () => {},
     ensureDirectoryExists: async () => {},
+    createWorkbook: () => new ExcelJS.Workbook(),
     readWorkbook: async (_path, workbook) => {
       build(workbook);
     },

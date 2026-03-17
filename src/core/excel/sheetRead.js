@@ -4,11 +4,10 @@
  * @module core/excel/sheetRead
  */
 
-// TODO(phase-1): [ARCH VIOLATION] core→io import — validateLanguageCode will be moved to
-// core/validation.js and this import updated. Tracked in ARCHITECTURE_EVOLUTION_PLAN.md.
-import { validateLanguageCode } from '../../io/paths.js';
+// Phase 1 FIX: import from core/validation.js (pure) — no longer violates core→io boundary.
 import { setNestedValue } from '../json/structure.js';
 import { createReverseLanguageMap } from '../languages/mapping.js';
+import { validateLanguageCode } from '../validation.js';
 
 /**
  * Parses and validates the header row of a translation worksheet.

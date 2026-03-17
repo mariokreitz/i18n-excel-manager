@@ -3,11 +3,10 @@
  * Internal helper utilities supporting conversion orchestration.
  * @internal
  * @typedef {import('../types.js').Reporter} Reporter
+ * @typedef {import('../types.js').IoAdapter} IoAdapter
  */
 
-// TODO(phase-1): [ARCH VIOLATION] direct exceljs import in app/ — workbook construction will be
-// routed through io.createWorkbook() (IoAdapter). Tracked in ARCHITECTURE_EVOLUTION_PLAN.md.
-import ExcelJS from 'exceljs';
+// Phase 1 FIX: exceljs removed — workbook construction routed through io.createWorkbook()
 
 import { createTranslationWorksheet } from '../core/excel/sheetWrite.js';
 import {
@@ -63,7 +62,7 @@ export async function writeExcel(
   targetFile,
   { sheetName, translations, languages, languageMap },
 ) {
-  const workbook = new ExcelJS.Workbook();
+  const workbook = io.createWorkbook();
   createTranslationWorksheet(
     workbook,
     sheetName,
@@ -84,7 +83,7 @@ export async function writeExcel(
  * @throws {Error} If worksheet is not found.
  */
 export async function readWorksheet(io, sourceFile, sheetName) {
-  const workbook = new ExcelJS.Workbook();
+  const workbook = io.createWorkbook();
   await io.readWorkbook(sourceFile, workbook);
   const ws = workbook.getWorksheet(sheetName);
   if (!ws) throw new Error(`Worksheet "${sheetName}" not found`);
@@ -99,7 +98,7 @@ export async function readWorksheet(io, sourceFile, sheetName) {
  * @throws {Error} If workbook has no worksheets.
  */
 export async function readAllWorksheets(io, sourceFile) {
-  const workbook = new ExcelJS.Workbook();
+  const workbook = io.createWorkbook();
   await io.readWorkbook(sourceFile, workbook);
   const sheets = workbook.worksheets;
   if (!sheets || sheets.length === 0) {
