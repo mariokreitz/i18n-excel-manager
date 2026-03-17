@@ -24,8 +24,9 @@ function toCanonicalPath(filePath) {
         return path.join(currentReal, path.relative(current, filePath));
       } catch {
         const parent = path.dirname(current);
-        if (parent === current)
-          {throw new Error(`Unsafe output path: ${filePath}`);}
+        if (parent === current) {
+          throw new Error(`Unsafe output path: ${filePath}`);
+        }
         current = parent;
       }
     }
