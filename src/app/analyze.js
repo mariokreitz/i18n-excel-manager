@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Orchestration layer for codebase / i18n analysis.
+ * Delegates extraction and comparison to pure core functions;
+ * all filesystem I/O is channelled through the IO adapter.
+ * @module app/analyze
+ */
+
 import {
   analyzeKeys,
   extractKeysFromCodebase,
@@ -6,13 +13,14 @@ import {
 
 /**
  * Orchestrates the analysis of the codebase and i18n files.
- * @param {object} io - IO adapter.
- * @param {object} options - Options object.
+ * @param {import('../types.js').IoAdapter} io - IO adapter.
+ * @param {Object} options - Options object.
  * @param {string} options.sourcePath - Path to the i18n JSON directory.
  * @param {string} options.codePattern - Glob pattern for source code scanning.
- * @param {object} [deps] - Dependencies (for testing).
+ * @param {boolean} [options.useCache=false] - Enable incremental key-extraction cache.
+ * @param {Object} [deps] - Dependencies (for testing).
  * @param {Function} [deps.extractKeys] - Function to extract keys from codebase.
- * @returns {Promise<object>} Report object.
+ * @returns {Promise<{totalCodeKeys: number, fileReports: Object<string, {missing: string[], unused: string[]}>}>} Report object.
  */
 export async function analyzeApp(io, options, deps = {}) {
   // Default dependencies

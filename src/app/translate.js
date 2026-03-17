@@ -226,21 +226,28 @@ const translateTarget = async (
  * @param {string} input Original Excel file path.
  * @param {Object} workbook ExcelJS Workbook instance.
  * @param {number} changesCount Number of cells updated.
+ * @param {{log: Function}} logger Logger abstraction.
  * @returns {Promise<void>}
  */
-async function writeTranslatedWorkbook(io, input, workbook, changesCount) {
+async function writeTranslatedWorkbook(
+  io,
+  input,
+  workbook,
+  changesCount,
+  logger,
+) {
   if (changesCount === 0) {
-    console.log('No missing translations found.');
+    logger.log('No missing translations found.');
     return;
   }
   // Create a backup before overwriting the original file.
   const backupPath = input.replace(/\.xlsx$/i, '') + '.bak.xlsx';
   if (io.copyFile) {
     await io.copyFile(input, backupPath);
-    console.log(`Backup created: ${backupPath}`);
+    logger.log(`Backup created: ${backupPath}`);
   }
   await io.writeWorkbook(input, workbook);
-  console.log(`Updated ${changesCount} cells in ${input}`);
+  logger.log(`Updated ${changesCount} cells in ${input}`);
 }
 
 /**
@@ -258,6 +265,7 @@ async function writeTranslatedWorkbook(io, input, workbook, changesCount) {
  * @param {Object<string, string>} [options.languageMap={}] - Language code to display name mapping.
  * @param {Object} [deps={}] - Dependencies for testing (e.g., mock provider).
  * @param {Object} [deps.provider] - Translation provider instance (for testing).
+ * @param {{log: Function}} [deps.logger] - Logger abstraction for progress output.
  * @returns {Promise<void>} Resolves when translation is complete.
  * @throws {Error} If API key is missing or worksheet is empty.
  * @example
@@ -281,6 +289,7 @@ export async function translateApp(io, options, deps = {}) {
   assertNonEmptyString(sourceLang, 'sourceLang');
 
   const provider = deps.provider ?? new GeminiProvider(apiKey, model);
+  const logger = deps.logger ?? console;
 
   const workbook = new io.Excel.Workbook();
   await io.readWorkbook(input, workbook);
@@ -297,7 +306,7 @@ export async function translateApp(io, options, deps = {}) {
   );
 
   if (targets.length === 0) {
-    console.log('No target language columns detected.');
+    logger.log('No target language columns detected.');
     return;
   }
 
@@ -311,5 +320,5 @@ export async function translateApp(io, options, deps = {}) {
     });
   }
 
-  await writeTranslatedWorkbook(io, input, workbook, changesCount);
+  await writeTranslatedWorkbook(io, input, workbook, changesCount, logger);
 }

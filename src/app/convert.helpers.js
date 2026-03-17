@@ -6,15 +6,11 @@
  * @typedef {import('../types.js').IoAdapter} IoAdapter
  */
 
-// Phase 1 FIX: exceljs removed — workbook construction routed through io.createWorkbook()
-
 import { createTranslationWorksheet } from '../core/excel/sheetWrite.js';
-import {
-  flattenTranslations,
-  validateJsonStructure,
-} from '../core/json/structure.js';
+import { buildTranslationTableFromJsonFiles } from '../core/model/translationTable.js';
 import { generateTranslationReport } from '../core/report/translationReport.js';
-import { safeJoinWithin, validateLanguageCode } from '../io/paths.js';
+import { validateLanguageCode } from '../core/validation.js';
+import { safeJoinWithin } from '../io/paths.js';
 
 /**
  * Build aggregate translation map and language list from file inputs.
@@ -22,18 +18,7 @@ import { safeJoinWithin, validateLanguageCode } from '../io/paths.js';
  * @returns {{translations: Map<string, Object<string,string>>, languages: string[]}} Key-to-language map and sorted language codes.
  */
 export function collectTranslations(files) {
-  const translations = new Map();
-  const langSet = new Set();
-  for (const { name, data } of files) {
-    const lang = name.replace(/\.json$/, '');
-    langSet.add(lang);
-    validateJsonStructure(data);
-    flattenTranslations(data, '', (k, v) => {
-      if (!translations.has(k)) translations.set(k, {});
-      translations.get(k)[lang] = v;
-    });
-  }
-  return { translations, languages: Array.from(langSet).toSorted() };
+  return buildTranslationTableFromJsonFiles(files);
 }
 
 /**

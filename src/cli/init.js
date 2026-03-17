@@ -16,6 +16,7 @@ import {
   writeInitFiles,
 } from './helpers.js';
 import { logError } from './logging.js';
+import { defaultRuntime } from './runtime.js';
 
 /**
  * Builds language choices for the init prompt with a safe fallback when no languages are configured.
@@ -69,15 +70,28 @@ export async function promptForLanguages(config) {
  * @param {object} defaultConfig - Default configuration.
  * @returns {Promise<void>}
  */
-export async function runInitCommand(options, config, defaultConfig) {
+export async function runInitCommand(
+  options,
+  config,
+  defaultConfig,
+  runtime = defaultRuntime(),
+) {
   try {
-    const targetDir = options.output || defaultConfig.sourcePath;
+    const infoLog = (() => {
+      if (options?.quiet === true) return () => {};
+      if (options?.format === 'json' || options?.format === 'sarif') {
+        return runtime.error;
+      }
+      return runtime.log;
+    })();
+
+    const targetDir = options.output || defaultConfig?.sourcePath || '';
     let languages = parseLanguagesArg(options.languages);
     if (!languages) {
       // Ask interactively if not provided
       languages = await promptForLanguages(config);
     }
-    const dryRun = computeIsDryRun(options);
+    const dryRun = computeIsDryRun(options, runtime.argv);
 
     // Load custom template if provided
     let templateData;
@@ -86,7 +100,7 @@ export async function runInitCommand(options, config, defaultConfig) {
       templateData = JSON.parse(raw);
     }
 
-    console.log(
+    infoLog(
       chalk.blue(
         `Initializing i18n directory at ${path.resolve(targetDir)} for languages: ${languages.join(', ')}`,
       ),
@@ -96,13 +110,14 @@ export async function runInitCommand(options, config, defaultConfig) {
       languages,
       dryRun,
       templateData,
+      { ...runtime, log: infoLog },
     );
     if (dryRun) {
-      console.log(chalk.yellow(MSG_DRY_RUN_PLURAL));
+      infoLog(chalk.yellow(MSG_DRY_RUN_PLURAL));
     }
-    console.log(chalk.green(`${MSG_INIT_COMPLETED_PREFIX}${res.dir}`));
+    infoLog(chalk.green(`${MSG_INIT_COMPLETED_PREFIX}${res.dir}`));
   } catch (error) {
-    logError(error);
-    process.exit(1); // eslint-disable-line n/no-process-exit, unicorn/no-process-exit
+    logError(error, runtime);
+    runtime.exit(1);
   }
 }

@@ -6,7 +6,7 @@ import {
   resolveExcelToI18nPaths,
   resolveFailOnDuplicates,
   resolveI18nToExcelPaths,
-} from '../src/cli/params.js';
+} from '../src/cli/configResolution.js';
 
 describe('CLI params branch coverage', () => {
   const defaults = {

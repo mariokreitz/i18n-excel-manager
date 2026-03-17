@@ -6,47 +6,43 @@
 
 import { convertToExcel, convertToJson } from '../../index.js';
 import {
-  buildCommonOptions,
-  resolveExcelToI18nPaths,
-  resolveFailOnDuplicates,
-  resolveI18nToExcelPaths,
-} from '../configResolution.js';
-import { FLAG_FAIL_ON_DUP } from '../constants.js';
-import {
   logConversionCompleted,
   logConvertExcelToI18n,
   logConvertI18nToExcel,
   logDryRunPlural,
   logDryRunSingle,
 } from '../logging.js';
+import { defaultRuntime } from '../runtime.js';
 
 import { createSpinner } from './shared/spinner.js';
 
 /**
  * Run i18n→Excel conversion using resolved paths.
- * @param {Object} options Merged CLI options.
- * @param {boolean} isDryRun Dry-run flag already computed.
- * @param {Object} defaultConfig Entry default config.
- * @param {Object} config Runtime validated config (may include languages).
+ * @param {Object} options Normalized i18n->Excel contract options.
+ * @param {import('../runtime.js').Runtime} [runtime=defaultRuntime()] Runtime abstraction.
  * @returns {Promise<void>}
  * @throws {Error} Propagates errors from conversion layer.
  */
-export async function runI18nToExcel(options, isDryRun, defaultConfig, config) {
-  const { sourcePath, targetFile } = resolveI18nToExcelPaths(
-    options,
-    defaultConfig,
-  );
-  logConvertI18nToExcel(sourcePath, targetFile);
+export async function runI18nToExcel(options, runtime = defaultRuntime()) {
+  const { sourcePath, targetFile } = options;
+  const effectiveOptions = options;
+  logConvertI18nToExcel(sourcePath, targetFile, runtime, effectiveOptions);
 
-  const spinner = createSpinner('Converting i18n files to Excel...');
+  const spinner = createSpinner(
+    'Converting i18n files to Excel...',
+    runtime,
+    effectiveOptions,
+  );
   spinner.start();
   try {
-    const common = buildCommonOptions(options, defaultConfig, config, isDryRun);
-    await convertToExcel(sourcePath, targetFile, common);
+    await convertToExcel(sourcePath, targetFile, effectiveOptions.common);
     spinner.stop();
 
-    if (isDryRun) logDryRunSingle();
-    else logConversionCompleted(targetFile);
+    if (effectiveOptions.common.dryRun) {
+      logDryRunSingle(runtime, effectiveOptions);
+    } else {
+      logConversionCompleted(targetFile, runtime, effectiveOptions);
+    }
   } catch (error) {
     spinner.fail('Conversion failed');
     throw error;
@@ -55,37 +51,34 @@ export async function runI18nToExcel(options, isDryRun, defaultConfig, config) {
 
 /**
  * Run Excel→i18n conversion using resolved paths.
- * @param {Object} options Merged CLI options.
- * @param {boolean} isDryRun Dry-run flag.
- * @param {Object} defaultConfig Entry defaults.
- * @param {Object} config Runtime validated config.
+ * @param {Object} options Normalized Excel->i18n contract options.
+ * @param {import('../runtime.js').Runtime} [runtime=defaultRuntime()] Runtime abstraction.
  * @returns {Promise<void>}
  * @throws {Error} Propagates errors from conversion layer.
  */
-export async function runExcelToI18n(options, isDryRun, defaultConfig, config) {
-  const { sourceFile, targetPath } = resolveExcelToI18nPaths(
-    options,
-    defaultConfig,
-  );
-  logConvertExcelToI18n(sourceFile, targetPath);
+export async function runExcelToI18n(options, runtime = defaultRuntime()) {
+  const { sourceFile, targetPath } = options;
+  const effectiveOptions = options;
+  logConvertExcelToI18n(sourceFile, targetPath, runtime, effectiveOptions);
 
-  const spinner = createSpinner('Converting Excel to i18n files...');
+  const spinner = createSpinner(
+    'Converting Excel to i18n files...',
+    runtime,
+    effectiveOptions,
+  );
   spinner.start();
   try {
-    const common = buildCommonOptions(options, defaultConfig, config, isDryRun);
-    const failOnDuplicates = resolveFailOnDuplicates(
-      options,
-      process.argv,
-      FLAG_FAIL_ON_DUP,
-    );
     await convertToJson(sourceFile, targetPath, {
-      ...common,
-      failOnDuplicates,
+      ...effectiveOptions.common,
+      failOnDuplicates: effectiveOptions.failOnDuplicates,
     });
     spinner.stop();
 
-    if (isDryRun) logDryRunPlural();
-    else logConversionCompleted(targetPath);
+    if (effectiveOptions.common.dryRun) {
+      logDryRunPlural(runtime, effectiveOptions);
+    } else {
+      logConversionCompleted(targetPath, runtime, effectiveOptions);
+    }
   } catch (error) {
     spinner.fail('Conversion failed');
     throw error;

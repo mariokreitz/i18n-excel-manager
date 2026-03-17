@@ -12,20 +12,32 @@ import { buildSarifReport } from '../../../reporters/sarif.js';
  * Format and print a single file's analysis result (human-readable).
  * @param {string} file Filename key.
  * @param {{missing: string[], unused: string[]}} res Analysis result for that file.
+ * @param {{log: (...args: unknown[]) => void}} runtime Runtime-compatible logger.
+ * @returns {void}
  */
-function printFileAnalysis(file, res) {
-  console.log(chalk.underline(`\n${file}`));
+function printFileAnalysis(file, res, runtime) {
+  runtime.log(chalk.underline(`\n${file}`));
   if (res.missing.length > 0) {
-    console.log(chalk.red('  Missing in JSON:'));
-    for (const k of res.missing) console.log(`    - ${k}`);
+    runtime.log(chalk.red('  Missing in JSON:'));
+    for (const k of res.missing) runtime.log(`    - ${k}`);
   }
   if (res.unused.length > 0) {
-    console.log(chalk.yellow('  Unused in Code:'));
-    for (const k of res.unused) console.log(`    - ${k}`);
+    runtime.log(chalk.yellow('  Unused in Code:'));
+    for (const k of res.unused) runtime.log(`    - ${k}`);
   }
   if (res.missing.length === 0 && res.unused.length === 0) {
-    console.log(chalk.green('  All good!'));
+    runtime.log(chalk.green('  All good!'));
   }
+}
+
+/**
+ * Determine whether the selected output format is machine-readable.
+ * @param {{format?: string}} options CLI options.
+ * @returns {boolean} True for JSON and SARIF formats.
+ * @internal
+ */
+function isMachineFormat(options) {
+  return options.format === 'json' || options.format === 'sarif';
 }
 
 /**
@@ -34,11 +46,17 @@ function printFileAnalysis(file, res) {
  *
  * @param {{totalCodeKeys: number, fileReports: Object}} report Analysis report.
  * @param {{format?: string, jsonReport?: boolean, report?: string, input?: string}} options CLI options.
+ * @param {{log: (...args: unknown[]) => void}} [runtime=console] Runtime output sink.
+ * @returns {void}
  */
-export function printAnalysisOutput(report, options) {
+export function printAnalysisOutput(report, options, runtime = console) {
+  if (options.quiet && !isMachineFormat(options)) {
+    return;
+  }
+
   if (options.format === 'sarif') {
     const sarif = buildSarifReport(report, options.input);
-    console.log(JSON.stringify(sarif, null, 2));
+    runtime.log(JSON.stringify(sarif, null, 2));
     return;
   }
   if (
@@ -46,12 +64,12 @@ export function printAnalysisOutput(report, options) {
     options.jsonReport ||
     options.format === 'json'
   ) {
-    console.log(JSON.stringify(report, null, 2));
+    runtime.log(JSON.stringify(report, null, 2));
     return;
   }
-  console.log(chalk.bold('\nAnalysis Report:'));
-  console.log(`Total Code Keys Found: ${report.totalCodeKeys}`);
+  runtime.log(chalk.bold('\nAnalysis Report:'));
+  runtime.log(`Total Code Keys Found: ${report.totalCodeKeys}`);
   for (const [file, res] of Object.entries(report.fileReports)) {
-    printFileAnalysis(file, res);
+    printFileAnalysis(file, res, runtime);
   }
 }

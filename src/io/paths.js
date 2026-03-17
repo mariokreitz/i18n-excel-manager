@@ -3,16 +3,20 @@
  * Provides security functions for language code validation and directory traversal prevention.
  * @module io/paths
  *
- * NOTE: validateLanguageCode lives in core/validation.js (pure logic, no FS dependency).
- * It is re-exported here for backward compatibility with existing consumers.
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
 
-// Re-export from core so existing imports of validateLanguageCode from io/paths keep working.
-export { validateLanguageCode } from '../core/validation.js';
-
+/**
+ * Canonicalize a path using realpath semantics, even when the leaf path does not exist.
+ * Walks up to the nearest existing ancestor and rebuilds a canonical candidate path.
+ *
+ * @param {string} filePath Absolute path candidate.
+ * @returns {string} Canonical absolute path.
+ * @throws {Error} When no canonical ancestor can be resolved.
+ * @internal
+ */
 function toCanonicalPath(filePath) {
   try {
     return fs.realpathSync(filePath);

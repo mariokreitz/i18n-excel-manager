@@ -4,7 +4,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, it } from 'node:test';
 
-import { safeJoinWithin, validateLanguageCode } from '../src/io/paths.js';
+import { validateLanguageCode } from '../src/core/validation.js';
+import { safeJoinWithin } from '../src/io/paths.js';
 
 describe('io/paths', () => {
   it('validateLanguageCode: accepts typical codes and rejects invalid', () => {

@@ -18,7 +18,8 @@ import {
   runExcelToI18n,
   runI18nToExcel,
   runTranslate,
-} from './commands.js';
+} from './commands/index.js';
+import { buildCommonOptions } from './configResolution.js';
 import { MSG_INIT_DETECTED_NONE } from './constants.js';
 import { detectI18nPresence } from './helpers.js';
 import { runInitCommand } from './init.js';
@@ -190,6 +191,7 @@ export async function handleAnalyze(defaultConfig) {
  * @param {Object} defaultConfig Default config values.
  * @param {Object} config Runtime config.
  * @returns {Promise<void>}
+ * @private
  */
 async function handleTranslate(defaultConfig, config) {
   const answers = await inquirer.prompt([
@@ -275,9 +277,12 @@ export async function handleToExcel(defaultConfig, config) {
     },
   ]);
 
-  // Adapt answers to options expected by runI18nToExcel
-  // resolveI18nToExcelPaths checks options.sourcePath/targetFile too due to params.js mapping or standard check
-  await runI18nToExcel(answers, answers.dryRun, defaultConfig, config);
+  await runI18nToExcel({
+    ...answers,
+    format: 'text',
+    quiet: false,
+    common: buildCommonOptions(answers, defaultConfig, config, answers.dryRun),
+  });
 }
 
 /**
@@ -317,14 +322,13 @@ export async function handleToJson(defaultConfig, config) {
     },
   ]);
 
-  // Adapt answers to options expected by runExcelToI18n
-  // resolveExcelToI18nPaths expects 'input' or 'targetFile', but prompt uses 'sourceFile'
-  await runExcelToI18n(
-    { ...answers, input: answers.sourceFile },
-    answers.dryRun,
-    defaultConfig,
-    config,
-  );
+  await runExcelToI18n({
+    ...answers,
+    failOnDuplicates: false,
+    format: 'text',
+    quiet: false,
+    common: buildCommonOptions(answers, defaultConfig, config, answers.dryRun),
+  });
 }
 
 /**

@@ -10,7 +10,7 @@ import { extractPlaceholders } from '../json/placeholders.js';
 
 /**
  * Computes languages that are missing translations for a given key.
- * Compute languages missing a translation value (empty string counts as missing).
+ * Empty string values are treated as missing.
  * @param {string[]} languages - Known language codes.
  * @param {Object<string,string>} langValues - Map of language->value for a key.
  * @returns {string[]} Language codes missing values.
@@ -24,7 +24,6 @@ const computeMissingLangs = (languages, langValues) =>
 
 /**
  * Builds a map of placeholders for each language's translation value.
- * Build a map of placeholders per language for a given key.
  * @param {string[]} languages - Language codes.
  * @param {Object<string,string>} langValues - Map of language->string value.
  * @returns {Object<string,Set<string>>} Placeholder sets per language.
@@ -39,7 +38,6 @@ const buildPlaceholderMap = (languages, langValues) =>
 
 /**
  * Collects all unique placeholders across all languages.
- * Aggregate all unique placeholders across languages.
  * @param {Object<string,Set<string>>} placeholderMap - Map of language->Set.
  * @returns {Set<string>} Unified placeholder set.
  */
@@ -53,7 +51,7 @@ const collectAllPlaceholders = (placeholderMap) => {
 
 /**
  * Checks if there are placeholder inconsistencies across languages.
- * Detect any placeholder inconsistencies: missing placeholder in any language.
+ * Returns true when any language is missing at least one placeholder present in others.
  * @param {Object<string,Set<string>>} placeholderMap - Map of language->Set.
  * @param {Set<string>} allPlaceholders - Unified placeholder set.
  * @param {string[]} languages - Language codes.
@@ -69,14 +67,11 @@ const hasPlaceholderInconsistency = (
   );
 
 /**
- * Generates a comprehensive report on translation data.
- * Generate a translation report from aggregated translations.
+ * Generates a comprehensive report on translation data, covering
+ * missing values, duplicate keys, and placeholder inconsistencies.
  * @param {Map<string,Object<string,string>>} translations - Map of key->language values.
  * @param {string[]} languages - Language codes.
  * @returns {TranslationReport} Report data object.
- * @returns {Array<{key: string, lang: string}>} result.missing - Array of missing translation entries.
- * @returns {string[]} result.duplicates - Array of duplicate key strings.
- * @returns {Array<{key: string, placeholders: Object.<string, Set<string>>}>} result.placeholderInconsistencies - Array of keys with inconsistent placeholders.
  */
 export function generateTranslationReport(translations, languages) {
   const missing = [];

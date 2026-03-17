@@ -15,7 +15,7 @@ import chalk from 'chalk';
 import { program } from 'commander';
 import figlet from 'figlet';
 
-import { processCliOptions } from './src/cli/commands.js';
+import { processCliOptions } from './src/cli/commands/index.js';
 import {
   DESC_ALL_SHEETS,
   DESC_CONFIG_FILE,
@@ -45,14 +45,22 @@ import { validateConfigObject } from './src/io/config.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Load package information
 const packageJson = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'),
 );
 
-// Establish runtime defaults for CLI declarations (used only for UI prompts)
-// Prefer local config if present; otherwise fall back to conservative built-ins
+/**
+ * Validated local configuration loaded from CWD or packaged fallback.
+ * `null` when no valid config file could be found.
+ * @type {Object|null|undefined}
+ */
 const LOCAL_CONFIG = tryLoadLocalConfig(__dirname, validateConfigObject);
+
+/**
+ * Effective defaults used to populate CLI option defaults and the interactive menu.
+ * Derived from `LOCAL_CONFIG.defaults` when available; otherwise hardcoded safe values.
+ * @type {{sourcePath:string, targetFile:string, targetPath:string, sheetName:string}}
+ */
 const defaultConfig = (LOCAL_CONFIG && LOCAL_CONFIG.defaults) || {
   sourcePath: 'public/assets/i18n',
   targetFile: 'dist/translations.xlsx',
@@ -76,7 +84,26 @@ export function displayHeader() {
 }
 
 /**
- * Configure command line arguments
+ * Decide whether the CLI banner should be printed for a command invocation.
+ * Suppresses decorative output in machine-readable modes and quiet mode so
+ * stdout remains parseable for automation.
+ *
+ * @param {{quiet?: boolean, jsonReport?: boolean, format?: string}} [options={}] Parsed command options.
+ * @returns {boolean} True when the banner should be printed.
+ */
+function shouldDisplayHeaderForOptions(options = {}) {
+  return !(
+    options.quiet === true ||
+    options.jsonReport === true ||
+    options.format === 'json' ||
+    options.format === 'sarif'
+  );
+}
+
+/**
+ * Configure and register all Commander subcommands.
+ * Each command sets a flag on the parsed options object and delegates to
+ * {@link processCliOptions} for normalization, validation and dispatch.
  */
 program
   .name(TOOL_NAME)
@@ -91,10 +118,12 @@ program
   .option('-o, --output <file>', 'path for the output Excel file')
   .option('-s, --sheet-name <name>', DESC_SHEET_NAME)
   .option('-d, --dry-run', DESC_DRY_RUN)
+  .option('--format <type>', DESC_FORMAT)
+  .option('--quiet', 'suppress non-error output')
   .option('--no-report', DESC_NO_REPORT)
   .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
   .action((options) => {
-    displayHeader();
+    if (shouldDisplayHeaderForOptions(options)) displayHeader();
     options.i18nToExcel = true;
     processCliOptions(
       options,
@@ -112,11 +141,13 @@ program
   .option('-o, --output <path>', DESC_OUTPUT_I18N_DIR)
   .option('-s, --sheet-name <name>', DESC_SHEET_NAME)
   .option('-d, --dry-run', DESC_DRY_RUN)
+  .option('--format <type>', DESC_FORMAT)
+  .option('--quiet', 'suppress non-error output')
   .option('--fail-on-duplicates', DESC_FAIL_ON_DUP)
   .option('--all-sheets', DESC_ALL_SHEETS)
   .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
   .action((options) => {
-    displayHeader();
+    if (shouldDisplayHeaderForOptions(options)) displayHeader();
     options.excelToI18n = true;
     processCliOptions(
       options,
@@ -134,9 +165,11 @@ program
   .option('-l, --languages <list>', DESC_INIT_LANGS)
   .option('-t, --template <file>', DESC_INIT_TEMPLATE)
   .option('-d, --dry-run', DESC_DRY_RUN)
+  .option('--format <type>', DESC_FORMAT)
+  .option('--quiet', 'suppress non-error output')
   .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
   .action((options) => {
-    displayHeader();
+    if (shouldDisplayHeaderForOptions(options)) displayHeader();
     options.init = true;
     processCliOptions(
       options,
@@ -167,13 +200,44 @@ program
   .option('--fail-on-missing', DESC_FAIL_ON_MISSING)
   .option('--fail-on-unused', DESC_FAIL_ON_UNUSED)
   .option('--format <type>', DESC_FORMAT)
+  .option('--quiet', 'suppress non-error output')
   .option('--watch', DESC_WATCH)
   .option('--no-cache', 'disable incremental analysis cache')
   .option('--provider <path>', DESC_PROVIDER)
+  .option(
+    '--excel-input <file>',
+    'Excel file used when combining --translate with analyze',
+  )
   .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
   .action((options) => {
-    displayHeader();
+    if (shouldDisplayHeaderForOptions(options)) displayHeader();
     options.analyze = true;
+    processCliOptions(
+      options,
+      defaultConfig,
+      LOCAL_CONFIG || {},
+      validateConfigObject,
+    );
+  });
+
+// Command for AI translation
+program
+  .command('translate')
+  .description('Auto-translate missing values in Excel using Gemini')
+  .option('-i, --input <file>', 'Path to Excel file')
+  .option(
+    '--api-key <key>',
+    'Gemini API Key for translation (or set GEMINI_API_KEY, fallback I18N_MANAGER_API_KEY)',
+  )
+  .option('--source-lang <code>', 'Source language code for translation', 'en')
+  .option('--model <model>', 'Gemini model to use', 'gemini-2.5-flash')
+  .option('--format <type>', DESC_FORMAT)
+  .option('--quiet', 'suppress non-error output')
+  .option('--provider <path>', DESC_PROVIDER)
+  .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
+  .action((options) => {
+    if (shouldDisplayHeaderForOptions(options)) displayHeader();
+    options.translate = true;
     processCliOptions(
       options,
       defaultConfig,

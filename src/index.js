@@ -94,8 +94,11 @@ export async function analyze(options = {}) {
  * @param {string} options.apiKey - Gemini API key.
  * @param {string} [options.sourceLang='en'] - Source language code.
  * @param {string} [options.model='gemini-2.5-flash'] - Gemini model to use.
+ * @param {Object<string, string>} [options.languageMap={}] - Language code to display name mapping.
  * @param {Object} [deps] - Optional dependencies for testing/custom providers.
- * @param {Object} [deps.provider] - Custom translation provider instance.
+ * @param {import('./providers/base.js').TranslationProvider} [deps.provider] - Custom translation provider instance.
+ * @param {{log: Function}} [deps.logger] - Custom logger for progress output.
+ * @returns {Promise<void>} Resolves when translation is complete.
  */
 export async function translate(options, deps) {
   return translateApp(defaultIo, options, deps);

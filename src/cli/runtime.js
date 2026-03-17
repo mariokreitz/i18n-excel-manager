@@ -21,7 +21,10 @@
  * @property {(code?: number) => never} exit - Process exit function (injectable for tests).
  * @property {string[]} argv - Process argv array (injectable for tests).
  * @property {(...args: unknown[]) => void} log - Console log function.
+ * @property {(...args: unknown[]) => void} warn - Console warn function.
  * @property {(...args: unknown[]) => void} error - Console error function.
+ * @property {NodeJS.ProcessEnv} env - Process environment variables.
+ * @property {boolean} isTTY - Whether stdout is attached to a TTY.
  */
 
 /**
@@ -33,7 +36,10 @@ export function defaultRuntime() {
     exit: (code = 0) => process.exit(code), // eslint-disable-line n/no-process-exit, unicorn/no-process-exit
     argv: process.argv,
     log: console.log.bind(console),
+    warn: console.warn.bind(console),
     error: console.error.bind(console),
+    env: process.env,
+    isTTY: Boolean(process.stdout.isTTY),
   };
 }
 
@@ -45,6 +51,7 @@ export function silentRuntime() {
   const rt = {
     exitCode: null,
     logMessages: [],
+    warnMessages: [],
     errorMessages: [],
     exit(code = 0) {
       rt.exitCode = code;
@@ -54,9 +61,14 @@ export function silentRuntime() {
     log(...args) {
       rt.logMessages.push(args.join(' '));
     },
+    warn(...args) {
+      rt.warnMessages.push(args.join(' '));
+    },
     error(...args) {
       rt.errorMessages.push(args.join(' '));
     },
+    env: {},
+    isTTY: false,
   };
   return rt;
 }

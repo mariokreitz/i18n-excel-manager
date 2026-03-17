@@ -27,8 +27,9 @@ import {
  * Resolve the effective reporter from deps.
  * Accepts either a legacy reporter passed directly as the deps arg (has `.print`) or
  * a `{ reporter }` object (new DI style). Falls back to the default console reporter.
- * @param {*} deps Dependency argument.
+ * @param {Reporter|{reporter?: Reporter}|undefined} deps Dependency argument.
  * @returns {Reporter} Resolved reporter.
+ * @internal
  */
 function resolveReporter(deps) {
   if (typeof deps?.print === 'function') return deps;

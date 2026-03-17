@@ -6,12 +6,9 @@ import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
-  GeminiProvider as LegacyGeminiProvider,
-  TranslationProvider as LegacyTranslationProvider,
-} from '../src/core/translator.js';
-import {
   createBuiltInProvider,
   getBuiltInProvider,
+  GeminiProvider,
   loadCustomProvider,
   TranslationProvider,
 } from '../src/providers/index.js';
@@ -23,7 +20,7 @@ describe('providers layer', () => {
   it('exposes gemini as built-in provider', () => {
     const ProviderClass = getBuiltInProvider('gemini');
     assert.equal(typeof ProviderClass, 'function');
-    assert.equal(ProviderClass, LegacyGeminiProvider);
+    assert.equal(ProviderClass, GeminiProvider);
   });
 
   it('createBuiltInProvider creates a provider instance', () => {
@@ -32,8 +29,8 @@ describe('providers layer', () => {
     assert.equal(provider instanceof TranslationProvider, true);
   });
 
-  it('core/translator remains a backward-compatible shim', () => {
-    assert.equal(LegacyTranslationProvider, TranslationProvider);
+  it('exposes base provider contract from providers index', () => {
+    assert.equal(typeof TranslationProvider, 'function');
   });
 
   it('loadCustomProvider loads default export class from local module', async () => {

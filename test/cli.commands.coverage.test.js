@@ -9,7 +9,7 @@ import {
   processCliOptions,
   runAnalyze,
   runTranslate,
-} from '../src/cli/commands.js';
+} from '../src/cli/commands/index.js';
 
 function captureConsole() {
   const origLog = console.log;

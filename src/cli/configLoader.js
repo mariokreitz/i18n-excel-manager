@@ -8,6 +8,12 @@ import path from 'node:path';
 
 import { assertNonEmptyString } from '../core/validation.js';
 
+/**
+ * Resolve a path to a canonical real path, even when the final file is not yet present.
+ * @param {string} filePath Absolute file path.
+ * @returns {string} Canonicalized path.
+ * @internal
+ */
 function toCanonicalPath(filePath) {
   try {
     return fs.realpathSync(filePath);
@@ -17,6 +23,16 @@ function toCanonicalPath(filePath) {
   }
 }
 
+/**
+ * Enforce that a path resolves within the current working directory.
+ * Used for `--config` hardening to avoid reading unexpected filesystem locations.
+ *
+ * @param {string} filePath Absolute candidate path.
+ * @param {string} label Human-readable path label used in thrown errors.
+ * @returns {string} Canonical path when valid.
+ * @throws {Error} When the path escapes the current working directory.
+ * @internal
+ */
 function assertWithinCwd(filePath, label) {
   const cwdReal = fs.realpathSync(process.cwd());
   const targetReal = toCanonicalPath(filePath);
