@@ -32,7 +32,7 @@ function runCli(args) {
   });
 }
 
-const TMP_DIR = path.join(__dirname, 'tmp-cli', 'init-tests');
+const TMP_DIR = path.join(__dirname, 'tmp-cli-init-tests');
 
 async function cleanTmp() {
   await fs.rm(TMP_DIR, { recursive: true, force: true });

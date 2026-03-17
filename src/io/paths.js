@@ -2,48 +2,39 @@
  * @fileoverview Path validation and safe joining utilities.
  * Provides security functions for language code validation and directory traversal prevention.
  * @module io/paths
+ *
  */
 
+import fs from 'node:fs';
 import path from 'node:path';
 
-/** @constant {RegExp} Pattern for alphanumeric characters only */
-const IS_ALNUM = /^[\dA-Za-z]+$/;
-
-/** @constant {RegExp} Pattern for splitting language codes on hyphens or underscores */
-const SEGMENT_SPLIT = /[_-]/;
-
 /**
- * Validates a language code format for security and correctness.
+ * Canonicalize a path using realpath semantics, even when the leaf path does not exist.
+ * Walks up to the nearest existing ancestor and rebuilds a canonical candidate path.
  *
- * Ensures the code consists of alphanumeric segments separated by hyphens or underscores,
- * with the first segment being 2-3 characters long (e.g., 'en', 'de-DE', 'zh_Hans').
- * This prevents path traversal attacks when language codes are used in file paths.
- *
- * @param {string} lang - The language code to validate.
- * @returns {string} The validated language code.
- * @throws {TypeError} If the language code is invalid or contains unsafe characters.
- * @example
- * validateLanguageCode('en');      // Returns: 'en'
- * validateLanguageCode('de-DE');   // Returns: 'de-DE'
- * validateLanguageCode('../etc');  // Throws: TypeError
+ * @param {string} filePath Absolute path candidate.
+ * @returns {string} Canonical absolute path.
+ * @throws {Error} When no canonical ancestor can be resolved.
+ * @internal
  */
-export function validateLanguageCode(lang) {
-  if (typeof lang !== 'string') {
-    throw new TypeError(`Invalid language code: ${lang}`);
-  }
-  const parts = lang.split(SEGMENT_SPLIT);
-  if (parts.length === 0) {
-    throw new TypeError(`Invalid language code: ${lang}`);
-  }
-  if (parts[0].length < 2 || parts[0].length > 3 || !IS_ALNUM.test(parts[0])) {
-    throw new TypeError(`Invalid language code: ${lang}`);
-  }
-  for (let i = 1; i < parts.length; i += 1) {
-    if (parts[i].length === 0 || !IS_ALNUM.test(parts[i])) {
-      throw new TypeError(`Invalid language code: ${lang}`);
+function toCanonicalPath(filePath) {
+  try {
+    return fs.realpathSync(filePath);
+  } catch {
+    let current = path.dirname(filePath);
+    while (true) {
+      try {
+        const currentReal = fs.realpathSync(current);
+        return path.join(currentReal, path.relative(current, filePath));
+      } catch {
+        const parent = path.dirname(current);
+        if (parent === current) {
+          throw new Error(`Unsafe output path: ${filePath}`);
+        }
+        current = parent;
+      }
     }
   }
-  return lang;
 }
 
 /**
@@ -62,11 +53,17 @@ export function validateLanguageCode(lang) {
  */
 export function safeJoinWithin(baseDir, filename) {
   const resolvedBase = path.resolve(baseDir);
-  const candidate = path.resolve(resolvedBase, filename);
-  const rel = path.relative(resolvedBase, candidate);
-  if (rel === '' || rel === '.') return candidate;
+  const realBase = toCanonicalPath(resolvedBase);
+  const candidate = path.resolve(realBase, filename);
+
+  // Canonicalize candidate path (or nearest existing parent for new files)
+  // to prevent symlink escapes outside the trusted base directory.
+  const canonicalCandidate = toCanonicalPath(candidate);
+
+  const rel = path.relative(realBase, canonicalCandidate);
+  if (rel === '' || rel === '.') return canonicalCandidate;
   if (rel.startsWith('..') || path.isAbsolute(rel)) {
-    throw new Error(`Unsafe output path: ${candidate}`);
+    throw new Error(`Unsafe output path: ${canonicalCandidate}`);
   }
-  return candidate;
+  return canonicalCandidate;
 }

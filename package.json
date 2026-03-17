@@ -21,7 +21,7 @@
     "format:check": "prettier --check .",
     "lint:commits": "commitlint --from HEAD~10 --to HEAD",
     "release": "release-it",
-    "test:coverage": "c8 --reporter=json-summary --reporter=lcov --reporter=text-summary --check-coverage --branches=85 --functions=85 --lines=85 --statements=85 node --test"
+    "test:coverage": "c8 --config .c8rc.json node --test && node scripts/check-module-coverage.js"
   },
   "keywords": [
     "angular",

@@ -156,6 +156,7 @@ export async function writeInitFiles(
   languages,
   dryRun,
   templateData,
+  runtime,
 ) {
   const created = [];
   const skipped = [];
@@ -163,6 +164,7 @@ export async function writeInitFiles(
   if (!dryRun) {
     await ensureDirectoryExists(resolvedDir);
   }
+  const log = runtime?.log ?? console.log;
   for (const lang of languages) {
     const file = path.join(resolvedDir, `${lang}.json`);
     let exists = false;
@@ -174,15 +176,15 @@ export async function writeInitFiles(
     }
     if (exists) {
       skipped.push(file);
-      console.log(chalk.yellow(`${MSG_INIT_SKIPPED_PREFIX}${file}`));
+      log(chalk.yellow(`${MSG_INIT_SKIPPED_PREFIX}${file}`));
       continue;
     }
     const content = templateData ?? buildStarterContentFor(lang);
     if (dryRun) {
-      console.log(chalk.blue(`${MSG_INIT_WILL_CREATE}${file}`));
+      log(chalk.blue(`${MSG_INIT_WILL_CREATE}${file}`));
     } else {
       await writeJsonFile(file, content);
-      console.log(chalk.green(`${MSG_INIT_CREATED}${file}`));
+      log(chalk.green(`${MSG_INIT_CREATED}${file}`));
     }
     created.push(file);
   }
@@ -191,13 +193,17 @@ export async function writeInitFiles(
 
 /**
  * Compute dry-run flag from options and process argv.
+ *
+ * Accepts `argv` as an injectable parameter so the function is unit-testable
+ * without relying on `process.argv` directly.
+ *
  * @param {Object} options Options object.
+ * @param {string[]} [argv] Process argv.
  * @returns {boolean} True if dry-run.
  */
-export function computeIsDryRun(options) {
+export function computeIsDryRun(options, argv = []) {
   return (
     options.dryRun === true ||
-    process.argv.includes('-d') ||
-    process.argv.includes('--dry-run')
+    (Array.isArray(argv) && (argv.includes('-d') || argv.includes('--dry-run')))
   );
 }

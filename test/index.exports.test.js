@@ -16,6 +16,9 @@ describe('index exports', async () => {
     assert.equal(typeof m.jsonFileReporter, 'function');
     assert.equal(typeof m.loadValidatedConfig, 'function');
     assert.equal(typeof m.analyzeApp, 'function');
+    assert.equal(typeof m.TranslationProvider, 'function');
+    assert.equal(typeof m.GeminiProvider, 'function');
+    assert.equal(typeof m.TranslationError, 'function');
   });
 
   it('analyze function propagates errors correctly', async () => {

@@ -31,6 +31,7 @@ const defaultIo = {
   writeJsonFile: ioFs.writeJsonFile,
   readWorkbook: ioExcel.readWorkbook,
   writeWorkbook: ioExcel.writeWorkbook,
+  createWorkbook: ioExcel.createWorkbook,
   Excel: ioExcel.Excel, // Expose low-level Excel object for custom operations
   dirname: path.dirname,
   copyFile: (src, dest) => fs.copyFile(src, dest),
@@ -44,13 +45,9 @@ const defaultIo = {
  * @returns {Promise<void>} Resolves when conversion completes.
  */
 export async function convertToExcel(sourcePath, targetFile, options = {}) {
-  return convertToExcelApp(
-    defaultIo,
-    sourcePath,
-    targetFile,
-    options,
-    consoleReporter,
-  );
+  return convertToExcelApp(defaultIo, sourcePath, targetFile, options, {
+    reporter: consoleReporter,
+  });
 }
 
 /**
@@ -61,13 +58,9 @@ export async function convertToExcel(sourcePath, targetFile, options = {}) {
  * @returns {Promise<void>} Resolves when conversion completes.
  */
 export async function convertToJson(sourceFile, targetPath, options = {}) {
-  return convertToJsonApp(
-    defaultIo,
-    sourceFile,
-    targetPath,
-    options,
-    consoleReporter,
-  );
+  return convertToJsonApp(defaultIo, sourceFile, targetPath, options, {
+    reporter: consoleReporter,
+  });
 }
 
 /**
@@ -101,8 +94,11 @@ export async function analyze(options = {}) {
  * @param {string} options.apiKey - Gemini API key.
  * @param {string} [options.sourceLang='en'] - Source language code.
  * @param {string} [options.model='gemini-2.5-flash'] - Gemini model to use.
+ * @param {Object<string, string>} [options.languageMap={}] - Language code to display name mapping.
  * @param {Object} [deps] - Optional dependencies for testing/custom providers.
- * @param {Object} [deps.provider] - Custom translation provider instance.
+ * @param {import('./providers/base.js').TranslationProvider} [deps.provider] - Custom translation provider instance.
+ * @param {{log: Function}} [deps.logger] - Custom logger for progress output.
+ * @returns {Promise<void>} Resolves when translation is complete.
  */
 export async function translate(options, deps) {
   return translateApp(defaultIo, options, deps);
@@ -117,3 +113,8 @@ export {
 export { consoleReporter } from './reporters/console.js';
 export { jsonFileReporter } from './reporters/json.js';
 export { loadValidatedConfig } from './io/config.js';
+export {
+  GeminiProvider,
+  TranslationError,
+  TranslationProvider,
+} from './providers/index.js';

@@ -9,7 +9,7 @@ import {
   processCliOptions,
   runAnalyze,
   runTranslate,
-} from '../src/cli/commands.js';
+} from '../src/cli/commands/index.js';
 
 function captureConsole() {
   const origLog = console.log;
@@ -167,7 +167,7 @@ describe('CLI commands additional coverage', () => {
       assert.match(String(e), /exit:1/);
       assert.match(
         cap.err,
-        /Failed to load config file|Config file path must be within the current working directory/,
+        /Failed to load config file|Config file path must resolve within the current working directory/,
       );
     } finally {
       cap.restore();

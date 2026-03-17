@@ -3,17 +3,14 @@
  * Internal helper utilities supporting conversion orchestration.
  * @internal
  * @typedef {import('../types.js').Reporter} Reporter
+ * @typedef {import('../types.js').IoAdapter} IoAdapter
  */
 
-import ExcelJS from 'exceljs';
-
 import { createTranslationWorksheet } from '../core/excel/sheetWrite.js';
-import {
-  flattenTranslations,
-  validateJsonStructure,
-} from '../core/json/structure.js';
+import { buildTranslationTableFromJsonFiles } from '../core/model/translationTable.js';
 import { generateTranslationReport } from '../core/report/translationReport.js';
-import { safeJoinWithin, validateLanguageCode } from '../io/paths.js';
+import { validateLanguageCode } from '../core/validation.js';
+import { safeJoinWithin } from '../io/paths.js';
 
 /**
  * Build aggregate translation map and language list from file inputs.
@@ -21,18 +18,7 @@ import { safeJoinWithin, validateLanguageCode } from '../io/paths.js';
  * @returns {{translations: Map<string, Object<string,string>>, languages: string[]}} Key-to-language map and sorted language codes.
  */
 export function collectTranslations(files) {
-  const translations = new Map();
-  const langSet = new Set();
-  for (const { name, data } of files) {
-    const lang = name.replace(/\.json$/, '');
-    langSet.add(lang);
-    validateJsonStructure(data);
-    flattenTranslations(data, '', (k, v) => {
-      if (!translations.has(k)) translations.set(k, {});
-      translations.get(k)[lang] = v;
-    });
-  }
-  return { translations, languages: Array.from(langSet).toSorted() };
+  return buildTranslationTableFromJsonFiles(files);
 }
 
 /**
@@ -61,7 +47,7 @@ export async function writeExcel(
   targetFile,
   { sheetName, translations, languages, languageMap },
 ) {
-  const workbook = new ExcelJS.Workbook();
+  const workbook = io.createWorkbook();
   createTranslationWorksheet(
     workbook,
     sheetName,
@@ -82,7 +68,7 @@ export async function writeExcel(
  * @throws {Error} If worksheet is not found.
  */
 export async function readWorksheet(io, sourceFile, sheetName) {
-  const workbook = new ExcelJS.Workbook();
+  const workbook = io.createWorkbook();
   await io.readWorkbook(sourceFile, workbook);
   const ws = workbook.getWorksheet(sheetName);
   if (!ws) throw new Error(`Worksheet "${sheetName}" not found`);
@@ -97,7 +83,7 @@ export async function readWorksheet(io, sourceFile, sheetName) {
  * @throws {Error} If workbook has no worksheets.
  */
 export async function readAllWorksheets(io, sourceFile) {
-  const workbook = new ExcelJS.Workbook();
+  const workbook = io.createWorkbook();
   await io.readWorkbook(sourceFile, workbook);
   const sheets = workbook.worksheets;
   if (!sheets || sheets.length === 0) {

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
+import ExcelJS from 'exceljs';
+
 import { convertToExcelApp, convertToJsonApp } from '../src/index.js';
 
 function baseIo() {
@@ -11,6 +13,7 @@ function baseIo() {
     readWorkbook: async () => {},
     writeWorkbook: async () => {},
     writeJsonFile: async () => {},
+    createWorkbook: () => new ExcelJS.Workbook(),
     dirname: (p) => p,
   };
 }

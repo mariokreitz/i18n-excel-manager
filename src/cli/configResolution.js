@@ -4,24 +4,51 @@
  */
 
 /**
- * Centralized option & path resolution helpers consolidating logic from options.js and params.js.
- * Existing modules (options.js, params.js) delegate to these to preserve public imports.
+ * Resolve baseline defaults used for option merging.
+ * CLI flow precedence is applied later; this helper only selects the base layer.
+ *
+ * @param {Object} [configOptions] Loaded config options.
+ * @param {Object} [defaultConfig] Entry-point defaults.
+ * @returns {Object} Base defaults object.
+ * @internal
  */
-
 function getBaseDefaults(configOptions, defaultConfig) {
   return configOptions?.defaults || defaultConfig || {};
 }
 
+/**
+ * Normalize incoming CLI options to an object.
+ * @param {Object} [cliOptions] Raw commander options.
+ * @returns {Object} Safe options object.
+ * @internal
+ */
 function getIncoming(cliOptions) {
   return cliOptions || {};
 }
 
+/**
+ * Resolve effective language map with documented precedence.
+ * Order: CLI option -> config.languages -> runtimeConfig.languages.
+ *
+ * @param {Object} opts Normalized CLI options.
+ * @param {Object} [configOptions] Loaded config options.
+ * @param {Object} [runtimeConfig] Runtime validated config.
+ * @returns {Object<string, string>|undefined} Language code -> label map.
+ * @internal
+ */
 function resolveLanguageMap(opts, configOptions, runtimeConfig) {
   return (
     opts.languageMap ?? configOptions?.languages ?? runtimeConfig?.languages
   );
 }
 
+/**
+ * Ensure conversion sheet name always has a deterministic fallback.
+ * @param {string|undefined} current Candidate sheet name.
+ * @param {Object} baseDefaults Base defaults object.
+ * @returns {string} Effective sheet name.
+ * @internal
+ */
 function ensureSheetName(current, baseDefaults) {
   return current || baseDefaults.sheetName || 'Translations';
 }

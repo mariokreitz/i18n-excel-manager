@@ -4,9 +4,10 @@
  * @module core/excel/sheetRead
  */
 
-import { validateLanguageCode } from '../../io/paths.js';
+// Phase 1 FIX: import from core/validation.js (pure) — no longer violates core→io boundary.
 import { setNestedValue } from '../json/structure.js';
 import { createReverseLanguageMap } from '../languages/mapping.js';
+import { validateLanguageCode } from '../validation.js';
 
 /**
  * Parses and validates the header row of a translation worksheet.

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import ExcelJS from 'exceljs';
 
-import { runAnalyze } from '../src/cli/commands.js';
+import { runAnalyze } from '../src/cli/commands/index.js';
 import { writeInitFiles } from '../src/cli/helpers.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -83,6 +83,69 @@ describe('CLI flags and commands', () => {
     const res = await runCli(['--to-excel']);
     assert.notEqual(res.code, 0);
     assert.match(res.err + res.out, /unknown option '--to-excel'/);
+  });
+
+  it('analyze --json-report keeps stdout machine-readable without header noise', async () => {
+    const tmpDir = path.join(projectRoot, '.tmp-cli-json');
+    try {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+      await fs.mkdir(tmpDir, { recursive: true });
+      const srcDir = path.join(tmpDir, 'src');
+      await fs.mkdir(srcDir, { recursive: true });
+      await fs.writeFile(
+        path.join(srcDir, 'fixture-source.ts'),
+        "'app.title' | translate",
+        'utf8',
+      );
+
+      const res = await runCli([
+        'analyze',
+        '--input',
+        'test/fixtures',
+        '--pattern',
+        path.join(srcDir, '**/*.ts'),
+        '--json-report',
+      ]);
+
+      assert.equal(res.code, 0, res.err || res.out);
+      const parsed = JSON.parse(res.out.trim());
+      assert.ok('totalCodeKeys' in parsed);
+      assert.doesNotMatch(res.out, /Convert i18n files to Excel and back/);
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it('quiet mode suppresses non-error output for conversion commands', async () => {
+    const res = await runCli([
+      'i18n-to-excel',
+      '-i',
+      'test/fixtures',
+      '-o',
+      'test/tmp/out-quiet.xlsx',
+      '-s',
+      'Translations',
+      '-d',
+      '--no-report',
+      '--quiet',
+    ]);
+
+    assert.equal(res.code, 0, res.err || res.out);
+    assert.equal(res.out.trim(), '');
+  });
+
+  it('translate --format json sends failures to stderr without stdout banner noise', async () => {
+    const res = await runCli([
+      'translate',
+      '--input',
+      'test/tmp-interactive.xlsx',
+      '--format',
+      'json',
+    ]);
+
+    assert.notEqual(res.code, 0);
+    assert.equal(res.out.trim(), '');
+    assert.match(res.err, /API Key is missing/);
   });
 });
 

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
+import ExcelJS from 'exceljs';
+
 import { convertToExcelApp, convertToJsonApp } from '../src/app/convert.js';
 
 function makeFakeIo() {
@@ -27,6 +29,7 @@ function makeFakeIo() {
     writeJsonFile: async (filePath, data) => {
       calls.writeJson.push({ filePath, data });
     },
+    createWorkbook: () => new ExcelJS.Workbook(),
     dirname: (p) => {
       const idx = p.lastIndexOf('/');
       return idx === -1 ? '.' : p.slice(0, idx);
