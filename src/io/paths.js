@@ -7,10 +7,30 @@
  * It is re-exported here for backward compatibility with existing consumers.
  */
 
+import fs from 'node:fs';
 import path from 'node:path';
 
 // Re-export from core so existing imports of validateLanguageCode from io/paths keep working.
 export { validateLanguageCode } from '../core/validation.js';
+
+function toCanonicalPath(filePath) {
+  try {
+    return fs.realpathSync(filePath);
+  } catch {
+    let current = path.dirname(filePath);
+    while (true) {
+      try {
+        const currentReal = fs.realpathSync(current);
+        return path.join(currentReal, path.relative(current, filePath));
+      } catch {
+        const parent = path.dirname(current);
+        if (parent === current)
+          {throw new Error(`Unsafe output path: ${filePath}`);}
+        current = parent;
+      }
+    }
+  }
+}
 
 /**
  * Safely joins a filename to a base directory, preventing directory traversal attacks.
@@ -28,11 +48,17 @@ export { validateLanguageCode } from '../core/validation.js';
  */
 export function safeJoinWithin(baseDir, filename) {
   const resolvedBase = path.resolve(baseDir);
-  const candidate = path.resolve(resolvedBase, filename);
-  const rel = path.relative(resolvedBase, candidate);
-  if (rel === '' || rel === '.') return candidate;
+  const realBase = toCanonicalPath(resolvedBase);
+  const candidate = path.resolve(realBase, filename);
+
+  // Canonicalize candidate path (or nearest existing parent for new files)
+  // to prevent symlink escapes outside the trusted base directory.
+  const canonicalCandidate = toCanonicalPath(candidate);
+
+  const rel = path.relative(realBase, canonicalCandidate);
+  if (rel === '' || rel === '.') return canonicalCandidate;
   if (rel.startsWith('..') || path.isAbsolute(rel)) {
-    throw new Error(`Unsafe output path: ${candidate}`);
+    throw new Error(`Unsafe output path: ${canonicalCandidate}`);
   }
-  return candidate;
+  return canonicalCandidate;
 }

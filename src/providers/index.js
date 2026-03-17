@@ -3,6 +3,7 @@
  * @module providers
  */
 
+import fs from 'node:fs';
 import path from 'node:path';
 
 import { GeminiProvider } from './gemini.provider.js';
@@ -13,6 +14,31 @@ import { GeminiProvider } from './gemini.provider.js';
 const BUILTIN_PROVIDERS = {
   gemini: GeminiProvider,
 };
+
+function toCanonicalPath(filePath) {
+  try {
+    return fs.realpathSync(filePath);
+  } catch {
+    const parentReal = fs.realpathSync(path.dirname(filePath));
+    return path.join(parentReal, path.basename(filePath));
+  }
+}
+
+function assertPathWithinCwd(filePath) {
+  const cwdReal = fs.realpathSync(process.cwd());
+  const targetReal = toCanonicalPath(filePath);
+  const relativePath = path.relative(cwdReal, targetReal);
+  if (
+    relativePath !== '' &&
+    relativePath !== '.' &&
+    (relativePath.startsWith('..') || path.isAbsolute(relativePath))
+  ) {
+    throw new Error(
+      'Custom provider path must resolve within the current working directory',
+    );
+  }
+  return targetReal;
+}
 
 /**
  * Resolve a built-in provider class by name.
@@ -47,11 +73,21 @@ export function createBuiltInProvider(name, apiKey, model) {
  * @param {string} providerPath Absolute or relative module path.
  * @param {string} apiKey API key passed to provider constructor.
  * @param {string} [model] Optional provider model.
+ * @param {{restrictToCwd?: boolean}} [security] Loader security options.
  * @returns {Promise<TranslationProvider>} Created provider instance.
  */
-export async function loadCustomProvider(providerPath, apiKey, model) {
+export async function loadCustomProvider(
+  providerPath,
+  apiKey,
+  model,
+  security = {},
+) {
   const resolvedPath = path.resolve(providerPath);
-  const mod = await import(resolvedPath);
+  const canonicalPath =
+    security.restrictToCwd === false
+      ? toCanonicalPath(resolvedPath)
+      : assertPathWithinCwd(resolvedPath);
+  const mod = await import(canonicalPath);
   const ProviderClass = mod.default;
 
   if (typeof ProviderClass !== 'function') {

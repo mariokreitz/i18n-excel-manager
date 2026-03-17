@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -80,6 +81,63 @@ describe('providers layer', () => {
       );
     } finally {
       await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it('loadCustomProvider rejects module paths outside current working directory', async () => {
+    const outsideDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'iem-provider-'),
+    );
+    const providerFile = path.join(outsideDir, 'external-provider.mjs');
+    await fs.writeFile(
+      providerFile,
+      `export default class ExternalProvider {
+        async translateBatch(texts) {
+          return texts;
+        }
+      }\n`,
+      'utf8',
+    );
+
+    try {
+      await assert.rejects(
+        () => loadCustomProvider(providerFile, 'api-key'),
+        /must resolve within the current working directory/,
+      );
+    } finally {
+      await fs.rm(outsideDir, { recursive: true, force: true });
+    }
+  });
+
+  it('loadCustomProvider rejects symlink paths that escape current working directory', async () => {
+    const tmpDir = path.join(__dirname, 'tmp-provider-symlink');
+    const outsideDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), 'iem-provider-'),
+    );
+    const providerFile = path.join(outsideDir, 'external-provider.mjs');
+    const symlinkFile = path.join(tmpDir, 'provider-link.mjs');
+
+    await fs.rm(tmpDir, { recursive: true, force: true });
+    await fs.mkdir(tmpDir, { recursive: true });
+    await fs.writeFile(
+      providerFile,
+      `export default class ExternalProvider {
+        async translateBatch(texts) {
+          return texts;
+        }
+      }\n`,
+      'utf8',
+    );
+    await fs.symlink(providerFile, symlinkFile);
+
+    try {
+      await assert.rejects(
+        () => loadCustomProvider(symlinkFile, 'api-key'),
+        /must resolve within the current working directory/,
+      );
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+      await fs.rm(outsideDir, { recursive: true, force: true });
     }
   });
 });

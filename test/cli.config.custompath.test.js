@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -125,6 +126,39 @@ describe('CLI config: custom path and precedence', () => {
         res.out,
         /Converting i18n files from cli-locales to cli-out.xlsx/,
       );
+    });
+  });
+
+  it('rejects --config symlink that resolves outside current working directory', async () => {
+    await withTmpDir('tmp-config-symlink-escape', async (tmp) => {
+      const outsideDir = await fs.mkdtemp(path.join(os.tmpdir(), 'iem-cfg-'));
+      const outsideCfg = path.join(outsideDir, 'outside-config.json');
+      const linkPath = path.join(tmp, 'cfg-link.json');
+
+      try {
+        await fs.writeFile(
+          outsideCfg,
+          JSON.stringify({ defaults: { sourcePath: 'x' } }),
+          'utf8',
+        );
+        await fs.symlink(outsideCfg, linkPath);
+
+        const res = await runCliIn(tmp, [
+          'i18n-to-excel',
+          '--dry-run',
+          '--no-report',
+          '--config',
+          'cfg-link.json',
+        ]);
+
+        assert.notEqual(res.code, 0);
+        assert.match(
+          res.err + res.out,
+          /Config file path must resolve within the current working directory/,
+        );
+      } finally {
+        await fs.rm(outsideDir, { recursive: true, force: true });
+      }
     });
   });
 });

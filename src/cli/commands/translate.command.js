@@ -57,7 +57,7 @@ export async function runTranslate(options) {
     console.log(
       chalk.yellow(
         '⚠ Custom provider loaded. Ensure the provider path is trusted.\n' +
-          '  See AGENTS.md §Security for details on the --provider trust model.',
+          '  See README: "AI Auto-Translation" for --provider trust guidance.',
       ),
     );
   }
