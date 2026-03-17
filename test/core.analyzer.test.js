@@ -74,6 +74,119 @@ describe('core/analyzer', () => {
         '*translate="KEY" bare form should match',
       );
     });
+
+    // ── TypeScript-specific patterns (Angular / ngx-translate) ───────────────
+
+    it('extracts keys from TypeScript generic calls: translate.get<string>()', () => {
+      const content = `
+        this.translate.get<string>('GENERIC.SIMPLE');
+        this.translate.instant<string>('GENERIC.INSTANT');
+        this.translate.stream<boolean>('GENERIC.STREAM');
+      `;
+      const keys = extractKeysFromContent(content);
+      assert.deepEqual([...keys].toSorted(), [
+        'GENERIC.INSTANT',
+        'GENERIC.SIMPLE',
+        'GENERIC.STREAM',
+      ]);
+    });
+
+    it('extracts keys from TypeScript nested generics: translate.get<Observable<string>>()', () => {
+      const content = `
+        this.translate.get<Observable<string>>('NESTED.GENERIC');
+        this.translate.get<Map<string, unknown>>('NESTED.MAP');
+      `;
+      const keys = extractKeysFromContent(content);
+      assert.deepEqual([...keys].toSorted(), ['NESTED.GENERIC', 'NESTED.MAP']);
+    });
+
+    it('extracts keys from translateService variable name', () => {
+      const content = `
+        this.translateService.instant('SERVICE.KEY1');
+        this.translateService.get('SERVICE.KEY2');
+        translateService.stream('SERVICE.KEY3');
+      `;
+      const keys = extractKeysFromContent(content);
+      assert.deepEqual([...keys].toSorted(), [
+        'SERVICE.KEY1',
+        'SERVICE.KEY2',
+        'SERVICE.KEY3',
+      ]);
+    });
+
+    it('extracts keys from optional chaining: translate?.instant()', () => {
+      const content = `
+        this.translate?.instant('OPTIONAL.KEY');
+        this.translateService?.get('OPTIONAL.SERVICE');
+      `;
+      const keys = extractKeysFromContent(content);
+      assert.deepEqual([...keys].toSorted(), [
+        'OPTIONAL.KEY',
+        'OPTIONAL.SERVICE',
+      ]);
+    });
+
+    it('extracts keys from backtick template literal strings', () => {
+      // Template literal keys are uncommon but valid TypeScript
+      const content = 'this.translate.instant(`BACKTICK.KEY`)';
+      const keys = extractKeysFromContent(content);
+      assert.ok(
+        keys.has('BACKTICK.KEY'),
+        'Should detect backtick template literal key',
+      );
+    });
+
+    it('extracts key but ignores extra arguments: translate.instant(key, params)', () => {
+      const content = `
+        this.translate.instant('PARAM.KEY', { name: 'Alice', count: 3 });
+      `;
+      const keys = extractKeysFromContent(content);
+      assert.ok(
+        keys.has('PARAM.KEY'),
+        'Should capture key regardless of extra params arg',
+      );
+    });
+
+    it('extracts keys from translate calls without this.', () => {
+      const content = `
+        translate.instant('NO_THIS.KEY');
+        translate.get<string>('NO_THIS.GENERIC');
+      `;
+      const keys = extractKeysFromContent(content);
+      assert.deepEqual([...keys].toSorted(), [
+        'NO_THIS.GENERIC',
+        'NO_THIS.KEY',
+      ]);
+    });
+
+    it('extracts keys from marker() helper function', () => {
+      const content = `
+        import { marker } from '@biesbjerg/ngx-translate-extract-marker';
+        marker('MARKER.KEY1');
+        marker("MARKER.KEY2");
+        marker(\`MARKER.KEY3\`);
+      `;
+      const keys = extractKeysFromContent(content);
+      assert.deepEqual([...keys].toSorted(), [
+        'MARKER.KEY1',
+        'MARKER.KEY2',
+        'MARKER.KEY3',
+      ]);
+    });
+
+    it('does not extract non-key service calls (use, setDefaultLang, getBrowserLang)', () => {
+      const content = `
+        this.translate.use('en');
+        this.translate.setDefaultLang('de');
+        this.translate.getBrowserLang();
+      `;
+      const keys = extractKeysFromContent(content);
+      assert.equal(
+        keys.size,
+        0,
+        'use/setDefaultLang/getBrowserLang are not i18n keys',
+      );
+    });
   });
 
   describe('flattenKeys', () => {

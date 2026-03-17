@@ -18,37 +18,93 @@ import {
 } from './analyzerCache.js';
 
 /**
- * Regex patterns to detect translation keys in source code.
- * Supports Angular pipe syntax, TranslateService methods, and directive bindings.
+ * Regex patterns to detect translation keys in Angular (ngx-translate) source code.
+ *
+ * Covers both HTML templates and TypeScript service files:
+ *
+ * Templates (HTML / inline `template: \`...\`` strings):
+ *   - Angular translate pipe: {{ 'KEY' | translate }}  [attr]="'KEY' | translate"
+ *   - Attribute directive:    <div translate="KEY">
+ *   - Property binding:       [translate]="'KEY'"  [translate]="KEY"
+ *   - Structural directive:   *translate="'KEY'"   *translate="KEY"
+ *
+ * TypeScript (TranslateService — ngx-translate):
+ *   - Standard calls:         this.translate.instant('KEY')
+ *   - Alternative var name:   this.translateService.instant('KEY')
+ *   - No `this.`:             translate.get('KEY')
+ *   - TypeScript generics:    this.translate.get<string>('KEY')
+ *                             this.translate.get<Observable<string>>('KEY')
+ *     ↑ handled by [^(]* which consumes everything up to the opening `(`
+ *   - Optional chaining:      this.translate?.instant('KEY')
+ *   - Template literal keys:  this.translate.instant(`KEY`)
+ *   - With params arg:        this.translate.instant('KEY', { name })
+ *   - marker() helper:        marker('KEY')  — ngx-translate-extract-marker
+ *
+ * NOTE: bump CACHE_VERSION in analyzerCache.js whenever patterns change here so
+ *       stale cached extractions are automatically invalidated.
+ *
  * @constant {RegExp[]}
  */
 const PATTERNS = [
-  // Pipe syntax: {{ 'KEY' | translate }} or [attr]="'KEY' | translate"
+  // ── Templates (HTML / inline template strings) ────────────────────────────
+
+  // Pipe: {{ 'KEY' | translate }}  or  [attr]="'KEY' | translate"
   /['"]([^'"]+)['"]\s*\|\s*translate/g,
-  // TranslateService: this.translate.get('KEY'), .instant("KEY"), .stream('KEY')
-  /translate\.(?:get|instant|stream)\(\s*['"]([^'"]+)['"]\s*\)/g,
-  // Attribute binding (plain): translate="KEY"
+
+  // ── TypeScript — TranslateService (ngx-translate) ─────────────────────────
+  // Matches:  translate.instant('KEY')
+  //           this.translate.instant('KEY')
+  //           this.translateService.instant('KEY')
+  //           this.translate.get<string>('KEY')            ← generic via [^(]*
+  //           this.translate.get<Observable<string>>('KEY') ← nested generic via [^(]*
+  //           this.translate?.instant('KEY')               ← optional chaining
+  //           this.translate.instant(`KEY`)                ← backtick literal
+  //           this.translate.instant('KEY', params)        ← extra args ignored
+  /(?:this\.)?(?:translateService|translate)(?:\.|\?\.)(?:get|instant|stream)[^(]*\(\s*['"`]([^'"`\n]+)['"`]/g,
+
+  // ── TypeScript — marker() (ngx-translate-extract-marker) ──────────────────
+  // marker('KEY')  — registers keys that appear only in dynamic/table-driven usage
+  /\bmarker\s*\(\s*['"`]([^'"`\n]+)['"`]/g,
+
+  // ── HTML attribute directive ───────────────────────────────────────────────
+
+  // translate="KEY"  (plain attribute — key without inner quotes)
   /translate=['"]([^'"]+)['"]/g,
-  // Property binding: [translate]="'KEY'" (outer=double, inner=single)
+
+  // ── HTML [translate] property binding ─────────────────────────────────────
+
+  // [translate]="'KEY'"  (double outer, single inner)
   /\[translate\]=['"]'([^']+)'['"]/g,
-  // Property binding: [translate]='"KEY"' (outer=single, inner=double)
+  // [translate]='"KEY"'  (single outer, double inner)
   /\[translate\]=['"]"([^"]+)"['"]/g,
-  // Property binding: [translate]="KEY" (bare key, no inner quotes)
+  // [translate]="KEY"    (bare key, no inner quotes)
   /\[translate\]=['"]([^'"]+)['"]/g,
-  // Structural directive: *translate="'KEY'"
+
+  // ── HTML *translate structural directive ───────────────────────────────────
+
+  // *translate="'KEY'"
   /\*translate=['"]'([^']+)'['"]/g,
-  // Structural directive: *translate="KEY" (bare key, no inner quotes)
+  // *translate="KEY"     (bare key, no inner quotes)
   /\*translate=['"]([^'"]+)['"]/g,
 ];
 
 /**
  * Extracts translation keys from source code content.
- * Searches for keys used with Angular translate pipe or TranslateService methods.
  *
- * @param {string} content - Source code file content.
+ * Handles all Angular (ngx-translate) usage patterns across HTML templates and
+ * TypeScript files, including TypeScript generic type arguments on TranslateService
+ * calls, optional chaining, backtick template literals, and the `marker()` helper.
+ *
+ * @param {string} content - Source code file content (.ts or .html).
  * @returns {Set<string>} Unique translation keys found in the content.
  * @example
- * const keys = extractKeysFromContent("{{ 'app.title' | translate }}");
+ * // HTML template
+ * extractKeysFromContent("{{ 'app.title' | translate }}");
+ * // Returns: Set(['app.title'])
+ *
+ * @example
+ * // TypeScript — generic call (previously undetected)
+ * extractKeysFromContent("this.translate.get<string>('app.title')");
  * // Returns: Set(['app.title'])
  */
 export function extractKeysFromContent(content) {

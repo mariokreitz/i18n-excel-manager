@@ -12,6 +12,15 @@ import fs from 'node:fs';
 const DEFAULT_CACHE_PATH = '.i18n-cache.json';
 
 /**
+ * Extractor algorithm version.
+ * MUST be bumped whenever the PATTERNS constant in `analyzer.js` changes so that
+ * cached key sets from a previous run are not re-used with a different extractor.
+ * Old entries without this field (or with a different value) are treated as misses.
+ * @constant {string}
+ */
+const CACHE_VERSION = '2';
+
+/**
  * Compute a SHA-256 hash of a string.
  * @param {string} content File content.
  * @returns {string} Hex-encoded SHA-256 hash.
@@ -45,14 +54,18 @@ export function saveCache(cache, cachePath = DEFAULT_CACHE_PATH) {
 
 /**
  * Determine whether a file's cache entry is still valid.
- * @param {Object<string, {hash: string, keys: string[]}>} cache Cache entries.
+ * The entry must match both the content hash AND the current CACHE_VERSION;
+ * entries written by an older extractor are automatically invalidated.
+ * @param {Object<string, {v: string, hash: string, keys: string[]}>} cache Cache entries.
  * @param {string} filePath Absolute or relative file path.
  * @param {string} contentHash SHA-256 of the current file content.
  * @returns {boolean} True if cache is hit.
  */
 export function isCacheHit(cache, filePath, contentHash) {
   const entry = cache[filePath];
-  return Boolean(entry && entry.hash === contentHash);
+  return Boolean(
+    entry && entry.hash === contentHash && entry.v === CACHE_VERSION,
+  );
 }
 
 /**
@@ -67,12 +80,12 @@ export function getCachedKeys(cache, filePath) {
 
 /**
  * Update a cache entry for a file.
- * @param {Object<string, {hash: string, keys: string[]}>} cache
+ * @param {Object<string, {v: string, hash: string, keys: string[]}>} cache
  * @param {string} filePath
  * @param {string} hash Content hash.
  * @param {string[]} keys Extracted translation keys.
  */
 export function updateCacheEntry(cache, filePath, hash, keys) {
   // eslint-disable-next-line no-param-reassign
-  cache[filePath] = { hash, keys };
+  cache[filePath] = { v: CACHE_VERSION, hash, keys };
 }
