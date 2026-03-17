@@ -5,6 +5,8 @@
  * @typedef {import('../types.js').Reporter} Reporter
  */
 
+// TODO(phase-1): [ARCH VIOLATION] direct exceljs import in app/ — workbook construction will be
+// routed through io.createWorkbook() (IoAdapter). Tracked in ARCHITECTURE_EVOLUTION_PLAN.md.
 import ExcelJS from 'exceljs';
 
 import { createTranslationWorksheet } from '../core/excel/sheetWrite.js';

@@ -151,6 +151,64 @@ export default [
       'no-unused-vars': 'off',
     },
   },
+  // ─── Architecture boundary enforcement ────────────────────────────────────
+  // Phase 0: make violations visible as lint errors (no logic changes yet).
+  // Rules encode the responsibility matrix from ARCHITECTURE_EVOLUTION_PLAN.md.
+  {
+    // core/ must be pure — no imports from io/, app/, or cli/
+    files: ['src/core/**/*.js'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/io/**', '../io/**', '../../io/**'],
+              message:
+                '[ARCH] core/ must not import from io/. Move shared logic to core/validation.js.',
+            },
+            {
+              group: ['**/app/**', '../app/**', '../../app/**'],
+              message: '[ARCH] core/ must not import from app/.',
+            },
+            {
+              group: ['**/cli/**', '../cli/**', '../../cli/**'],
+              message: '[ARCH] core/ must not import from cli/.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // app/ orchestrators must not import external I/O libs directly — use io adapter
+    files: ['src/app/**/*.js'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'exceljs',
+              message:
+                '[ARCH] app/ must not import exceljs directly. Use io.createWorkbook() via IoAdapter.',
+            },
+            {
+              name: 'glob',
+              message:
+                '[ARCH] app/ must not import glob directly. Inject via deps.',
+            },
+            {
+              name: 'chokidar',
+              message:
+                '[ARCH] app/ must not import chokidar directly. Inject via deps.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  // ─── End architecture boundary enforcement ─────────────────────────────────
   {
     files: ['src/cli/**/*.js', 'src/cli/*.js'],
     rules: {
