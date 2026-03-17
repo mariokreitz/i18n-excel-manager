@@ -1,6 +1,6 @@
 {
   "name": "i18n-excel-manager",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "All-in-one CLI tool for Angular i18n workflow: convert JSON ↔ Excel, analyze codebase for missing/unused translation keys, auto-translate with AI (Gemini). Supports ngx-translate, Angular v17+, and placeholder validation.",
   "type": "module",
   "main": "src/index.js",
