@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.0] - 2026-03-17
+
+### Fixed
+
+- **TypeScript key extraction false negatives in analyze flow**: The analyzer now correctly detects ngx-translate keys in modern Angular TypeScript usage, including generic calls like `translate.get<string>(...)` and nested generic signatures.
+- **Missed service-call variants**: Extraction now covers `translate` and `translateService` call forms, optional chaining (`?.`), and backtick string literals used in translation calls.
+- **Stale extraction cache after pattern updates**: Added extractor cache versioning so older `.i18n-cache.json` entries are automatically invalidated when extraction logic changes.
+
+### Added
+
+- **`marker(...)` helper extraction**: Analyze now detects keys declared through marker-based workflows (e.g. table-driven/dynamic UI key registration).
+- **Comprehensive analyzer regression tests**: Added integration fixtures and branch-focused coverage tests for command/watch/output/provider/contract/runtime/validation code paths to prevent recurrence of patch coverage gaps.
+
+### Changed
+
+- **Architecture hardening cleanup**:
+  - Removed legacy CLI re-export shims and transitional modules.
+  - Updated command and contract imports to canonical module paths.
+  - Removed legacy conversion invocation adapters in command handlers.
+  - Enforced direct layer boundaries (e.g. validation imported from core directly where appropriate).
+- **Angular fixture modernization in tests**: Updated analyze integration fixtures to modern Angular 20+ / ngx-translate v17+ patterns, including `app.config.ts`, `provideTranslateService(...)`, and standalone component usage.
+
 ## [2.3.0] - 2026-03-04
 
 ### Fixed
