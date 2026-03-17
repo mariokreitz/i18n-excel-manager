@@ -12,6 +12,7 @@ import { computeIsDryRun } from '../helpers.js';
 import { runInitCommand } from '../init.js';
 import { logError } from '../logging.js';
 import { mergeCliOptions } from '../options.js';
+import { defaultRuntime } from '../runtime.js';
 
 import { runAnalyze, runAnalyzeWatch } from './analyze.command.js';
 import { runExcelToI18n, runI18nToExcel } from './convert.command.js';
@@ -56,6 +57,7 @@ async function dispatchCommand(mergedOptions, isDryRun, defaultConfig, config) {
  * @param {Object} defaultConfig Entry default config.
  * @param {Object} config Runtime validated config.
  * @param {(obj:Object)=>Object} validateConfigObject Validation transformer.
+ * @param {import('../runtime.js').Runtime} [runtime] Injectable runtime — defaults to real process.
  * @returns {Promise<void>} Resolves when processing is complete; exits on error.
  */
 export async function processCliOptions(
@@ -63,6 +65,7 @@ export async function processCliOptions(
   defaultConfig,
   config,
   validateConfigObject,
+  runtime = defaultRuntime(),
 ) {
   try {
     const configOptions = loadConfigOptions(options, validateConfigObject);
@@ -72,11 +75,11 @@ export async function processCliOptions(
       defaultConfig,
       config,
     );
-    const isDryRun = computeIsDryRun(mergedOptions);
+    const isDryRun = computeIsDryRun(mergedOptions, runtime.argv);
 
     await dispatchCommand(mergedOptions, isDryRun, defaultConfig, config);
   } catch (error) {
     logError(error);
-    process.exit(1); // eslint-disable-line n/no-process-exit, unicorn/no-process-exit
+    runtime.exit(1);
   }
 }

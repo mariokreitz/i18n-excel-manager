@@ -45,13 +45,9 @@ const defaultIo = {
  * @returns {Promise<void>} Resolves when conversion completes.
  */
 export async function convertToExcel(sourcePath, targetFile, options = {}) {
-  return convertToExcelApp(
-    defaultIo,
-    sourcePath,
-    targetFile,
-    options,
-    consoleReporter,
-  );
+  return convertToExcelApp(defaultIo, sourcePath, targetFile, options, {
+    reporter: consoleReporter,
+  });
 }
 
 /**
@@ -62,13 +58,9 @@ export async function convertToExcel(sourcePath, targetFile, options = {}) {
  * @returns {Promise<void>} Resolves when conversion completes.
  */
 export async function convertToJson(sourceFile, targetPath, options = {}) {
-  return convertToJsonApp(
-    defaultIo,
-    sourceFile,
-    targetPath,
-    options,
-    consoleReporter,
-  );
+  return convertToJsonApp(defaultIo, sourceFile, targetPath, options, {
+    reporter: consoleReporter,
+  });
 }
 
 /**

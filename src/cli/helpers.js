@@ -191,13 +191,16 @@ export async function writeInitFiles(
 
 /**
  * Compute dry-run flag from options and process argv.
+ *
+ * Accepts `argv` as an injectable parameter so the function is unit-testable
+ * without relying on `process.argv` directly.
+ *
  * @param {Object} options Options object.
+ * @param {string[]} [argv] Process argv (defaults to process.argv for backward compat).
  * @returns {boolean} True if dry-run.
  */
-export function computeIsDryRun(options) {
+export function computeIsDryRun(options, argv = process.argv) {
   return (
-    options.dryRun === true ||
-    process.argv.includes('-d') ||
-    process.argv.includes('--dry-run')
+    options.dryRun === true || argv.includes('-d') || argv.includes('--dry-run')
   );
 }

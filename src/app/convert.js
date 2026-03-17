@@ -24,13 +24,26 @@ import {
 } from './convert.helpers.js';
 
 /**
+ * Resolve the effective reporter from deps.
+ * Accepts either a legacy reporter passed directly as the deps arg (has `.print`) or
+ * a `{ reporter }` object (new DI style). Falls back to the default console reporter.
+ * @param {*} deps Dependency argument.
+ * @returns {Reporter} Resolved reporter.
+ */
+function resolveReporter(deps) {
+  if (typeof deps?.print === 'function') return deps;
+  return deps?.reporter ?? defaultConsoleReporter;
+}
+
+/**
  * Converts JSON localization files to an Excel workbook.
  *
  * @param {IoAdapter} io Abstraction layer for filesystem & Excel I/O.
  * @param {string} sourcePath Directory containing one or more language JSON files.
  * @param {string} targetFile Output Excel file path.
  * @param {ConvertToExcelOptions} [opts] Conversion options.
- * @param {Reporter} [reporter] Reporter used for optional dry-run report output.
+ * @param {Reporter|{reporter?: Reporter}} [deps] Injectable dependencies.
+ *   Accepts a reporter object directly (legacy) or `{ reporter }` object (new style).
  * @returns {Promise<void>}
  */
 export async function convertToExcelApp(
@@ -38,8 +51,9 @@ export async function convertToExcelApp(
   sourcePath,
   targetFile,
   opts = {},
-  reporter = defaultConsoleReporter,
+  deps = {},
 ) {
+  const reporter = resolveReporter(deps);
   const {
     sheetName = 'Translations',
     dryRun = false,
@@ -126,19 +140,15 @@ function normalizeJsonOpts(opts = {}) {
  * @param {string} sourceFile Path to Excel workbook.
  * @param {string} targetPath Output directory for JSON files.
  * @param {ConvertToJsonOptions} [opts] Conversion options.
- * @param {Reporter} [reporter] Reporter used for warning messages (duplicates when not failing).
+ * @param {Reporter|{reporter?: Reporter}} [deps] Injectable dependencies.
+ *   Accepts a reporter object directly (legacy) or `{ reporter }` object (new style).
  * @returns {Promise<void>}
  */
-export async function convertToJsonApp(
-  io,
-  sourceFile,
-  targetPath,
-  opts,
-  reporter,
-) {
+export async function convertToJsonApp(io, sourceFile, targetPath, opts, deps) {
+  const effectiveReporter = resolveReporter(deps);
+
   const { sheetName, dryRun, languageMap, failOnDuplicates, allSheets } =
     normalizeJsonOpts(opts);
-  const effectiveReporter = reporter ?? defaultConsoleReporter;
 
   await io.checkFileExists(sourceFile);
 
