@@ -4,11 +4,13 @@
  * Responsibilities: resolve API key → load provider → run translation.
  */
 
-import path from 'node:path';
-
 import chalk from 'chalk';
 
 import { translate } from '../../index.js';
+import {
+  createBuiltInProvider,
+  loadCustomProvider,
+} from '../../providers/index.js';
 
 import { createSpinner } from './shared/spinner.js';
 
@@ -29,28 +31,6 @@ function resolveApiKey(options) {
     );
   }
   return apiKey;
-}
-
-/**
- * Dynamically load a custom translation provider module.
- *
- * SECURITY NOTE: This executes arbitrary code from the given path.
- * Only use with trusted, local provider files. Never point to untrusted sources.
- *
- * @param {string} providerPath Absolute or relative path to the provider module.
- * @param {string} apiKey API key to pass to the provider constructor.
- * @param {string} [model] Model name to pass to the provider constructor.
- * @returns {Promise<{provider: Object}>} Provider dependency object.
- */
-async function loadCustomProvider(providerPath, apiKey, model) {
-  const mod = await import(path.resolve(providerPath));
-  const ProviderClass = mod.default;
-  if (typeof ProviderClass !== 'function') {
-    throw new TypeError(
-      `Provider module must export a default class: ${providerPath}`,
-    );
-  }
-  return { provider: new ProviderClass(apiKey, model) };
 }
 
 /**
@@ -85,9 +65,9 @@ export async function runTranslate(options) {
   const languageMap =
     options.languageMap || (options.config && options.config.languages) || {};
 
-  const providerDeps = options.provider
+  const provider = options.provider
     ? await loadCustomProvider(options.provider, apiKey, options.model)
-    : undefined;
+    : createBuiltInProvider('gemini', apiKey, options.model);
 
   const spinner = createSpinner('Translating missing values...');
   spinner.start();
@@ -100,7 +80,7 @@ export async function runTranslate(options) {
         model: options.model || 'gemini-2.5-flash',
         languageMap,
       },
-      providerDeps,
+      { provider },
     );
     spinner.succeed('Translation complete');
   } catch (error) {

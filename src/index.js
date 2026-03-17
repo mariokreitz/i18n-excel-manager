@@ -110,3 +110,8 @@ export {
 export { consoleReporter } from './reporters/console.js';
 export { jsonFileReporter } from './reporters/json.js';
 export { loadValidatedConfig } from './io/config.js';
+export {
+  GeminiProvider,
+  TranslationError,
+  TranslationProvider,
+} from './providers/index.js';

@@ -1,0 +1,85 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { describe, it } from 'node:test';
+import { fileURLToPath } from 'node:url';
+
+import {
+  GeminiProvider as LegacyGeminiProvider,
+  TranslationProvider as LegacyTranslationProvider,
+} from '../src/core/translator.js';
+import {
+  createBuiltInProvider,
+  getBuiltInProvider,
+  loadCustomProvider,
+  TranslationProvider,
+} from '../src/providers/index.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+describe('providers layer', () => {
+  it('exposes gemini as built-in provider', () => {
+    const ProviderClass = getBuiltInProvider('gemini');
+    assert.equal(typeof ProviderClass, 'function');
+    assert.equal(ProviderClass, LegacyGeminiProvider);
+  });
+
+  it('createBuiltInProvider creates a provider instance', () => {
+    const provider = createBuiltInProvider('gemini', 'fake-key', 'test-model');
+    assert.equal(typeof provider.translateBatch, 'function');
+    assert.equal(provider instanceof TranslationProvider, true);
+  });
+
+  it('core/translator remains a backward-compatible shim', () => {
+    assert.equal(LegacyTranslationProvider, TranslationProvider);
+  });
+
+  it('loadCustomProvider loads default export class from local module', async () => {
+    const tmpDir = path.join(__dirname, 'tmp-provider-layer');
+    const providerFile = path.join(tmpDir, 'custom-provider.mjs');
+
+    await fs.rm(tmpDir, { recursive: true, force: true });
+    await fs.mkdir(tmpDir, { recursive: true });
+    await fs.writeFile(
+      providerFile,
+      `export default class CustomProvider {
+        constructor(apiKey, model) {
+          this.apiKey = apiKey;
+          this.model = model;
+        }
+        async translateBatch(texts) {
+          return texts;
+        }
+      }\n`,
+      'utf8',
+    );
+
+    try {
+      const provider = await loadCustomProvider(providerFile, 'api-key', 'm1');
+      assert.equal(typeof provider.translateBatch, 'function');
+      assert.equal(provider.apiKey, 'api-key');
+      assert.equal(provider.model, 'm1');
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it('loadCustomProvider rejects modules without provider class default export', async () => {
+    const tmpDir = path.join(__dirname, 'tmp-provider-layer-invalid');
+    const providerFile = path.join(tmpDir, 'invalid-provider.mjs');
+
+    await fs.rm(tmpDir, { recursive: true, force: true });
+    await fs.mkdir(tmpDir, { recursive: true });
+    await fs.writeFile(providerFile, 'export default 123\n', 'utf8');
+
+    try {
+      await assert.rejects(
+        () => loadCustomProvider(providerFile, 'api-key'),
+        /must export a default class/,
+      );
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+});

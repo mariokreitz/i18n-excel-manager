@@ -4,8 +4,8 @@
  * @module app/translate
  */
 
-import { GeminiProvider } from '../core/translator.js';
 import { assertNonEmptyString } from '../core/validation.js';
+import { GeminiProvider } from '../providers/index.js';
 
 /** @constant {number} Index of the header row in Excel worksheets */
 const HEADER_ROW_INDEX = 1;
@@ -190,7 +190,7 @@ const prepareTargets = (worksheet, sourceLang, languageMap) => {
  * @param {number} sourceCol - Source column number.
  * @param {{header:string,colNumber:number}} target - Target column metadata.
  * @param {Object<string,string>} languageMap - Language code to display name map.
- * @param {import('../core/translator.js').TranslationProvider} provider - Translation provider instance.
+ * @param {import('../providers/base.js').TranslationProvider} provider - Translation provider instance.
  * @param {string} sourceLang - Source language code.
  * @returns {Promise<number>} Number of cells updated.
  * @private
