@@ -463,4 +463,77 @@ describe('CLI commands additional coverage', () => {
       cap.restore();
     }
   });
+
+  it('runAnalyze accepts array-based patterns and metadataKeys inputs', async () => {
+    const srcDir = path.join(tmpDir, 'src-array');
+    const sharedDir = path.join(tmpDir, 'shared-array');
+    const i18nDir = path.join(tmpDir, 'i18n-array');
+    await fs.mkdir(srcDir, { recursive: true });
+    await fs.mkdir(sharedDir, { recursive: true });
+    await fs.mkdir(i18nDir, { recursive: true });
+
+    await fs.writeFile(
+      path.join(srcDir, 'a.ts'),
+      "const data = { titleKey: 'ARRAY.KEY' };",
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(sharedDir, 'b.ts'),
+      "this.translate.instant('ARRAY.SHARED');",
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(i18nDir, 'en.json'),
+      JSON.stringify({ ARRAY: { KEY: 'k', SHARED: 's' } }),
+      'utf8',
+    );
+
+    const cap = captureConsole();
+    try {
+      await runAnalyze({
+        input: i18nDir,
+        patterns: [
+          path.join(srcDir, '**/*.ts'),
+          path.join(sharedDir, '**/*.ts'),
+        ],
+        metadataKeys: ['titleKey', 'descriptionKey'],
+      });
+      assert.match(cap.out, /Analysis Report/);
+      assert.doesNotMatch(cap.out, /Missing in JSON/);
+    } finally {
+      cap.restore();
+    }
+  });
+
+  it('runAnalyze handles empty array patterns by falling back to pattern option', async () => {
+    const srcDir = path.join(tmpDir, 'src-fallback');
+    const i18nDir = path.join(tmpDir, 'i18n-fallback');
+    await fs.mkdir(srcDir, { recursive: true });
+    await fs.mkdir(i18nDir, { recursive: true });
+
+    await fs.writeFile(
+      path.join(srcDir, 'main.ts'),
+      "this.translate.instant('FALLBACK.KEY');",
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(i18nDir, 'en.json'),
+      JSON.stringify({ FALLBACK: { KEY: 'ok' } }),
+      'utf8',
+    );
+
+    const cap = captureConsole();
+    try {
+      await runAnalyze({
+        input: i18nDir,
+        patterns: [],
+        pattern: path.join(srcDir, '**/*.ts'),
+        metadataKeys: [],
+      });
+      assert.match(cap.out, /Analysis Report/);
+      assert.doesNotMatch(cap.out, /Missing in JSON/);
+    } finally {
+      cap.restore();
+    }
+  });
 });
