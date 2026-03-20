@@ -103,4 +103,26 @@ describe('CLI contracts', () => {
       assertCommandInvariants('analyzeThenTranslate', options, { runtime }),
     );
   });
+
+  it('analyze contract preserves multi-pattern input for monorepos', () => {
+    const runtime = silentRuntime();
+    const options = normalizeCommandOptions(
+      'analyze',
+      {
+        input: 'public/assets/i18n',
+        patterns: 'apps/web/src/**/*.ts,packages/shared/src/**/*.ts',
+      },
+      {
+        defaultConfig: {},
+        runtime,
+        runtimeConfig: {},
+        isDryRun: false,
+      },
+    );
+
+    assert.equal(
+      options.patterns,
+      'apps/web/src/**/*.ts,packages/shared/src/**/*.ts',
+    );
+  });
 });

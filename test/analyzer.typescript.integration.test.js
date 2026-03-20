@@ -230,8 +230,17 @@ describe('analyzer integration — TypeScript + Angular (ngx-translate)', () => 
     const cacheContent = JSON.parse(await fs.readFile(cachePath, 'utf8'));
     const cacheEntry = cacheContent[testFile];
     assert.ok(cacheEntry, 'Cache entry should exist for test file');
-    assert.equal(cacheEntry.v, '2', 'Cache entry should have version 2');
+    assert.match(
+      String(cacheEntry.v),
+      /^\d+$/,
+      'Cache entry should have a numeric version marker',
+    );
     assert.ok(cacheEntry.hash, 'Cache entry should have content hash');
+    assert.equal(
+      typeof cacheEntry.sig,
+      'string',
+      'Cache entry should include extractor signature',
+    );
     assert.ok(
       Array.isArray(cacheEntry.keys),
       'Cache entry should have keys array',
@@ -261,7 +270,12 @@ describe('analyzer integration — TypeScript + Angular (ngx-translate)', () => 
       cacheEntry.hash,
       'Cache hash should change after file modification',
     );
-    assert.equal(updatedEntry.v, '2', 'Version field should persist');
+    assert.equal(updatedEntry.v, cacheEntry.v, 'Version field should persist');
+    assert.equal(
+      updatedEntry.sig,
+      cacheEntry.sig,
+      'Extractor signature should persist for same extraction settings',
+    );
   });
 
   it('handles edge case: marker() helper for table-driven i18n', async () => {

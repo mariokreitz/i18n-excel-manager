@@ -27,8 +27,10 @@ import {
   DESC_INIT_LANGS,
   DESC_INIT_TEMPLATE,
   DESC_JSON_REPORT,
+  DESC_METADATA_KEYS,
   DESC_NO_REPORT,
   DESC_OUTPUT_I18N_DIR,
+  DESC_PATTERNS,
   DESC_PROVIDER,
   DESC_SHEET_NAME,
   DESC_WATCH,
@@ -189,6 +191,7 @@ program
     'Glob pattern for source code files',
     '**/*.{html,ts,js}',
   )
+  .option('--patterns <list>', DESC_PATTERNS)
   .option('--translate', 'Auto-translate missing values in Excel using Gemini')
   .option(
     '--api-key <key>',
@@ -202,6 +205,7 @@ program
   .option('--format <type>', DESC_FORMAT)
   .option('--quiet', 'suppress non-error output')
   .option('--watch', DESC_WATCH)
+  .option('--metadata-keys <list>', DESC_METADATA_KEYS)
   .option('--no-cache', 'disable incremental analysis cache')
   .option('--provider <path>', DESC_PROVIDER)
   .option(

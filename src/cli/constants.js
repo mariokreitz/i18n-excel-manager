@@ -197,8 +197,22 @@ export const DESC_ALL_SHEETS =
 export const DESC_WATCH = 'watch files and re-run analysis on change';
 
 /**
+ * Description for metadata-keys option on analyze.
+ * @constant {string}
+ */
+export const DESC_METADATA_KEYS =
+  'comma-separated metadata property names to treat as translation keys (e.g., titleKey,descriptionKey)';
+
+/**
  * Description for format option on analyze.
  * @constant {string}
  */
 export const DESC_FORMAT =
   'output format for analysis report (text, json, sarif)';
+
+/**
+ * Description for patterns option on analyze.
+ * @constant {string}
+ */
+export const DESC_PATTERNS =
+  'comma-separated glob patterns for source code files (useful for monorepos)';

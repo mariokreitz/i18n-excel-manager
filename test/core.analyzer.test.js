@@ -174,6 +174,90 @@ describe('core/analyzer', () => {
       ]);
     });
 
+    it('extracts keys from metadata key fields (titleKey/descriptionKey)', () => {
+      const content = `
+        {
+          path: 'home',
+          data: {
+            titleKey: 'PAGE.HOME_TITLE',
+            descriptionKey: 'PAGE.HOME_DESCRIPTION'
+          }
+        }
+      `;
+
+      const keys = extractKeysFromContent(content);
+      assert.deepEqual([...keys].toSorted(), [
+        'PAGE.HOME_DESCRIPTION',
+        'PAGE.HOME_TITLE',
+      ]);
+    });
+
+    it('supports configurable metadata key field names', () => {
+      const content = `
+        {
+          data: {
+            subtitleToken: 'PAGE.CUSTOM_SUBTITLE'
+          }
+        }
+      `;
+
+      const withoutCustomFields = extractKeysFromContent(content);
+      assert.equal(
+        withoutCustomFields.has('PAGE.CUSTOM_SUBTITLE'),
+        false,
+        'Should not extract unknown metadata field by default',
+      );
+
+      const withCustomFields = extractKeysFromContent(content, {
+        metadataKeyFields: ['subtitleToken'],
+      });
+      assert.equal(
+        withCustomFields.has('PAGE.CUSTOM_SUBTITLE'),
+        true,
+        'Should extract key from configured metadata field',
+      );
+    });
+
+    it('allows disabling metadata-key extraction via empty metadataKeyFields', () => {
+      const content = `
+        {
+          data: {
+            titleKey: 'PAGE.DISABLED_TITLE'
+          }
+        }
+      `;
+
+      const keys = extractKeysFromContent(content, { metadataKeyFields: [] });
+      assert.equal(
+        keys.has('PAGE.DISABLED_TITLE'),
+        false,
+        'Explicit empty metadata list should disable metadata extraction',
+      );
+    });
+
+    it('extracts keys from const literal arrays used via map callback translate calls', () => {
+      const content = `
+        const loaderKeys = ['LOADER.TITLES.TITLE_1', 'LOADER.TITLES.TITLE_2'] as const;
+        loaderKeys.map((key) => this.translate.instant(key));
+      `;
+
+      const keys = extractKeysFromContent(content);
+      assert.deepEqual([...keys].toSorted(), [
+        'LOADER.TITLES.TITLE_1',
+        'LOADER.TITLES.TITLE_2',
+      ]);
+    });
+
+    it('extracts keys from const literal arrays used directly in translate calls', () => {
+      const content = `
+        const alertKeys = ['ALERT.OK', 'ALERT.CANCEL'];
+        this.translate.get(alertKeys);
+      `;
+
+      const keys = extractKeysFromContent(content);
+      assert.deepEqual([...keys].toSorted(), ['ALERT.CANCEL', 'ALERT.OK']);
+    });
+
     it('does not extract non-key service calls (use, setDefaultLang, getBrowserLang)', () => {
       const content = `
         this.translate.use('en');
@@ -267,6 +351,44 @@ describe('core/analyzer', () => {
         // Restore permissions so cleanup can delete the file
         await fs.chmod(unreadableFile, 0o644);
       }
+    });
+
+    it('supports multiple glob patterns for monorepo-style scanning', async () => {
+      const appDir = path.join(tmpDir, 'apps', 'web', 'src');
+      const sharedDir = path.join(tmpDir, 'packages', 'shared', 'src');
+      await fs.mkdir(appDir, { recursive: true });
+      await fs.mkdir(sharedDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(appDir, 'app.component.ts'),
+        "this.translate.instant('APP.ONLY.KEY')",
+        'utf8',
+      );
+      await fs.writeFile(
+        path.join(sharedDir, 'shared.component.ts'),
+        "this.translate.instant('SHARED.ONLY.KEY')",
+        'utf8',
+      );
+
+      const keys = await extractKeysFromCodebase([
+        path.join(tmpDir, 'apps/web/src/**/*.ts'),
+        path.join(tmpDir, 'packages/shared/src/**/*.ts'),
+      ]);
+
+      assert.deepEqual([...keys].toSorted(), [
+        'APP.ONLY.KEY',
+        'SHARED.ONLY.KEY',
+      ]);
+    });
+
+    it('returns empty set for blank string patterns', async () => {
+      const keys = await extractKeysFromCodebase('   ');
+      assert.equal(keys.size, 0);
+    });
+
+    it('returns empty set for invalid non-string/non-array patterns', async () => {
+      const keys = await extractKeysFromCodebase(/** @type {any} */ (123));
+      assert.equal(keys.size, 0);
     });
   });
 });

@@ -107,4 +107,55 @@ describe('app/analyze', () => {
     assert.deepEqual(enReport.missing, []);
     assert.deepEqual(enReport.unused, ['KEY']);
   });
+
+  it('analyzeApp: forwards metadataKeyFields to extractKeys dependency', async () => {
+    const io = makeFakeIo([
+      { name: 'en.json', data: { 'PAGE.TITLE': 'Title' } },
+    ]);
+    let receivedOptions;
+    const mockExtractKeys = async (_pattern, options) => {
+      receivedOptions = options;
+      return new Set(['PAGE.TITLE']);
+    };
+
+    await analyzeApp(
+      io,
+      {
+        sourcePath: '/i18n',
+        codePattern: 'src/**/*.ts',
+        metadataKeyFields: ['titleKey', 'subtitleKey'],
+      },
+      { extractKeys: mockExtractKeys },
+    );
+
+    assert.deepEqual(receivedOptions, {
+      useCache: undefined,
+      metadataKeyFields: ['titleKey', 'subtitleKey'],
+    });
+  });
+
+  it('analyzeApp: forwards array code patterns to extractKeys dependency', async () => {
+    const io = makeFakeIo([
+      { name: 'en.json', data: { 'PAGE.TITLE': 'Title' } },
+    ]);
+    let receivedPattern;
+    const mockExtractKeys = async (pattern) => {
+      receivedPattern = pattern;
+      return new Set(['PAGE.TITLE']);
+    };
+
+    await analyzeApp(
+      io,
+      {
+        sourcePath: '/i18n',
+        codePattern: ['apps/web/src/**/*.ts', 'packages/shared/src/**/*.ts'],
+      },
+      { extractKeys: mockExtractKeys },
+    );
+
+    assert.deepEqual(receivedPattern, [
+      'apps/web/src/**/*.ts',
+      'packages/shared/src/**/*.ts',
+    ]);
+  });
 });
