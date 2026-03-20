@@ -218,6 +218,23 @@ describe('core/analyzer', () => {
       );
     });
 
+    it('allows disabling metadata-key extraction via empty metadataKeyFields', () => {
+      const content = `
+        {
+          data: {
+            titleKey: 'PAGE.DISABLED_TITLE'
+          }
+        }
+      `;
+
+      const keys = extractKeysFromContent(content, { metadataKeyFields: [] });
+      assert.equal(
+        keys.has('PAGE.DISABLED_TITLE'),
+        false,
+        'Explicit empty metadata list should disable metadata extraction',
+      );
+    });
+
     it('extracts keys from const literal arrays used via map callback translate calls', () => {
       const content = `
         const loaderKeys = ['LOADER.TITLES.TITLE_1', 'LOADER.TITLES.TITLE_2'] as const;
@@ -362,6 +379,16 @@ describe('core/analyzer', () => {
         'APP.ONLY.KEY',
         'SHARED.ONLY.KEY',
       ]);
+    });
+
+    it('returns empty set for blank string patterns', async () => {
+      const keys = await extractKeysFromCodebase('   ');
+      assert.equal(keys.size, 0);
+    });
+
+    it('returns empty set for invalid non-string/non-array patterns', async () => {
+      const keys = await extractKeysFromCodebase(/** @type {any} */ (123));
+      assert.equal(keys.size, 0);
     });
   });
 });

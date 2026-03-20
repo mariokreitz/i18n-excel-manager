@@ -116,9 +116,7 @@ function normalizeMetadataKeyFields(metadataKeyFields) {
     .map((v) => String(v).trim())
     .filter((v) => v.length > 0);
 
-  return clean.length > 0
-    ? [...new Set(clean)]
-    : [...DEFAULT_METADATA_KEY_FIELDS];
+  return clean.length > 0 ? [...new Set(clean)] : [];
 }
 
 /**
@@ -162,8 +160,7 @@ function collectLiteralStringArrays(content) {
 
   for (const declarationMatch of content.matchAll(declarationStartRegex)) {
     const variableName = declarationMatch[1];
-    const declarationStart = declarationMatch.index ?? -1;
-    if (declarationStart < 0) continue;
+    const declarationStart = declarationMatch.index ?? 0;
 
     const openingBracketIndex = content.indexOf('[', declarationStart);
     if (openingBracketIndex === -1) continue;
