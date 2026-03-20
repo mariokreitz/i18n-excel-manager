@@ -3,41 +3,144 @@ name: Publish to npm
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing git tag to publish (for recovery runs)
+        required: false
+        type: string
+      dry_run:
+        description: Run all publish checks without publishing to npm
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-${{ github.event.release.tag_name || inputs.release_tag || github.run_id }}
+  cancel-in-progress: false
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      published: ${{ steps.publish_state.outputs.published }}
+      release_name: ${{ steps.meta.outputs.release_name }}
+      release_tag: ${{ steps.meta.outputs.release_tag }}
+      release_url: ${{ steps.meta.outputs.release_url }}
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Use Node.js
+      - name: Use Node.js 20.19.0
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '20.19.0'
+          cache: 'npm'
           registry-url: 'https://registry.npmjs.org/'
+
+      - name: Check out release tag for manual runs
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag != '' }}
+        run: git checkout "refs/tags/${{ inputs.release_tag }}"
+
+      - name: Resolve release metadata
+        id: meta
+        env:
+          INPUT_RELEASE_TAG: ${{ inputs.release_tag }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          EVENT_RELEASE_NAME: ${{ github.event.release.name }}
+          EVENT_RELEASE_TAG: ${{ github.event.release.tag_name }}
+          EVENT_RELEASE_URL: ${{ github.event.release.html_url }}
+          EVENT_NAME: ${{ github.event_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          version="$(node -p 'JSON.parse(require("node:fs").readFileSync("package.json", "utf8")).version')"
+          release_tag="${EVENT_RELEASE_TAG:-${INPUT_RELEASE_TAG}}"
+
+          if [ -z "$release_tag" ]; then
+            release_tag="v$version"
+          fi
+
+          if [ "$EVENT_NAME" = 'workflow_dispatch' ] && [ "$INPUT_DRY_RUN" != 'true' ] && [ -z "$INPUT_RELEASE_TAG" ]; then
+            echo 'Manual publish runs must provide release_tag.' >&2
+            exit 1
+          fi
+
+          expected_tag="v$version"
+          if [ "$release_tag" != "$expected_tag" ]; then
+            echo "Release tag '$release_tag' does not match package.json version '$version'." >&2
+            exit 1
+          fi
+
+          release_name="${EVENT_RELEASE_NAME:-$release_tag}"
+          release_url="${EVENT_RELEASE_URL:-https://github.com/$REPOSITORY/releases/tag/$release_tag}"
+
+          {
+            echo "release_name=$release_name"
+            echo "release_tag=$release_tag"
+            echo "release_url=$release_url"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Run tests
+        run: npm test
+
+      - name: Check audit report
+        run: npm audit --audit-level moderate
+
+      - name: Verify package contents
+        run: npm pack --dry-run
+
       - name: Publish to npm
+        id: publish
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.dry_run }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public # oder private
+        run: npm publish --access public --provenance
+
+      - name: Record publish state
+        id: publish_state
+        env:
+          PUBLISHED: ${{ github.event_name != 'workflow_dispatch' || !inputs.dry_run }}
+        run: echo "published=$PUBLISHED" >> "$GITHUB_OUTPUT"
 
   discord:
-    needs: publish # <-- wartet, bis publish fertig ist
+    needs: publish
+    if: ${{ needs.publish.result == 'success' && needs.publish.outputs.published == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
       - name: Notify Discord
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          RELEASE_NAME: ${{ github.event.release.name }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-          RELEASE_URL: ${{ github.event.release.html_url }}
+          RELEASE_NAME: ${{ needs.publish.outputs.release_name }}
+          RELEASE_TAG: ${{ needs.publish.outputs.release_tag }}
+          RELEASE_URL: ${{ needs.publish.outputs.release_url }}
         run: |
-          curl -H "Content-Type: application/json" \
-          -X POST \
-          -d "{\"content\": \"🚀 Neues Release **${RELEASE_NAME}** (${RELEASE_TAG}) wurde veröffentlicht & auf npm publiziert!\n👉 [Release anschauen](${RELEASE_URL})\"}" \
-          $DISCORD_WEBHOOK
+          if [ -z "$DISCORD_WEBHOOK" ]; then
+            echo 'DISCORD_WEBHOOK is not configured; skipping Discord notification.'
+            exit 0
+          fi
+
+          payload="$(node -e 'const payload = { content: `🚀 Neues Release **${process.env.RELEASE_NAME}** (${process.env.RELEASE_TAG}) wurde veröffentlicht & auf npm publiziert!\n👉 [Release anschauen](${process.env.RELEASE_URL})` }; process.stdout.write(JSON.stringify(payload));')"
+
+          curl --fail --show-error --silent \
+            -H 'Content-Type: application/json' \
+            -X POST \
+            -d "$payload" \
+            "$DISCORD_WEBHOOK"
