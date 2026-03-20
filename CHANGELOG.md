@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.1] - 2026-03-20
+
+### Fixed
+
+- **False-positive `unused` keys in monorepos / Nx workspaces**: `analyze` can now scan multiple source roots in one run, which fixes reports that previously missed usages in shared packages or libraries.
+- **Metadata-based translation key extraction**: The analyzer now detects keys stored in metadata fields such as `titleKey` and `descriptionKey`, reducing false-positive `unused` findings for route/config-driven apps.
+- **Array-driven translate usage detection**: Literal key arrays consumed by `translate.get(...)`, `translate.instant(...)`, or `translate.stream(...)` are now detected so dynamic-but-static translation sets are analyzed correctly.
+- **CI audit failure on release pipeline**: Updated the `flatted` override to a non-vulnerable version so `npm audit --audit-level moderate` passes in CI and release workflows.
+
+### Added
+
+- **`--patterns <list>` for monorepo-friendly analyze runs**: Added a dedicated CLI option for comma-separated glob patterns, making multi-root scans easier and less shell-dependent.
+- **Configurable `--metadata-keys <list>` support**: Teams can now extend or customize which metadata property names should be treated as translation keys.
+- **Additional regression coverage for analyzer and CLI option parsing**: Added tests for multi-pattern scanning, metadata key configuration, explicit metadata disablement, and analyze command fallback behavior.
+
+### Changed
+
+- **README monorepo guidance**: Documented Nx/monorepo analyze usage, new analyzer options, and removed the outdated Known Issues section now that the issue is resolved.
+- **Analyzer cache compatibility**: Cache entries now track extractor signatures in addition to version/hash so changing analyze extraction options invalidates stale cached results safely.
+
 ## [2.4.0] - 2026-03-17
 
 ### Fixed
