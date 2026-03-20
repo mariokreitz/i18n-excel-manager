@@ -71,7 +71,8 @@ export async function convertToJson(sourceFile, targetPath, options = {}) {
  *
  * @param {Object} options - Analysis options.
  * @param {string} options.sourcePath - Path to the i18n JSON directory.
- * @param {string} [options.codePattern='**\/*.{ts,js,html}'] - Glob pattern for source files.
+ * @param {string|string[]} [options.codePattern='**\/*.{ts,js,html}'] - Glob pattern(s) for source files.
+ * @param {string[]} [options.metadataKeyFields=['titleKey','descriptionKey']] - Object-property names treated as translation key fields.
  * @returns {Promise<{totalCodeKeys: number, fileReports: Object}>} Analysis report with missing/unused keys.
  * @example
  * const report = await analyze({

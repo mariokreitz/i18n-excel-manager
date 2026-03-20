@@ -54,7 +54,7 @@
 
 - [Installation](#-installation)
 - [Quick Start](#-quick-start)
-- [Usage](#️-usage)
+- [Usage](#-usage)
   - [Interactive Mode](#interactive-mode)
   - [Initialize i18n Files](#initialize-i18n-files)
   - [Convert JSON to Excel](#convert-json-to-excel)
@@ -63,12 +63,11 @@
   - [AI Auto-Translation](#ai-auto-translation)
 - [API](#-api)
 - [Angular Integration](#-angular-integration)
-- [Configuration](#️-configuration)
+- [Configuration](#-configuration)
 - [CLI Options Reference](#-cli-options-reference)
 - [Migration Guide](#-migration-guide)
 - [Error Handling](#-error-handling)
-- [Architecture](#️-architecture)
-- [Known Issues](#️-known-issues)
+- [Architecture](#-architecture)
 - [Development](#-development)
 - [Contributing](#-contributing)
 - [License](#-license)
@@ -238,6 +237,25 @@ i18n-excel-manager analyze \
   --pattern "src/**/*.{ts,html}"
 ```
 
+For monorepos, include all source roots that reference translation keys:
+
+```bash
+i18n-excel-manager analyze \
+  --input ./apps/web/public/assets/i18n \
+  --patterns "apps/web/src/**/*.{ts,js,html},packages/shared/src/**/*.{ts,js,html}"
+```
+
+This `--patterns` form is recommended for Nx/monorepos because it avoids shell-specific brace handling.
+
+If your app stores translation keys in metadata fields, configure them explicitly:
+
+```bash
+i18n-excel-manager analyze \
+  --input ./apps/web/public/assets/i18n \
+  --patterns "apps/web/src/**/*.{ts,js,html},packages/shared/src/**/*.{ts,js,html}" \
+  --metadata-keys titleKey,descriptionKey,subtitleKey
+```
+
 **What it detects:**
 
 - **Missing keys**: Keys used in code (e.g., `{{ 'app.title' | translate }}`) but not defined in JSON.
@@ -245,7 +263,7 @@ i18n-excel-manager analyze \
 
 **Supported patterns in code:**
 
-```typescript
+```text
 // Angular pipe syntax
 {
     {
@@ -259,8 +277,8 @@ this.translate.instant('KEY.NAME');
 this.translate.stream('KEY.NAME');
 
 // Directive syntax
-<div translate = "KEY.NAME" > </div>
-< div [translate] = "'KEY.NAME'" > </div>
+<div translate="KEY.NAME"></div>
+<div [translate]="'KEY.NAME'"></div>
 ```
 
 **Example output:**
@@ -388,17 +406,13 @@ for (const [file, result] of Object.entries(report.fileReports)) {
 
 ```typescript
 {
-    totalCodeKeys: number;
-    fileReports: {
-        [ filename
-    :
-        string
-    ]:
-        {
-            missing: string[];  // Keys in code but not in JSON
-            unused: string[];   // Keys in JSON but not in code
-        }
-    }
+  totalCodeKeys: number;
+  fileReports: {
+    [filename: string]: {
+      missing: string[]; // Keys in code but not in JSON
+      unused: string[];  // Keys in JSON but not in code
+    };
+  };
 }
 ```
 
@@ -693,15 +707,17 @@ i18n-excel-manager i18n-to-excel -i ./custom -o out.xlsx --dry-run
 
 ### `analyze` Command
 
-| Option                 | Short | Description                                  | Default             |
-| ---------------------- | ----- | -------------------------------------------- | ------------------- |
-| `--input <path>`       | `-i`  | Path to directory containing i18n JSON files | -                   |
-| `--pattern <glob>`     | `-p`  | Glob pattern for source code files           | `**/*.{html,ts,js}` |
-| `--translate`          |       | Enable AI auto-translation mode              | `false`             |
-| `--api-key <key>`      |       | Gemini API key (or use env vars)             | -                   |
-| `--source-lang <code>` |       | Source language code for translation         | `en`                |
-| `--model <model>`      |       | Gemini model to use                          | `gemini-2.5-flash`  |
-| `--config <file>`      |       | Path to config file                          | `./config.json`     |
+| Option                   | Short | Description                                                             | Default                   |
+| ------------------------ | ----- | ----------------------------------------------------------------------- | ------------------------- |
+| `--input <path>`         | `-i`  | Path to directory containing i18n JSON files                            | -                         |
+| `--pattern <glob>`       | `-p`  | Single glob pattern for source code files                               | `**/*.{html,ts,js}`       |
+| `--patterns <list>`      |       | Comma-separated glob patterns (Nx/monorepo friendly)                    | -                         |
+| `--translate`            |       | Enable AI auto-translation mode                                         | `false`                   |
+| `--api-key <key>`        |       | Gemini API key (or use env vars)                                        | -                         |
+| `--source-lang <code>`   |       | Source language code for translation                                    | `en`                      |
+| `--model <model>`        |       | Gemini model to use                                                     | `gemini-2.5-flash`        |
+| `--metadata-keys <list>` |       | Comma-separated metadata key fields to scan (`titleKey,descriptionKey`) | `titleKey,descriptionKey` |
+| `--config <file>`        |       | Path to config file                                                     | `./config.json`           |
 
 ---
 
@@ -791,19 +807,6 @@ src/
 - **Dependency Injection**: I/O adapters are injectable for testing.
 - **Validation**: Input validation at all boundaries.
 - **Extensibility**: Pluggable reporters and configurable I/O layers.
-
----
-
-## ⚠️ Known Issues
-
-### Language Mapping After AI Auto-Translation
-
-There is a known issue when exporting back from Excel to JSON after using the AI auto-translator where the language
-mapping may not work properly.
-
-**Workaround:** Restart `i18n-excel-manager` and try the export again.
-
-This issue is being tracked and will be fixed in a future release.
 
 ---
 

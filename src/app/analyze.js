@@ -16,8 +16,9 @@ import {
  * @param {import('../types.js').IoAdapter} io - IO adapter.
  * @param {Object} options - Options object.
  * @param {string} options.sourcePath - Path to the i18n JSON directory.
- * @param {string} options.codePattern - Glob pattern for source code scanning.
+ * @param {string|string[]} options.codePattern - Glob pattern(s) for source code scanning.
  * @param {boolean} [options.useCache=false] - Enable incremental key-extraction cache.
+ * @param {string[]} [options.metadataKeyFields] - Additional object-property names to treat as translation key fields.
  * @param {Object} [deps] - Dependencies (for testing).
  * @param {Function} [deps.extractKeys] - Function to extract keys from codebase.
  * @returns {Promise<{totalCodeKeys: number, fileReports: Object<string, {missing: string[], unused: string[]}>}>} Report object.
@@ -26,7 +27,7 @@ export async function analyzeApp(io, options, deps = {}) {
   // Default dependencies
   const extractKeys = deps.extractKeys || extractKeysFromCodebase;
 
-  const { sourcePath, codePattern, useCache } = options;
+  const { sourcePath, codePattern, useCache, metadataKeyFields } = options;
 
   // 1. Load all i18n JSON files
   let jsonFiles;
@@ -43,7 +44,10 @@ export async function analyzeApp(io, options, deps = {}) {
   }
 
   // 2. Extract keys from codebase
-  const codeKeys = await extractKeys(codePattern, { useCache });
+  const codeKeys = await extractKeys(codePattern, {
+    useCache,
+    metadataKeyFields,
+  });
 
   // 3. Analyze each file
   const report = {};
