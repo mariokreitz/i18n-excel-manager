@@ -35,12 +35,12 @@ jobs:
       release_url: ${{ steps.meta.outputs.release_url }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Use Node.js 20.19.0
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20.19.0'
           cache: 'npm'
