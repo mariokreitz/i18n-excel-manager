@@ -26,6 +26,9 @@ function resolveApiKey(options, runtime) {
   const env = runtime?.env || {};
   const apiKey =
     options.apiKey || env.GEMINI_API_KEY || env.I18N_MANAGER_API_KEY;
+  if (options.provider) {
+    return apiKey;
+  }
   if (!apiKey) {
     throw new Error(
       'API Key is missing. Pass --api-key or set GEMINI_API_KEY (fallback: I18N_MANAGER_API_KEY).',

@@ -336,6 +336,13 @@ The API key can be provided in three ways (in order of precedence):
 - Processes translations in efficient batches
 - Uses low temperature (0.2) for consistent results
 
+**Custom provider (`--provider`) trust guidance:**
+
+- `--provider` dynamically imports and executes local code. Only use trusted files.
+- Provider paths are restricted to the current working directory for safety.
+- The module must default-export a class implementing `translateBatch(texts, sourceLang, targetLang)`.
+- Built-in Gemini provider requires API key via `--api-key`, `GEMINI_API_KEY`, or `I18N_MANAGER_API_KEY`.
+
 **Interactive Mode:**
 
 When using interactive mode, you'll be prompted for:

@@ -79,6 +79,10 @@ export function assertTranslateInvariants(options, context = {}) {
     throw new Error('Please provide the Excel file path using --input');
   }
 
+  if (options.provider) {
+    return;
+  }
+
   const env = context.runtime?.env || {};
   if (!options.apiKey && !env.GEMINI_API_KEY && !env.I18N_MANAGER_API_KEY) {
     throw new Error(

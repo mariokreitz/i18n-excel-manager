@@ -439,7 +439,7 @@ describe('CLI interactive - showMainMenu comprehensive coverage', () => {
       }
       if (promptCalls === 2) {
         // init prompts
-        return { languages: ['en', 'de'], confirm: true };
+        return { langs: ['en', 'de'] };
       }
       if (promptCalls === 3) {
         // askForAnotherAction (now called by the loop)
@@ -559,7 +559,7 @@ describe('CLI interactive - showMainMenu comprehensive coverage', () => {
       }
       if (promptCalls === 2) {
         // Init language selection
-        return { languages: ['en', 'de'], confirm: true };
+        return { langs: ['en', 'de'] };
       }
       return {};
     };
@@ -572,6 +572,58 @@ describe('CLI interactive - showMainMenu comprehensive coverage', () => {
     } finally {
       cap.restore();
     }
+  });
+
+  it('checkAndRunInit uses configured languages when available', async () => {
+    const initDir = path.join(tmpDir, 'new-i18n-configured');
+    const cap = captureConsole();
+    let exited = false;
+
+    inquirer.prompt = async (questions) => {
+      const name = Array.isArray(questions) ? questions[0]?.name : undefined;
+      if (name === 'doInit') {
+        return { doInit: true };
+      }
+      if (name === 'langs') {
+        throw new Error(
+          'Should not ask for language selection when config.languages is set',
+        );
+      }
+      if (name === 'action') {
+        return { action: 'exit' };
+      }
+      return {};
+    };
+
+    process.exit = (code) => {
+      exited = true;
+      throw new Error(`exit:${code}`);
+    };
+
+    try {
+      await showMainMenu(
+        { languages: { fr: 'French', es: 'Spanish' } },
+        { sourcePath: initDir },
+      );
+      assert.fail('expected controlled exit');
+    } catch (error) {
+      assert.match(String(error), /exit:0/);
+      assert.ok(exited);
+    } finally {
+      cap.restore();
+    }
+
+    const frExists = await fs
+      .access(path.join(initDir, 'fr.json'))
+      .then(() => true)
+      .catch(() => false);
+    const esExists = await fs
+      .access(path.join(initDir, 'es.json'))
+      .then(() => true)
+      .catch(() => false);
+
+    assert.equal(frExists, true);
+    assert.equal(esExists, true);
   });
 
   it('handleAnalyze uses correct defaults for i18n path and pattern', async () => {

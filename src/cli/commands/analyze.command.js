@@ -80,6 +80,25 @@ function resolveCodePattern(options) {
 }
 
 /**
+ * Build informational logger for watch mode.
+ * Routes to stderr for machine formats and suppresses output in quiet mode.
+ *
+ * @param {import('../runtime.js').Runtime} runtime Runtime abstraction.
+ * @param {{quiet?: boolean, format?: string}} options CLI options.
+ * @returns {(...args: unknown[]) => void} Informational logger.
+ * @internal
+ */
+function watchInfoLogger(runtime, options) {
+  if (options?.quiet === true) {
+    return () => {};
+  }
+  if (options?.format === 'json' || options?.format === 'sarif') {
+    return runtime.error;
+  }
+  return runtime.log;
+}
+
+/**
  * Run a single analysis pass.
  * @param {Object} options CLI options (must include `input`).
  * @param {import('../runtime.js').Runtime} [runtime=defaultRuntime()] Runtime abstraction.
@@ -111,8 +130,11 @@ export async function runAnalyze(options, runtime = defaultRuntime()) {
 export async function runAnalyzeWatch(options, runtime = defaultRuntime()) {
   const { watch: chokidarWatch } = await import('chokidar');
   const effectiveCodePattern = resolveCodePattern(options);
+  const info = watchInfoLogger(runtime, options);
+  let isAnalyzing = false;
+  let rerunRequested = false;
 
-  runtime.log(chalk.blue('Watch mode enabled. Press Ctrl+C to stop.\n'));
+  info(chalk.blue('Watch mode enabled. Press Ctrl+C to stop.\n'));
   await runAnalyze(options, runtime); // initial run
 
   const watchPaths = [
@@ -123,15 +145,37 @@ export async function runAnalyzeWatch(options, runtime = defaultRuntime()) {
   ];
   const watcher = chokidarWatch(watchPaths, { ignoreInitial: true });
 
-  watcher.on('change', async (filePath) => {
-    runtime.log(
-      chalk.dim(`\nFile changed: ${filePath}. Re-running analysis...\n`),
-    );
-    try {
-      await runAnalyze(options, runtime);
-    } catch (error) {
-      logError(error, runtime);
+  async function runWithCoalescing() {
+    if (isAnalyzing) {
+      rerunRequested = true;
+      return;
     }
+
+    isAnalyzing = true;
+    do {
+      rerunRequested = false;
+      try {
+        await runAnalyze(options, runtime);
+      } catch (error) {
+        logError(error, runtime);
+      }
+    } while (rerunRequested);
+    isAnalyzing = false;
+  }
+
+  const onFileEvent = (eventName) => (filePath) => {
+    info(
+      chalk.dim(`\nFile ${eventName}: ${filePath}. Re-running analysis...\n`),
+    );
+    void runWithCoalescing();
+  };
+
+  watcher.on('change', onFileEvent('change'));
+  watcher.on('add', onFileEvent('add'));
+  watcher.on('unlink', onFileEvent('unlink'));
+
+  watcher.on('error', (error) => {
+    logError(error, runtime);
   });
 
   // Keep the process alive until Ctrl+C
