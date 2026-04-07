@@ -127,7 +127,11 @@ export async function runAnalyze(options, runtime = defaultRuntime()) {
  * @param {import('../runtime.js').Runtime} [runtime=defaultRuntime()] Runtime abstraction.
  * @returns {Promise<void>} Never resolves (keeps the process alive until Ctrl+C).
  */
-export async function runAnalyzeWatch(options, runtime = defaultRuntime()) {
+export async function runAnalyzeWatch(
+  options,
+  runtime = defaultRuntime(),
+  deps = {},
+) {
   const { watch: chokidarWatch } = await import('chokidar');
   const effectiveCodePattern = resolveCodePattern(options);
   const info = watchInfoLogger(runtime, options);
@@ -144,6 +148,7 @@ export async function runAnalyzeWatch(options, runtime = defaultRuntime()) {
       : [effectiveCodePattern]),
   ];
   const watcher = chokidarWatch(watchPaths, { ignoreInitial: true });
+  deps.onWatcherReady?.(watcher);
 
   async function runWithCoalescing() {
     if (isAnalyzing) {

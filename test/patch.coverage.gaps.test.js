@@ -535,4 +535,60 @@ describe('patch coverage gap closure', () => {
 
     await fs.rm(tempRoot, { recursive: true, force: true });
   });
+
+  it('runAnalyzeWatch logs watcher error events', async () => {
+    const tempRoot = await mkTmp('iem-watch-error-event-');
+    const srcDir = path.join(tempRoot, 'src');
+    const i18nDir = path.join(tempRoot, 'i18n');
+    await fs.mkdir(srcDir, { recursive: true });
+    await fs.mkdir(i18nDir, { recursive: true });
+    await fs.writeFile(
+      path.join(srcDir, 'a.ts'),
+      "'app.title' | translate\n",
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(i18nDir, 'en.json'),
+      '{"app":{"title":"Hello"}}\n',
+      'utf8',
+    );
+
+    const analyzeModule = pathToFileURL(
+      path.join(process.cwd(), 'src/cli/commands/analyze.command.js'),
+    ).href;
+
+    const script = String.raw`
+      import { runAnalyzeWatch } from '${analyzeModule}';
+      const options = {
+        input: ${JSON.stringify(i18nDir)},
+        pattern: ${JSON.stringify(path.join(srcDir, '**/*.ts'))},
+      };
+      const runtime = {
+        argv: [],
+        env: process.env,
+        isTTY: false,
+        log: (...args) => console.log(...args),
+        warn: (...args) => console.warn(...args),
+        error: (...args) => console.error(...args),
+        exit: (code = 0) => process.exit(code),
+      };
+      runAnalyzeWatch(options, runtime, {
+        onWatcherReady: (watcher) => {
+          setTimeout(() => {
+            watcher.emit('error', new Error('synthetic watcher error'));
+          }, 250);
+          setTimeout(() => process.exit(0), 1200);
+        },
+      }).catch((e) => {
+        console.error(e?.message || e);
+        process.exit(1);
+      });
+    `;
+
+    const result = await runNodeScript(script, 6000);
+    assert.equal(result.code, 0);
+    assert.match(result.stdout + result.stderr, /synthetic watcher error/);
+
+    await fs.rm(tempRoot, { recursive: true, force: true });
+  });
 });
