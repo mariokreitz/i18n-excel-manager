@@ -394,11 +394,12 @@ describe('patch coverage gap closure', () => {
         error: (...args) => console.error(...args),
         exit: (code = 0) => process.exit(code),
       };
+      const addedFile = ${JSON.stringify(path.join(i18nDir, 'added.watch.json'))};
       setTimeout(async () => {
-        await fs.writeFile(${JSON.stringify(path.join(i18nDir, 'en.json'))}, '{"a":{"b":"B2"}}\n', 'utf8');
+        await fs.writeFile(addedFile, '{"watch":"add"}\n', 'utf8');
       }, 1400);
       setTimeout(async () => {
-        await fs.writeFile(${JSON.stringify(path.join(i18nDir, 'en.json'))}, '{"a":{"b":"B3"}}\n', 'utf8');
+        await fs.unlink(addedFile);
       }, 2200);
       setTimeout(() => process.exit(0), 3600);
       runAnalyzeWatch(options, runtime).catch((e) => {
@@ -410,7 +411,8 @@ describe('patch coverage gap closure', () => {
     const okResult = await runNodeScript(okScript, 8000);
     assert.equal(okResult.code, 0);
     assert.match(okResult.stdout, /Watch mode enabled/);
-    assert.match(okResult.stdout, /File changed:/);
+    assert.match(okResult.stdout, /File add:/);
+    assert.match(okResult.stdout, /File unlink:/);
 
     const errorScript = `
       import fs from 'node:fs/promises';
@@ -447,6 +449,145 @@ describe('patch coverage gap closure', () => {
       errorResult.stdout + errorResult.stderr,
       /Could not read i18n files|Invalid JSON/,
     );
+
+    await fs.rm(tempRoot, { recursive: true, force: true });
+  });
+
+  it('runAnalyzeWatch routes watch info to stderr in machine format and suppresses it in quiet mode', async () => {
+    const tempRoot = await mkTmp('iem-watch-routing-');
+    const srcDir = path.join(tempRoot, 'src');
+    const i18nDir = path.join(tempRoot, 'i18n');
+    await fs.mkdir(srcDir, { recursive: true });
+    await fs.mkdir(i18nDir, { recursive: true });
+    await fs.writeFile(
+      path.join(srcDir, 'a.ts'),
+      "'app.title' | translate\n",
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(i18nDir, 'en.json'),
+      '{"app":{"title":"Hello"}}\n',
+      'utf8',
+    );
+
+    const analyzeModule = pathToFileURL(
+      path.join(process.cwd(), 'src/cli/commands/analyze.command.js'),
+    ).href;
+
+    const machineScript = String.raw`
+      import { runAnalyzeWatch } from '${analyzeModule}';
+      const options = {
+        input: ${JSON.stringify(i18nDir)},
+        pattern: ${JSON.stringify(path.join(srcDir, '**/*.ts'))},
+        format: 'json',
+      };
+      const runtime = {
+        argv: [],
+        env: process.env,
+        isTTY: false,
+        log: (...args) => console.log(...args),
+        warn: (...args) => console.warn(...args),
+        error: (...args) => console.error(...args),
+        exit: (code = 0) => process.exit(code),
+      };
+      setTimeout(() => process.exit(0), 1700);
+      runAnalyzeWatch(options, runtime).catch((e) => {
+        console.error(e?.message || e);
+        process.exit(1);
+      });
+    `;
+
+    const machineResult = await runNodeScript(machineScript, 6000);
+    assert.equal(machineResult.code, 0);
+    assert.match(machineResult.stderr, /Watch mode enabled/);
+    assert.doesNotMatch(machineResult.stdout, /Watch mode enabled/);
+    assert.match(machineResult.stdout, /^\s*\{/);
+
+    const quietScript = String.raw`
+      import { runAnalyzeWatch } from '${analyzeModule}';
+      const options = {
+        input: ${JSON.stringify(i18nDir)},
+        pattern: ${JSON.stringify(path.join(srcDir, '**/*.ts'))},
+        quiet: true,
+      };
+      const runtime = {
+        argv: [],
+        env: process.env,
+        isTTY: false,
+        log: (...args) => console.log(...args),
+        warn: (...args) => console.warn(...args),
+        error: (...args) => console.error(...args),
+        exit: (code = 0) => process.exit(code),
+      };
+      setTimeout(() => process.exit(0), 1700);
+      runAnalyzeWatch(options, runtime).catch((e) => {
+        console.error(e?.message || e);
+        process.exit(1);
+      });
+    `;
+
+    const quietResult = await runNodeScript(quietScript, 6000);
+    assert.equal(quietResult.code, 0);
+    assert.doesNotMatch(
+      quietResult.stdout + quietResult.stderr,
+      /Watch mode enabled/,
+    );
+
+    await fs.rm(tempRoot, { recursive: true, force: true });
+  });
+
+  it('runAnalyzeWatch logs watcher error events', async () => {
+    const tempRoot = await mkTmp('iem-watch-error-event-');
+    const srcDir = path.join(tempRoot, 'src');
+    const i18nDir = path.join(tempRoot, 'i18n');
+    await fs.mkdir(srcDir, { recursive: true });
+    await fs.mkdir(i18nDir, { recursive: true });
+    await fs.writeFile(
+      path.join(srcDir, 'a.ts'),
+      "'app.title' | translate\n",
+      'utf8',
+    );
+    await fs.writeFile(
+      path.join(i18nDir, 'en.json'),
+      '{"app":{"title":"Hello"}}\n',
+      'utf8',
+    );
+
+    const analyzeModule = pathToFileURL(
+      path.join(process.cwd(), 'src/cli/commands/analyze.command.js'),
+    ).href;
+
+    const script = String.raw`
+      import { runAnalyzeWatch } from '${analyzeModule}';
+      const options = {
+        input: ${JSON.stringify(i18nDir)},
+        pattern: ${JSON.stringify(path.join(srcDir, '**/*.ts'))},
+      };
+      const runtime = {
+        argv: [],
+        env: process.env,
+        isTTY: false,
+        log: (...args) => console.log(...args),
+        warn: (...args) => console.warn(...args),
+        error: (...args) => console.error(...args),
+        exit: (code = 0) => process.exit(code),
+      };
+      runAnalyzeWatch(options, runtime, {
+        onWatcherReady: (watcher) => {
+          setTimeout(() => {
+            watcher.emit('error', new Error('synthetic watcher error'));
+          }, 250);
+          setTimeout(() => process.exit(0), 1200);
+        },
+      }).catch((e) => {
+        console.error(e?.message || e);
+        process.exit(1);
+      });
+    `;
+
+    const result = await runNodeScript(script, 6000);
+    assert.equal(result.code, 0);
+    assert.match(result.stdout + result.stderr, /synthetic watcher error/);
 
     await fs.rm(tempRoot, { recursive: true, force: true });
   });

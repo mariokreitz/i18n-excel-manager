@@ -251,6 +251,47 @@ async function writeTranslatedWorkbook(
 }
 
 /**
+ * Resolve translation provider with built-in API key guard.
+ * @param {{provider?: import('../providers/base.js').TranslationProvider}} deps Optional dependencies.
+ * @param {string|undefined} apiKey Provider API key.
+ * @param {string|undefined} model Provider model.
+ * @returns {import('../providers/base.js').TranslationProvider} Provider instance.
+ * @throws {Error} If API key is missing for built-in provider usage.
+ */
+function resolveProvider(deps, apiKey, model) {
+  if (deps.provider) {
+    return deps.provider;
+  }
+
+  if (!apiKey) {
+    throw new Error(
+      'API Key is required for translation. Use --api-key or env var.',
+    );
+  }
+
+  return new GeminiProvider(apiKey, model);
+}
+
+/**
+ * Read workbook from disk and return the first worksheet.
+ * @param {import('../types.js').IoAdapter} io IO adapter.
+ * @param {string} input Workbook path.
+ * @returns {Promise<{workbook: Object, worksheet: Object}>} Loaded workbook and first worksheet.
+ * @throws {Error} If workbook has no worksheets.
+ */
+async function loadWorkbookWithFirstWorksheet(io, input) {
+  const workbook = new io.Excel.Workbook();
+  await io.readWorkbook(input, workbook);
+  const worksheet = workbook.worksheets[0];
+
+  if (!worksheet) {
+    throw new Error('Workbook does not contain a worksheet to translate.');
+  }
+
+  return { workbook, worksheet };
+}
+
+/**
  * Orchestrates the translation of missing values in an Excel workbook.
  *
  * Reads an Excel file, identifies missing translations, uses Gemini API
@@ -260,7 +301,7 @@ async function writeTranslatedWorkbook(
  * @param {Object} options - Translation options.
  * @param {string} options.input - Path to Excel file.
  * @param {string} [options.sourceLang='en'] - Source language code.
- * @param {string} options.apiKey - Gemini API key.
+ * @param {string} [options.apiKey] - Gemini API key (required when using built-in provider).
  * @param {string} [options.model='gemini-2.5-flash'] - Gemini model to use.
  * @param {Object<string, string>} [options.languageMap={}] - Language code to display name mapping.
  * @param {Object} [deps={}] - Dependencies for testing (e.g., mock provider).
@@ -279,25 +320,15 @@ async function writeTranslatedWorkbook(
 export async function translateApp(io, options, deps = {}) {
   const { input, sourceLang = 'en', apiKey, model, languageMap = {} } = options;
 
-  if (!apiKey) {
-    throw new Error(
-      'API Key is required for translation. Use --api-key or env var.',
-    );
-  }
-
   assertNonEmptyString(input, 'input');
   assertNonEmptyString(sourceLang, 'sourceLang');
 
-  const provider = deps.provider ?? new GeminiProvider(apiKey, model);
+  const provider = resolveProvider(deps, apiKey, model);
   const logger = deps.logger ?? console;
-
-  const workbook = new io.Excel.Workbook();
-  await io.readWorkbook(input, workbook);
-  const worksheet = workbook.worksheets[0];
-
-  if (!worksheet) {
-    throw new Error('Workbook does not contain a worksheet to translate.');
-  }
+  const { workbook, worksheet } = await loadWorkbookWithFirstWorksheet(
+    io,
+    input,
+  );
 
   const { sourceCol, targets } = prepareTargets(
     worksheet,

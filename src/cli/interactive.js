@@ -59,11 +59,16 @@ async function checkAndRunInit(config, defaultConfig) {
   ]);
 
   if (doInit) {
+    const configuredLanguages = Object.keys(config?.languages || {}).filter(
+      (code) => code.trim().length > 0,
+    );
+    const languagesArg =
+      configuredLanguages.length > 0
+        ? configuredLanguages.join(',')
+        : undefined;
+
     await runInitCommand(
-      {
-        output: defaultConfig.sourcePath,
-        languages: 'en,de',
-      },
+      { output: defaultConfig.sourcePath, languages: languagesArg },
       config,
       defaultConfig,
     );

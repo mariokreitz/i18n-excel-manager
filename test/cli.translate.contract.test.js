@@ -95,4 +95,18 @@ describe('CLI translate contract', () => {
       /Cannot combine --watch and --translate on analyze/,
     );
   });
+
+  it('translate with --provider does not require Gemini API key env/flag', async () => {
+    const res = await runCli([
+      'translate',
+      '--provider',
+      'test/fixtures/custom-provider.no-key.mjs',
+      '--input',
+      'test/does-not-exist.xlsx',
+    ]);
+
+    assert.notEqual(res.code, 0);
+    assert.match(res.out + res.err, /File not found|does not exist|ENOENT/i);
+    assert.doesNotMatch(res.out + res.err, /API Key is missing/);
+  });
 });

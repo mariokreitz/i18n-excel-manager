@@ -46,6 +46,27 @@ describe('CLI contracts', () => {
     );
   });
 
+  it('translate contract allows missing API key when custom provider is set', () => {
+    const runtime = silentRuntime();
+    const options = normalizeCommandOptions(
+      'translate',
+      {
+        input: 'test/tmp-interactive.xlsx',
+        provider: './test/fixtures/custom-provider.no-key.mjs',
+      },
+      {
+        defaultConfig: {},
+        runtime,
+        runtimeConfig: {},
+        isDryRun: false,
+      },
+    );
+
+    assert.doesNotThrow(() =>
+      assertCommandInvariants('translate', options, { runtime }),
+    );
+  });
+
   it('analyzeThenTranslate contract rejects watch mode combination', () => {
     const runtime = silentRuntime();
     const options = normalizeCommandOptions(
