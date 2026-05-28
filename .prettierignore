@@ -6,6 +6,11 @@ coverage/
 # Temporary and generated test outputs
 test/tmp/
 test/tmp-cli/
+test/tmp-cli-init-tests/
+test/tmp-config/
+test/tmp-menu/
+test/tmpdir/
+test/tmp-sec/
 
 # Intentionally malformed fixture used to test error handling
 # Do not format this file; tests rely on its invalid JSON structure
