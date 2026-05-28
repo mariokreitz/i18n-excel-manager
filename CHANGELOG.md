@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Security
+
+- **Resolved all `npm audit` findings (10 → 0)**: Eliminated 1 critical, 3 high, and 6 moderate vulnerabilities by upgrading transitive dependencies (`basic-ftp`, `fast-uri`, `ws`, `tmp`, `brace-expansion`, `@protobufjs/utf8`, `agent-base`) brought in primarily through `@google/genai`.
+- **`uuid` override**: Added `uuid: ^11.1.1` to `overrides` in `package.json` to remediate `GHSA-w5hq-g745-h8pq` (missing buffer bounds check in `uuid` <= 10) used transitively by `exceljs`.
+
+### Changed
+
+- **Runtime dependency upgrades**:
+  - `@google/genai` `^1.45.0` → `^2.6.0` (major). The v2 breaking changes are scoped to the Interactions API only; `generateContent` (used by `src/providers/gemini.provider.js`) is unaffected.
+  - `inquirer` `^13.0.1` → `^13.4.3`.
+  - `joi` `^18.0.1` → `^18.2.1` (adds link recursion / max call stack protections).
+  - `ora` `^9.3.0` → `^9.4.0`.
+- **Dev tooling upgrades**:
+  - `@commitlint/cli` and `@commitlint/config-conventional` `^20.5.0` → `^21.0.1` (now require Node >=22 for the dev environment; the published package still supports Node >=20.19.0 for consumers).
+  - `@release-it/conventional-changelog` `^10.0.5` → `^11.0.0`.
+  - `release-it` `^19.2.4` → `^20.0.1` (migrates to `@inquirer/prompts`, upgrades `undici` to v7).
+  - `eslint-plugin-n` `^17.23.1` → `^18.0.1`.
+  - `eslint-plugin-promise` `^7.2.1` → `^7.3.0` (adds ESLint v10 support).
+  - `eslint-plugin-unicorn` `^63.0.0` → `^64.0.0`.
+  - `eslint-import-resolver-node` `^0.3.9` → `^0.4.0`.
+  - `lint-staged` `^16.4.0` → `^17.0.5`.
+  - `prettier` `^3.3.3` → `^3.8.3`.
+- **`.prettierignore` hardening**: Added all `test/tmp-*` directories so transient test artifacts no longer break `format:check`.
+
+### Deferred (tracked as follow-ups)
+
+- **ESLint v10**: Held at `^9.39.4` because `eslint-plugin-import@2.32.0` still pins `eslint <= ^9`. Migrate to `eslint-plugin-import-x` to unlock ESLint v10.
+- **`inquirer` v14**: Held at `^13.4.3` until the v13 → v14 prompt API changes are reviewed against `src/cli/interactive.js` and `src/cli/init.js`.
+
 ## [2.4.1] - 2026-03-20
 
 ### Fixed
