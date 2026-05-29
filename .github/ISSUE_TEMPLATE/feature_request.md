@@ -6,6 +6,10 @@ labels: feature request
 assignees: ''
 ---
 
+> [!WARNING]
+> This repository is deprecated and no longer maintained.
+> Please request new features in `langsync`: https://github.com/mariokreitz/langsync/issues
+
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is.
 

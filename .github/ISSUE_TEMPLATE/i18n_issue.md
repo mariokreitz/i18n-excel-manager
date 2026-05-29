@@ -6,6 +6,10 @@ labels: i18n
 assignees: ''
 ---
 
+> [!WARNING]
+> This repository is deprecated and no longer maintained.
+> Please report i18n issues in `langsync`: https://github.com/mariokreitz/langsync/issues
+
 **Describe the i18n issue**
 Please provide a clear and concise description of the internationalization issue.
 

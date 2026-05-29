@@ -6,7 +6,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        Please fill out the following fields to help us investigate the bug.
+        This project is deprecated and no longer maintained.
+
+        Please report bugs in **langsync** instead:
+        https://github.com/mariokreitz/langsync/issues
+
+        The form below is kept for legacy reference only.
   - type: input
     id: what-happened
     attributes:

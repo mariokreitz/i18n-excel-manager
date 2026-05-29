@@ -1,7 +1,23 @@
 # Contribution Guidelines
 
-Thank you for your interest in contributing to i18n-excel-manager! Every contribution is appreciated and helps improve
-this tool.
+`i18n-excel-manager` is deprecated and no longer maintained.
+
+- Active development moved to `langsync`: https://github.com/mariokreitz/langsync
+- This repository is in read-only migration mode and will be archived after a short transition period.
+- The npm package name `i18n-excel-manager` is permanently deprecated.
+
+## Where to contribute
+
+Please open issues and pull requests in `langsync`:
+
+- Repository: https://github.com/mariokreitz/langsync
+- Issues: https://github.com/mariokreitz/langsync/issues
+- Pull requests: https://github.com/mariokreitz/langsync/pulls
+
+## Historical note
+
+The remaining sections in this repository are kept for reference only and describe the legacy workflow that existed
+before migration to `langsync`.
 
 ## Code of Conduct
 

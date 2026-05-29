@@ -6,6 +6,10 @@ labels: bug
 assignees: ''
 ---
 
+> [!WARNING]
+> This repository is deprecated and no longer maintained.
+> Please open bug reports in `langsync`: https://github.com/mariokreitz/langsync/issues
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 

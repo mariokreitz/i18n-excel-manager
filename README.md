@@ -15,6 +15,29 @@
 
 ---
 
+> [!WARNING]
+> **Deprecated and unmaintained:** `i18n-excel-manager` has been replaced by [
+> `langsync`](https://github.com/mariokreitz/langsync).
+> Please migrate all new and existing usage to `langsync`.
+>
+> - npm package name `i18n-excel-manager` is **permanently deprecated**.
+> - This repository is in migration mode and will remain **read-only for 2-4 weeks**, then be archived.
+> - New issues/feature requests should be opened in `langsync`.
+
+## Migration to langsync
+
+Use `langsync` for all future installs and CI usage.
+
+```bash
+npm uninstall i18n-excel-manager
+npm install --save-dev langsync
+npx langsync --help
+```
+
+Repository: https://github.com/mariokreitz/langsync
+
+---
+
 ## ✨ Features
 
 ### Core Conversion
@@ -76,21 +99,23 @@
 
 ## 📦 Installation
 
+`i18n-excel-manager` is deprecated. Install `langsync` instead.
+
 ### Requirements
 
 - Node.js >= 20
 - Tested on Node.js 20.x, 22.x, and 24.x
 
-### Global Installation (Recommended)
+### Global Installation (langsync)
 
 ```bash
-npm install -g i18n-excel-manager
+npm install -g langsync
 ```
 
-### Local Installation (as dev dependency)
+### Local Installation (as dev dependency, langsync)
 
 ```bash
-npm install --save-dev i18n-excel-manager
+npm install --save-dev langsync
 ```
 
 ---
@@ -102,8 +127,8 @@ npm install --save-dev i18n-excel-manager
 Just run the CLI without any arguments and let the interactive menu guide you:
 
 ```bash
-npm install -g i18n-excel-manager
-i18n-excel-manager
+npm install -g langsync
+langsync
 ```
 
 The interactive menu will walk you through all available features with sensible defaults - no need to memorize commands
@@ -153,6 +178,10 @@ For CI/CD pipelines or scripting, use the CLI commands directly:
 ---
 
 ## 🛠️ Usage
+
+The examples below are retained as **legacy reference** for existing projects.
+For active development and up-to-date commands, use `langsync` docs:
+https://github.com/mariokreitz/langsync
 
 ### Interactive Mode
 
@@ -413,13 +442,19 @@ for (const [file, result] of Object.entries(report.fileReports)) {
 
 ```typescript
 {
-  totalCodeKeys: number;
-  fileReports: {
-    [filename: string]: {
-      missing: string[]; // Keys in code but not in JSON
-      unused: string[];  // Keys in JSON but not in code
-    };
-  };
+    totalCodeKeys: number;
+    fileReports: {
+        [ filename
+    :
+        string
+    ]:
+        {
+            missing: string[]; // Keys in code but not in JSON
+            unused: string[];  // Keys in JSON but not in code
+        }
+        ;
+    }
+    ;
 }
 ```
 
@@ -866,8 +901,8 @@ npm run format
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read the [Contributing Guide](CONTRIBUTING.md)
-and [Code of Conduct](CODE_OF_CONDUCT.md) before submitting a pull request.
+This repository is deprecated and in read-only migration mode.
+Please contribute to `langsync` instead: https://github.com/mariokreitz/langsync
 
 ### Quick Contribution Steps
 

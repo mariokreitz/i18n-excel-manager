@@ -51,6 +51,8 @@ const packageJson = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'),
 );
 
+const LANGSYNC_REPO_URL = 'https://github.com/mariokreitz/langsync';
+
 /**
  * Validated local configuration loaded from CWD or packaged fallback.
  * `null` when no valid config file could be found.
@@ -103,6 +105,24 @@ function shouldDisplayHeaderForOptions(options = {}) {
 }
 
 /**
+ * Print a deprecation warning and migration target.
+ * Uses stderr for machine-readable modes so stdout stays parseable.
+ *
+ * @param {{format?: string}} [options={}] Parsed command options.
+ * @returns {void}
+ */
+export function displayDeprecationWarning(options = {}) {
+  const message =
+    'DEPRECATION NOTICE: i18n-excel-manager is no longer maintained. ' +
+    `Please migrate to langsync: ${LANGSYNC_REPO_URL}`;
+  if (options.format === 'json' || options.format === 'sarif') {
+    console.error(chalk.yellow(message));
+    return;
+  }
+  console.warn(chalk.yellow(message));
+}
+
+/**
  * Configure and register all Commander subcommands.
  * Each command sets a flag on the parsed options object and delegates to
  * {@link processCliOptions} for normalization, validation and dispatch.
@@ -125,6 +145,7 @@ program
   .option('--no-report', DESC_NO_REPORT)
   .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
   .action((options) => {
+    displayDeprecationWarning(options);
     if (shouldDisplayHeaderForOptions(options)) displayHeader();
     options.i18nToExcel = true;
     processCliOptions(
@@ -149,6 +170,7 @@ program
   .option('--all-sheets', DESC_ALL_SHEETS)
   .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
   .action((options) => {
+    displayDeprecationWarning(options);
     if (shouldDisplayHeaderForOptions(options)) displayHeader();
     options.excelToI18n = true;
     processCliOptions(
@@ -171,6 +193,7 @@ program
   .option('--quiet', 'suppress non-error output')
   .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
   .action((options) => {
+    displayDeprecationWarning(options);
     if (shouldDisplayHeaderForOptions(options)) displayHeader();
     options.init = true;
     processCliOptions(
@@ -214,6 +237,7 @@ program
   )
   .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
   .action((options) => {
+    displayDeprecationWarning(options);
     if (shouldDisplayHeaderForOptions(options)) displayHeader();
     options.analyze = true;
     processCliOptions(
@@ -240,6 +264,7 @@ program
   .option('--provider <path>', DESC_PROVIDER)
   .option(OPT_CONFIG_FLAG, DESC_CONFIG_FILE)
   .action((options) => {
+    displayDeprecationWarning(options);
     if (shouldDisplayHeaderForOptions(options)) displayHeader();
     options.translate = true;
     processCliOptions(
@@ -258,6 +283,7 @@ program
 async function main() {
   // If no arguments provided, show interactive menu
   if (process.argv.length <= 2) {
+    displayDeprecationWarning();
     displayHeader();
     // For interactive mode, use any local config if available for defaults and languages
     const cfg = LOCAL_CONFIG || {};
