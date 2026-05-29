@@ -9,7 +9,7 @@
     "./cli": "./cli.js"
   },
   "bin": {
-    "i18n-excel-manager": "./cli.js"
+    "i18n-excel-manager": "cli.js"
   },
   "scripts": {
     "start": "node cli.js",
@@ -36,7 +36,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mariokreitz/i18n-excel-manager.git"
+    "url": "git+https://github.com/mariokreitz/i18n-excel-manager.git"
   },
   "bugs": {
     "url": "https://github.com/mariokreitz/i18n-excel-manager/issues"
