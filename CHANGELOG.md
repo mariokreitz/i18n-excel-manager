@@ -7,8 +7,8 @@ All notable changes to this project will be documented in this file.
 ### Deprecated
 
 - **Project sunset**: `i18n-excel-manager` is deprecated and no longer maintained.
-- **Replacement project**: Development continues in `langsync` (https://github.com/mariokreitz/langsync).
-- **Runtime migration notice**: CLI commands now print a deprecation warning that points to `langsync`.
+- **Replacement project**: Development continues in `@verbatra/cli` (https://github.com/mariokreitz/verbatra).
+- **Runtime migration notice**: CLI commands now print a deprecation warning that points to `verbatra`.
 - **Repository transition policy**: this repository remains read-only for a 2-4 week migration window, then will be archived.
 - **npm policy**: package name `i18n-excel-manager` is intended to remain permanently deprecated.
 

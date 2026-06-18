@@ -8,7 +8,7 @@ assignees: ''
 
 > [!WARNING]
 > This repository is deprecated and no longer maintained.
-> Please request new features in `langsync`: https://github.com/mariokreitz/langsync/issues
+> Please request new features in `verbatra`: https://github.com/mariokreitz/verbatra/issues
 
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is.

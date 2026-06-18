@@ -1,8 +1,11 @@
 blank_issues_enabled: false
 contact_links:
-  - name: langsync repository
-    url: https://github.com/mariokreitz/langsync
-    about: This project is deprecated. Use langsync for ongoing development.
-  - name: langsync issues
-    url: https://github.com/mariokreitz/langsync/issues
-    about: Please file bugs and feature requests in langsync.
+  - name: verbatra repository
+    url: https://github.com/mariokreitz/verbatra
+    about: This project is deprecated. Use verbatra for ongoing development.
+  - name: verbatra issues
+    url: https://github.com/mariokreitz/verbatra/issues
+    about: Please file bugs and feature requests in verbatra.
+  - name: verbatra documentation
+    url: https://www.verbatra.kreitz-webdev.de/
+    about: Official documentation for verbatra.

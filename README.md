@@ -17,24 +17,26 @@
 
 > [!WARNING]
 > **Deprecated and unmaintained:** `i18n-excel-manager` has been replaced by [
-> `langsync`](https://github.com/mariokreitz/langsync).
-> Please migrate all new and existing usage to `langsync`.
+> `@verbatra/cli`](https://github.com/mariokreitz/verbatra).
+> Please migrate all new and existing usage to `@verbatra/cli`.
 >
 > - npm package name `i18n-excel-manager` is **permanently deprecated**.
 > - This repository is in migration mode and will remain **read-only for 2-4 weeks**, then be archived.
-> - New issues/feature requests should be opened in `langsync`.
+> - New issues/feature requests should be opened in `verbatra`.
 
-## Migration to langsync
+## Migration to Verbatra
 
-Use `langsync` for all future installs and CI usage.
+Use `@verbatra/cli` for all future installs and CI usage.
 
 ```bash
 npm uninstall i18n-excel-manager
-npm install --save-dev langsync
-npx langsync --help
+npm install --save-dev @verbatra/cli
+npx verbatra --help
 ```
 
-Repository: https://github.com/mariokreitz/langsync
+- Repository: https://github.com/mariokreitz/verbatra
+- Documentation: https://www.verbatra.kreitz-webdev.de/
+- npm: https://www.npmjs.com/package/@verbatra/cli
 
 ---
 
@@ -99,23 +101,23 @@ Repository: https://github.com/mariokreitz/langsync
 
 ## 📦 Installation
 
-`i18n-excel-manager` is deprecated. Install `langsync` instead.
+`i18n-excel-manager` is deprecated. Install `@verbatra/cli` instead.
 
 ### Requirements
 
 - Node.js >= 20
 - Tested on Node.js 20.x, 22.x, and 24.x
 
-### Global Installation (langsync)
+### Global Installation (@verbatra/cli)
 
 ```bash
-npm install -g langsync
+npm install -g @verbatra/cli
 ```
 
-### Local Installation (as dev dependency, langsync)
+### Local Installation (as dev dependency, @verbatra/cli)
 
 ```bash
-npm install --save-dev langsync
+npm install --save-dev @verbatra/cli
 ```
 
 ---
@@ -127,8 +129,8 @@ npm install --save-dev langsync
 Just run the CLI without any arguments and let the interactive menu guide you:
 
 ```bash
-npm install -g langsync
-langsync
+npm install -g @verbatra/cli
+verbatra
 ```
 
 The interactive menu will walk you through all available features with sensible defaults - no need to memorize commands
@@ -180,8 +182,8 @@ For CI/CD pipelines or scripting, use the CLI commands directly:
 ## 🛠️ Usage
 
 The examples below are retained as **legacy reference** for existing projects.
-For active development and up-to-date commands, use `langsync` docs:
-https://github.com/mariokreitz/langsync
+For active development and up-to-date commands, use `@verbatra/cli` docs:
+https://www.verbatra.kreitz-webdev.de/
 
 ### Interactive Mode
 
@@ -902,7 +904,7 @@ npm run format
 ## 🤝 Contributing
 
 This repository is deprecated and in read-only migration mode.
-Please contribute to `langsync` instead: https://github.com/mariokreitz/langsync
+Please contribute to `verbatra` instead: https://github.com/mariokreitz/verbatra
 
 ### Quick Contribution Steps
 

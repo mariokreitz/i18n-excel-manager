@@ -2,7 +2,9 @@
 
 This repository and npm package are deprecated in favor of:
 
-- https://github.com/mariokreitz/langsync
+- https://github.com/mariokreitz/verbatra
+- npm: https://www.npmjs.com/package/@verbatra/cli
+- Documentation: https://www.verbatra.kreitz-webdev.de/
 
 ## Status and policy
 
@@ -25,22 +27,22 @@ Run from a maintainer machine authenticated to npm for this package.
 
 ```bash
 npm whoami
-npm deprecate i18n-excel-manager@"*" "Deprecated: This package is no longer maintained. Please migrate to langsync: https://github.com/mariokreitz/langsync"
+npm deprecate i18n-excel-manager@"*" "Deprecated: This package is no longer maintained. Please migrate to @verbatra/cli: https://github.com/mariokreitz/verbatra"
 npm view i18n-excel-manager deprecated
 ```
 
 ## Suggested migration notice text
 
 ```text
-Deprecated: i18n-excel-manager is no longer maintained. Please migrate to langsync:
-https://github.com/mariokreitz/langsync
+Deprecated: i18n-excel-manager is no longer maintained. Please migrate to @verbatra/cli:
+https://github.com/mariokreitz/verbatra
 ```
 
 ## GitHub transition tasks
 
-- Edit repo description to include "Deprecated: use langsync".
+- Edit repo description to include "Deprecated: use @verbatra/cli".
 - Pin a final issue with migration instructions and command mapping.
-- Create a final GitHub release that links to `langsync`.
+- Create a final GitHub release that links to `verbatra`.
 - Disable publish workflow after final release.
 - Lock branch protection to maintainers only (no new feature PR flow).
 - Keep issues open only for migration support during the 2-4 week window.

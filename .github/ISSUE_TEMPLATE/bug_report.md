@@ -8,7 +8,7 @@ assignees: ''
 
 > [!WARNING]
 > This repository is deprecated and no longer maintained.
-> Please open bug reports in `langsync`: https://github.com/mariokreitz/langsync/issues
+> Please open bug reports in `verbatra`: https://github.com/mariokreitz/verbatra/issues
 
 **Describe the bug**
 A clear and concise description of what the bug is.

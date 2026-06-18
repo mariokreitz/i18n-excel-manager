@@ -8,7 +8,7 @@ assignees: ''
 
 > [!WARNING]
 > This repository is deprecated and no longer maintained.
-> Please report i18n issues in `langsync`: https://github.com/mariokreitz/langsync/issues
+> Please report i18n issues in `verbatra`: https://github.com/mariokreitz/verbatra/issues
 
 **Describe the i18n issue**
 Please provide a clear and concise description of the internationalization issue.

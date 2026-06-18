@@ -51,7 +51,7 @@ const packageJson = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'),
 );
 
-const LANGSYNC_REPO_URL = 'https://github.com/mariokreitz/langsync';
+const VERBATRA_REPO_URL = 'https://github.com/mariokreitz/verbatra';
 
 /**
  * Validated local configuration loaded from CWD or packaged fallback.
@@ -114,7 +114,7 @@ function shouldDisplayHeaderForOptions(options = {}) {
 export function displayDeprecationWarning(options = {}) {
   const message =
     'DEPRECATION NOTICE: i18n-excel-manager is no longer maintained. ' +
-    `Please migrate to langsync: ${LANGSYNC_REPO_URL}`;
+    `Please migrate to verbatra: ${VERBATRA_REPO_URL}`;
   if (options.format === 'json' || options.format === 'sarif') {
     console.error(chalk.yellow(message));
     return;
