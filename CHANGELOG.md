@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.5.2] - 2026-06-18
+
+### Security
+
+- **Resolved all `npm audit` findings (2 → 0)**: Eliminated 2 moderate-severity advisories — `protobufjs` schema property-shadowing (`GHSA-f38q-mgvj-vph7`, fixed via `7.6.4`, pulled in transitively through `@google/genai`) and the `js-yaml` quadratic-complexity merge-key DoS (`GHSA-h67p-54hq-rp68`, fixed via `4.2.0`).
+
+### Changed
+
+- **Dependency updates** (functionality preserved, full test suite green): `@google/genai` 2.6.0 → 2.8.0, `commander` 14 → 15, `inquirer` 13 → 14, `eslint-plugin-n` 18.0.1 → 18.1.0, `release-it` 20.0.1 → 20.2.0.
+- **Final maintenance release**: this is the last planned patch for `i18n-excel-manager`. The package remains deprecated — please migrate to [`@verbatra/cli`](https://github.com/mariokreitz/verbatra).
+
+### Deferred
+
+- **`eslint` 10 and `eslint-plugin-unicorn` 67** were intentionally skipped: they are incompatible with the current ESLint plugin set (`eslint-plugin-eslint-comments`, `eslint-plugin-import`) and break the lint toolchain. They are dev-only and carry no security impact.
+
 ## [2.5.1] - 2026-05-29
 
 ### Deprecated
